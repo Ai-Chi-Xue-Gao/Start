@@ -1,0 +1,152 @@
+{
+  "health_up": [
+    {
+      "nodeId": "vitality",
+      "levelReq": 2,
+      "trigger": "onLowHealth",
+      "condition": { "hpPercent": "<0.3" },
+      "effect": { "type": "applyBuff", "buffId": "regen", "value": 5, "duration": 0 }
+    },
+    {
+      "nodeId": "toughness",
+      "levelReq": 3,
+      "trigger": "onDamage",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "flatDamageReduction", "value": 5 }
+    },
+    {
+      "nodeId": "revive",
+      "levelReq": 4,
+      "trigger": "onKill",
+      "condition": {},
+      "effect": { "type": "heal", "value": "5%max" }
+    },
+    {
+      "nodeId": "immortal",
+      "levelReq": 5,
+      "trigger": "onDeath",
+      "condition": {},
+      "effect": { "type": "revive", "hpPercent": 0.5, "once": true }
+    }
+  ],
+  "speed_up": [
+    {
+      "nodeId": "haste",
+      "levelReq": 2,
+      "trigger": "onMoving",
+      "condition": { "duration": 2 },
+      "effect": { "type": "modifyStat", "stat": "speedMultiplier", "value": 1.2, "temporary": true }
+    },
+    {
+      "nodeId": "dodge",
+      "levelReq": 3,
+      "trigger": "onDamage",
+      "condition": {},
+      "effect": { "type": "dodge", "chance": 0.1 }
+    },
+    {
+      "nodeId": "gale",
+      "levelReq": 4,
+      "trigger": "onKill",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "speedMultiplier", "value": 1.5, "duration": 2 }
+    },
+    {
+      "nodeId": "blink",
+      "levelReq": 5,
+      "trigger": "onDamage",
+      "condition": {},
+      "effect": { "type": "teleport", "radius": 300 }
+    }
+  ],
+  "fireball_double": [
+    {
+      "nodeId": "spread",
+      "levelReq": 2,
+      "trigger": "onCast",
+      "condition": {},
+      "effect": { "type": "modifyProjectile", "stat": "count", "value": 3, "spreadAngle": 30 }
+    },
+    {
+      "nodeId": "return",
+      "levelReq": 3,
+      "trigger": "onProjectileMiss",
+      "condition": {},
+      "effect": { "type": "projectileReturn", "retarget": true }
+    },
+    {
+      "nodeId": "burn",
+      "levelReq": 4,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "applyBuff", "buffId": "burn", "damage": 5, "duration": 3 }
+    },
+    {
+      "nodeId": "meteor",
+      "levelReq": 5,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "spawnProjectile", "projectileId": "meteor", "damage": 50, "radius": 100 }
+    }
+  ],
+  "ice_nova": [
+    {
+      "nodeId": "iceSpike",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": { "skillId": "ice_nova" },
+      "effect": { "type": "dealDamage", "value": 30 }
+    },
+    {
+      "nodeId": "freeze",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": { "skillId": "ice_nova" },
+      "effect": { "type": "applyBuff", "buffId": "freeze", "duration": 1 }
+    },
+    {
+      "nodeId": "echo",
+      "levelReq": 4,
+      "trigger": "onSkillCast",
+      "condition": { "skillId": "ice_nova" },
+      "effect": { "type": "repeatCast", "count": 2, "delay": 1 }
+    },
+    {
+      "nodeId": "eternalFreeze",
+      "levelReq": 5,
+      "trigger": "onSkillCast",
+      "condition": { "skillId": "ice_nova", "targetHasBuff": "freeze" },
+      "effect": { "type": "modifyStat", "stat": "armor", "value": 0, "duration": 3 }
+    }
+  ],
+  "kill_attack": [
+    {
+      "nodeId": "bloodthirst",
+      "levelReq": 2,
+      "trigger": "onKill",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "critChance", "value": 0.05, "duration": 5 }
+    },
+    {
+      "nodeId": "berserk",
+      "levelReq": 3,
+      "trigger": "onCombo",
+      "condition": { "comboCount": 3 },
+      "effect": { "type": "modifyStat", "stat": "attackMultiplier", "value": 1.5, "duration": 3 }
+    },
+    {
+      "nodeId": "execute",
+      "levelReq": 4,
+      "trigger": "onDamage",
+      "condition": { "targetHpPercent": "<0.15" },
+      "effect": { "type": "dealDamage", "value": "targetMaxHp", "kill": true }
+    },
+    {
+      "nodeId": "killingField",
+      "levelReq": 5,
+      "trigger": "onKill",
+      "condition": {},
+      "effect": { "type": "dealAreaDamage", "value": "50%attack", "radius": 150 }
+    }
+  ]
+}

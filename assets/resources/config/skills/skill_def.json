@@ -1,0 +1,290 @@
+{
+  "health_up": {
+    "name": "生命强化",
+    "description": "最大生命值 +20",
+    "rarity": "common",
+    "tags": ["passive", "defense", "wood"],
+    "maxLevel": 5,
+    "icon": "icon_health"
+  },
+  "speed_up": {
+    "name": "疾走",
+    "description": "移动速度 +20%",
+    "rarity": "common",
+    "tags": ["passive", "mobility", "wind"],
+    "maxLevel": 5,
+    "icon": "icon_speed"
+  },
+  "exp_up": {
+    "name": "经验祝福",
+    "description": "经验获取 +30%",
+    "rarity": "common",
+    "tags": ["passive", "growth", "wood"],
+    "maxLevel": 5,
+    "icon": "icon_exp"
+  },
+  "cooldown_down": {
+    "name": "快速施法",
+    "description": "攻击冷却 -0.15秒",
+    "rarity": "common",
+    "tags": ["passive", "magic", "fire"],
+    "maxLevel": 5,
+    "icon": "icon_cooldown"
+  },
+  "magnet_up": {
+    "name": "磁力吸引",
+    "description": "经验球吸引范围 +50%",
+    "rarity": "common",
+    "tags": ["passive", "utility", "metal"],
+    "maxLevel": 5,
+    "icon": "icon_magnet"
+  },
+  "attack_up": {
+    "name": "攻击强化",
+    "description": "攻击力 +20%",
+    "rarity": "common",
+    "tags": ["passive", "offense", "metal"],
+    "maxLevel": 5,
+    "icon": "icon_attack"
+  },
+  "fireball_double": {
+    "name": "双重火球",
+    "description": "每次发射2个火球",
+    "rarity": "rare",
+    "tags": ["weapon", "fire", "projectile"],
+    "maxLevel": 5,
+    "icon": "icon_fireball"
+  },
+  "fireball_pierce": {
+    "name": "火球弹射",
+    "description": "击杀敌人后弹射一次",
+    "rarity": "rare",
+    "tags": ["weapon", "fire", "chain"],
+    "maxLevel": 5,
+    "icon": "icon_pierce"
+  },
+  "fireball_speed": {
+    "name": "极速火球",
+    "description": "火球飞行速度 +50%",
+    "rarity": "rare",
+    "tags": ["weapon", "fire", "speed"],
+    "maxLevel": 5,
+    "icon": "icon_speed_fireball"
+  },
+  "fireball_size": {
+    "name": "巨型火球",
+    "description": "火球体积 +50%，伤害 +30%",
+    "rarity": "epic",
+    "tags": ["weapon", "fire", "aoe"],
+    "maxLevel": 5,
+    "icon": "icon_size_fireball"
+  },
+  "water_trail": {
+    "name": "流步残痕",
+    "description": "移动路径留下水域，敌人减速 25%",
+    "rarity": "rare",
+    "tags": ["passive", "water", "control"],
+    "maxLevel": 5,
+    "icon": "icon_water_trail"
+  },
+  "water_orb": {
+    "name": "水灵法球",
+    "description": "环绕 2 颗水球，自动攻击最近敌人",
+    "rarity": "epic",
+    "tags": ["active", "water", "defense"],
+    "maxLevel": 5,
+    "icon": "icon_water_orb"
+  },
+  "ice_nova": {
+    "name": "冰霜新星",
+    "description": "每5秒释放冰霜新星，减速周围敌人40%",
+    "rarity": "epic",
+    "tags": ["active", "water", "control"],
+    "maxLevel": 5,
+    "icon": "icon_ice_nova"
+  },
+  "summon_root": {
+    "name": "灵木之仆",
+    "description": "召唤一个藤蔓仆从，缓慢攻击附近敌人",
+    "rarity": "epic",
+    "tags": ["active", "wood", "summon"],
+    "maxLevel": 5,
+    "icon": "icon_summon"
+  },
+  "wood_regen": {
+    "name": "青木生机",
+    "description": "每秒回复 0.5% 最大生命",
+    "rarity": "rare",
+    "tags": ["passive", "wood", "heal"],
+    "maxLevel": 5,
+    "icon": "icon_regen"
+  },
+  "armor_pierce": {
+    "name": "金锋透甲",
+    "description": "攻击无视 15% 防御",
+    "rarity": "epic",
+    "tags": ["passive", "metal", "penetration"],
+    "maxLevel": 5,
+    "icon": "icon_penetrate"
+  },
+  "crit_up": {
+    "name": "锐金暴击",
+    "description": "暴击率 +10%，暴击伤害 +30%",
+    "rarity": "epic",
+    "tags": ["passive", "metal", "crit"],
+    "maxLevel": 5,
+    "icon": "icon_crit"
+  },
+  "earth_armor": {
+    "name": "厚土之肤",
+    "description": "受到伤害 -12%",
+    "rarity": "rare",
+    "tags": ["passive", "earth", "defense"],
+    "maxLevel": 5,
+    "icon": "icon_armor"
+  },
+  "thorn_return": {
+    "name": "石肤荆棘",
+    "description": "受到伤害反弹 15%",
+    "rarity": "epic",
+    "tags": ["passive", "earth", "thorns"],
+    "maxLevel": 5,
+    "icon": "icon_thorn"
+  },
+  "vampire": {
+    "name": "吸血",
+    "description": "攻击回复生命值（回复伤害的10%）",
+    "rarity": "epic",
+    "tags": ["passive", "dark", "heal"],
+    "maxLevel": 5,
+    "icon": "icon_vampire"
+  },
+  "shield": {
+    "name": "护盾",
+    "description": "每30秒获得一个护盾，抵挡一次伤害",
+    "rarity": "legendary",
+    "tags": ["passive", "defense", "shield"],
+    "maxLevel": 5,
+    "icon": "icon_shield"
+  },
+  "kill_attack": {
+    "name": "杀戮欲望",
+    "description": "击杀敌人永久增加攻击力 +1",
+    "rarity": "epic",
+    "tags": ["passive", "kill", "offense"],
+    "maxLevel": 5,
+    "icon": "icon_kill_attack"
+  },
+  "kill_health": {
+    "name": "生命汲取",
+    "description": "击杀敌人永久增加最大生命值 +3",
+    "rarity": "epic",
+    "tags": ["passive", "kill", "defense"],
+    "maxLevel": 5,
+    "icon": "icon_kill_health"
+  },
+  "kill_speed": {
+    "name": "疾风步伐",
+    "description": "击杀敌人永久增加移动速度 +1%",
+    "rarity": "rare",
+    "tags": ["passive", "kill", "mobility"],
+    "maxLevel": 5,
+    "icon": "icon_kill_speed"
+  },
+  "kill_cooldown": {
+    "name": "专注",
+    "description": "击杀敌人永久减少攻击冷却 -0.01秒",
+    "rarity": "rare",
+    "tags": ["passive", "kill", "magic"],
+    "maxLevel": 5,
+    "icon": "icon_kill_cooldown"
+  },
+  "kill_exp": {
+    "name": "经验狂魔",
+    "description": "击杀敌人永久增加经验获取 +2%",
+    "rarity": "rare",
+    "tags": ["passive", "kill", "growth"],
+    "maxLevel": 5,
+    "icon": "icon_kill_exp"
+  },
+  "kill_vampire": {
+    "name": "嗜血",
+    "description": "击杀敌人回复 3 点生命值",
+    "rarity": "common",
+    "tags": ["passive", "kill", "heal"],
+    "maxLevel": 5,
+    "icon": "icon_kill_vampire"
+  },
+  "kill_shield": {
+    "name": "护盾掌握",
+    "description": "击杀敌人获得 5 点临时护盾",
+    "rarity": "epic",
+    "tags": ["passive", "kill", "shield"],
+    "maxLevel": 5,
+    "icon": "icon_kill_shield"
+  },
+  "kill_rage": {
+    "name": "暴怒",
+    "description": "击杀敌人后 3 秒内攻击力 +30%",
+    "rarity": "epic",
+    "tags": ["passive", "kill", "rage"],
+    "maxLevel": 5,
+    "icon": "icon_rage"
+  },
+  "kill_lucky": {
+    "name": "幸运",
+    "description": "击杀敌人增加 5% 额外经验球掉落几率",
+    "rarity": "rare",
+    "tags": ["passive", "kill", "luck"],
+    "maxLevel": 5,
+    "icon": "icon_lucky"
+  },
+  "kill_rebirth": {
+    "name": "重生",
+    "description": "每击杀 50 个敌人获得一次复活机会",
+    "rarity": "legendary",
+    "tags": ["passive", "kill", "revive"],
+    "maxLevel": 5,
+    "icon": "icon_rebirth"
+  },
+  "fusion_fire_earth": {
+    "name": "熔岩火陨",
+    "description": "火球命中时爆炸，造成范围伤害",
+    "rarity": "legendary",
+    "tags": ["weapon", "fire", "earth", "fusion"],
+    "maxLevel": 1,
+    "icon": "icon_fusion_fire_earth"
+  },
+  "fusion_ice_gold": {
+    "name": "冰锋雷刺",
+    "description": "减速敌人时暴击率翻倍",
+    "rarity": "legendary",
+    "tags": ["passive", "water", "metal", "fusion"],
+    "maxLevel": 1,
+    "icon": "icon_fusion_ice_gold"
+  },
+  "fusion_vamp_root": {
+    "name": "血木共生",
+    "description": "吸血量的50%转化为每秒回血",
+    "rarity": "legendary",
+    "tags": ["passive", "dark", "wood", "fusion"],
+    "maxLevel": 1,
+    "icon": "icon_fusion_vamp_root"
+  },
+  "ultimate_kill": {
+    "name": "终极杀戮",
+    "description": "所有杀怪奖励效果翻 5 倍！",
+    "rarity": "mythic",
+    "tags": ["passive", "ultimate", "kill"],
+    "maxLevel": 1,
+    "icon": "icon_ultimate_kill"
+  },
+  "five_elements_awaken": {
+    "name": "五行归元",
+    "description": "每30秒轮转五行增益",
+    "rarity": "mythic",
+    "tags": ["passive", "ultimate", "element"],
+    "maxLevel": 5,
+    "icon": "icon_five_elements"
+  }
+}

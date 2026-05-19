@@ -231,27 +231,6 @@
     "fileId": "724m2I4I5GsoE3BcS4YZOv"
   },
   {
-    "__type__": "f0a695IePJF2YPXyWyCjHkx",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 11
-    },
-    "expValue": 10,
-    "magnetSpeed": 200,
-    "magnetRadius": 2000,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "11Qj/JY5FBRJXK+sKX6n3L"
-  },
-  {
     "__type__": "cc.CircleCollider2D",
     "_name": "",
     "_objFlags": 0,
@@ -261,7 +240,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 13
+      "__id__": 11
     },
     "tag": 0,
     "_group": 1,
@@ -280,6 +259,27 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "90kmXyFwJK0Jqhkl/6Vwd5"
+  },
+  {
+    "__type__": "0ac7eA2NsdH1Z6IhGNJH6IA",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 13
+    },
+    "expValue": 10,
+    "magnetSpeed": 200,
+    "magnetRadius": 200,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "e88kJNDDVJz47ddVX0iOUr"
   },
   {
     "__type__": "cc.PrefabInfo",

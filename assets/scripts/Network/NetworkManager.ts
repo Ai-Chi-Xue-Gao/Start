@@ -1,7 +1,8 @@
 import { _decorator, Color, Component, instantiate, Label, Node, Prefab, Sprite } from 'cc';
 import { NetworkPlayer } from './NetworkPlayer';
 import { NetworkEnemy } from './NetworkEnemy';
-import { EventBus } from '../Enemy/EventBus';
+import { EventBus } from '../core/EventBus';
+import { EventNames } from '../utils/EventNames';
 const { ccclass, property } = _decorator;
 /**
  * 玩家数据结构（网络传输用）
@@ -237,7 +238,12 @@ export class NetworkManager extends Component {
             case 'enemy_dead':{
                 const enemyNode = this.networkEnemies.get(msg.data.id)
                 if(enemyNode){
-                    enemyNode.destroy()
+                    const networkEnemy = enemyNode.getComponent(NetworkEnemy)
+                    if(networkEnemy){
+                        networkEnemy.die()
+                    }else{
+                        enemyNode.destroy()
+                    }
                     this.networkEnemies.delete(msg.data.id)
                 }
                 if(this.onEnemyDeadCallback){
@@ -247,7 +253,7 @@ export class NetworkManager extends Component {
             }
             case 'enemy_exp':{
                 console.log(`获得${msg.data.exp}经验`)
-                EventBus.emit('gain-exp', msg.data.exp)
+                EventBus.emit(EventNames.GAIN_EXP, msg.data.exp)
                 break
             }
             default:{
@@ -266,11 +272,11 @@ export class NetworkManager extends Component {
     }
 
     // 发送攻击消息
-    public sendAttack(enemyId: string){
+    public sendAttack(enemyId: string, damage: number){
         if(!this.connected || !this.ws) return
         this.ws.send(JSON.stringify({
             type: 'attack',
-            data: {enemyId}
+            data: {enemyId, damage}
         }))
     }
 

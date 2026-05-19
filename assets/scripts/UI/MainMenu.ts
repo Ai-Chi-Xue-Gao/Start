@@ -1,5 +1,5 @@
 import { _decorator, Button, Component, director, Node, sys } from 'cc';
-import { EventBus } from '../Enemy/EventBus';
+import { EventBus } from '../core/EventBus';
 const { ccclass, property } = _decorator;
 
 @ccclass('MainMenu')

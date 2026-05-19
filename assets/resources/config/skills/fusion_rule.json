@@ -1,0 +1,50 @@
+{
+  "fusion_fire_earth": {
+    "name": "熔岩火陨",
+    "description": "火球命中时爆炸，造成范围伤害",
+    "requires": [
+      { "skillId": "fireball_size", "minLevel": 3 },
+      { "skillId": "thorn_return", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["fireball_size", "thorn_return"],
+    "effect": {
+      "type": "modifyProjectile",
+      "stat": "onHitExplosion",
+      "value": true,
+      "damagePercent": 0.5
+    }
+  },
+  "fusion_ice_gold": {
+    "name": "冰锋雷刺",
+    "description": "减速敌人时暴击率翻倍",
+    "requires": [
+      { "skillId": "ice_nova", "minLevel": 3 },
+      { "skillId": "crit_up", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["ice_nova", "crit_up"],
+    "effect": {
+      "type": "modifyStat",
+      "stat": "critChance",
+      "condition": "onTargetSlowed",
+      "multiplier": 2
+    }
+  },
+  "fusion_vamp_root": {
+    "name": "血木共生",
+    "description": "吸血量的50%转化为每秒回血",
+    "requires": [
+      { "skillId": "vampire", "minLevel": 3 },
+      { "skillId": "wood_regen", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["vampire", "wood_regen"],
+    "effect": {
+      "type": "convertStat",
+      "from": "vampirePercent",
+      "to": "hpRegenPercent",
+      "ratio": 0.5
+    }
+  }
+}

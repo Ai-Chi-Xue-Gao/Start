@@ -1,5 +1,6 @@
 import { _decorator, Button, Component, director, Node } from 'cc';
-import { EventBus } from '../Enemy/EventBus';
+import { EventBus } from '../core/EventBus';
+import { EventNames } from '../utils/EventNames';
 const { ccclass, property } = _decorator;
 
 @ccclass('PauseManager')
@@ -51,7 +52,7 @@ export class PauseManager extends Component {
         }
 
         // 发射暂停事件（通知游戏暂停）
-        EventBus.emit('game-pause', true)
+        EventBus.emit(EventNames.GAME_PAUSE, true)
     }
 
     // 点击继续游戏按钮
@@ -65,13 +66,13 @@ export class PauseManager extends Component {
         }
 
         // 发生恢复事件
-        EventBus.emit('game-pause', false)
+        EventBus.emit(EventNames.GAME_PAUSE, false)
     }
 
     // 点击返回主菜单按钮
     private onMenuClick(){
         // 恢复游戏
-        EventBus.emit('game-pause', false)
+        EventBus.emit(EventNames.GAME_PAUSE, false)
 
         // 加载主菜单场景
         director.loadScene('Main')

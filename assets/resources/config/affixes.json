@@ -1,0 +1,200 @@
+{
+  "affixes": [
+    {
+      "id": "fast",
+      "name": "迅捷",
+      "description": "移动速度 +40%",
+      "rarity": "common",
+      "minWave": 10,
+      "stats": {
+        "speedMultiplier": 1.4
+      }
+    },
+    {
+      "id": "tough",
+      "name": "坚韧",
+      "description": "最大生命值 +50%",
+      "rarity": "common",
+      "minWave": 10,
+      "stats": {
+        "healthMultiplier": 1.5
+      }
+    },
+    {
+      "id": "strong",
+      "name": "强击",
+      "description": "攻击力 +30%",
+      "rarity": "common",
+      "minWave": 10,
+      "stats": {
+        "damageMultiplier": 1.3
+      }
+    },
+    {
+      "id": "vampire",
+      "name": "吸血",
+      "description": "攻击时回复生命",
+      "rarity": "common",
+      "minWave": 10,
+      "hasCallback": true,
+      "callbackType": "onHitPlayer"
+    },
+    {
+      "id": "explosive",
+      "name": "自爆",
+      "description": "死亡时爆炸，造成范围伤害",
+      "rarity": "rare",
+      "minWave": 21,
+      "hasCallback": true,
+      "callbackType": "onDeath",
+      "stats": {
+        "explosionRadius": 100,
+        "explosionDamagePercent": 0.5
+      }
+    },
+    {
+      "id": "frost",
+      "name": "寒霜",
+      "description": "攻击时减速玩家",
+      "rarity": "rare",
+      "minWave": 21,
+      "hasCallback": true,
+      "callbackType": "onHitPlayer",
+      "stats": {
+        "slowPercent": 0.3,
+        "slowDuration": 1.5
+      }
+    },
+    {
+      "id": "regenerate",
+      "name": "再生",
+      "description": "每秒回复2%生命值",
+      "rarity": "rare",
+      "minWave": 21,
+      "hasCallback": true,
+      "callbackType": "onUpdate",
+      "stats": {
+        "regeneratePercent": 0.02
+      }
+    },
+    {
+      "id": "armored",
+      "name": "护甲",
+      "description": "减伤 25%",
+      "rarity": "rare",
+      "minWave": 21,
+      "stats": {
+        "damageReduction": 0.25
+      }
+    },
+    {
+      "id": "split",
+      "name": "分裂",
+      "description": "死亡时分裂成2个小怪",
+      "rarity": "epic",
+      "minWave": 41,
+      "hasCallback": true,
+      "callbackType": "onDeath",
+      "stats": {
+        "splitCount": 2,
+        "splitHealthPercent": 0.5
+      }
+    },
+    {
+      "id": "berserk",
+      "name": "狂暴",
+      "description": "血量低于30%时，攻速+100%，移速+50%",
+      "rarity": "epic",
+      "minWave": 41,
+      "hasCallback": true,
+      "callbackType": "onUpdate",
+      "stats": {
+        "berserkThreshold": 0.3,
+        "berserkSpeedMultiplier": 1.5,
+        "berserkAttackMultiplier": 2.0
+      }
+    },
+    {
+      "id": "shielded",
+      "name": "护盾",
+      "description": "拥有一个吸收伤害的护盾",
+      "rarity": "epic",
+      "minWave": 41,
+      "stats": {
+        "shieldAmount": 50
+      }
+    },
+    {
+      "id": "teleport",
+      "name": "瞬移",
+      "description": "受到伤害时瞬移到随机位置",
+      "rarity": "epic",
+      "minWave": 41,
+      "hasCallback": true,
+      "callbackType": "onHit",
+      "stats": {
+        "teleportChance": 0.3,
+        "teleportRadius": 300
+      }
+    },
+    {
+      "id": "immortal",
+      "name": "不朽",
+      "description": "死亡后以50%生命值复活一次",
+      "rarity": "legendary",
+      "minWave": 61,
+      "hasCallback": true,
+      "callbackType": "onDeath",
+      "stats": {
+        "reviveHealthPercent": 0.5
+      }
+    },
+    {
+      "id": "mirror",
+      "name": "镜像",
+      "description": "受到伤害时，反弹50%伤害给攻击者",
+      "rarity": "legendary",
+      "minWave": 61,
+      "hasCallback": true,
+      "callbackType": "onHit",
+      "stats": {
+        "reflectPercent": 0.5
+      }
+    },
+    {
+      "id": "adaptive",
+      "name": "适应",
+      "description": "受到同类型伤害时，后续伤害-30%",
+      "rarity": "legendary",
+      "minWave": 61,
+      "hasCallback": true,
+      "callbackType": "onHit",
+      "stats": {
+        "adaptiveResistance": 0.3
+      }
+    },
+    {
+      "id": "minion_master",
+      "name": "召唤师",
+      "description": "每10秒召唤1个小怪",
+      "rarity": "legendary",
+      "minWave": 61,
+      "hasCallback": true,
+      "callbackType": "onUpdate",
+      "stats": {
+        "summonInterval": 10,
+        "summonCount": 1
+      }
+    }
+  ],
+
+  "rarityOrder": ["common", "rare", "epic", "legendary"],
+  
+  "waveConfig": {
+    "wave10_19": { "affixCount": 1, "maxRarity": "common" },
+    "wave20_34": { "affixCount": 2, "maxRarity": "rare" },
+    "wave35_49": { "affixCount": 3, "maxRarity": "epic" },
+    "wave50_69": { "affixCount": 4, "maxRarity": "legendary" },
+    "wave70_plus": { "affixCount": 5, "maxRarity": "legendary" }
+  }
+}

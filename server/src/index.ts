@@ -167,11 +167,11 @@ wss.on('connection', (ws: WebSocket, req) => {
                 // 在move消息处理之后添加
                 case 'attack':{
                     const enemyId = message.data.enemyId;
+                    const damage = message.data.damage;
                     const enemy = enemies.get(enemyId);
                     if(enemy){
                         const config = EnemyConfig[enemy.type];
-                        const damage = 20; // 火球基础伤害
-                        enemy.hp -= damage;
+                        enemy.hp -= damage
                         if(enemy.hp <= 0){
                             enemies.delete(enemyId);
                             broadcastAll('enemy_dead', {id: enemyId})

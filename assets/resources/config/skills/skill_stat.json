@@ -1,0 +1,196 @@
+{
+  "health_up": {
+    "1": { "healthBonus": 20 },
+    "2": { "healthBonus": 40 },
+    "3": { "healthBonus": 60 },
+    "4": { "healthBonus": 80 },
+    "5": { "healthBonus": 100 }
+  },
+  "speed_up": {
+    "1": { "speedMultiplier": 1.2 },
+    "2": { "speedMultiplier": 1.25 },
+    "3": { "speedMultiplier": 1.3 },
+    "4": { "speedMultiplier": 1.35 },
+    "5": { "speedMultiplier": 1.4 }
+  },
+  "exp_up": {
+    "1": { "expBonus": 0.3 },
+    "2": { "expBonus": 0.4 },
+    "3": { "expBonus": 0.5 },
+    "4": { "expBonus": 0.6 },
+    "5": { "expBonus": 0.7 }
+  },
+  "cooldown_down": {
+    "1": { "cooldownReduction": 0.15 },
+    "2": { "cooldownReduction": 0.2 },
+    "3": { "cooldownReduction": 0.25 },
+    "4": { "cooldownReduction": 0.3 },
+    "5": { "cooldownReduction": 0.35 }
+  },
+  "magnet_up": {
+    "1": { "magnetBonus": 0.5 },
+    "2": { "magnetBonus": 0.75 },
+    "3": { "magnetBonus": 1.0 },
+    "4": { "magnetBonus": 1.25 },
+    "5": { "magnetBonus": 1.5 }
+  },
+  "attack_up": {
+    "1": { "attackMultiplier": 1.2 },
+    "2": { "attackMultiplier": 1.25 },
+    "3": { "attackMultiplier": 1.3 },
+    "4": { "attackMultiplier": 1.35 },
+    "5": { "attackMultiplier": 1.4 }
+  },
+  "fireball_double": {
+    "1": { "fireballCount": 2 }
+  },
+  "fireball_pierce": {
+    "1": { "pierceCount": 1 },
+    "2": { "pierceCount": 2 },
+    "3": { "pierceCount": 3 }
+  },
+  "fireball_speed": {
+    "1": { "fireballSpeedMultiplier": 1.5 },
+    "2": { "fireballSpeedMultiplier": 1.7 },
+    "3": { "fireballSpeedMultiplier": 1.9 },
+    "4": { "fireballSpeedMultiplier": 2.1 },
+    "5": { "fireballSpeedMultiplier": 2.3 }
+  },
+  "fireball_size": {
+    "1": { "sizeMultiplier": 1.5, "damageBonus": 0.3 },
+    "2": { "sizeMultiplier": 1.7, "damageBonus": 0.35 },
+    "3": { "sizeMultiplier": 1.9, "damageBonus": 0.4 }
+  },
+  "water_trail": {
+    "1": { "slowPercent": 0.25 },
+    "2": { "slowPercent": 0.3 },
+    "3": { "slowPercent": 0.35 }
+  },
+  "water_orb": {
+    "1": { "orbCount": 2 },
+    "2": { "orbCount": 3 },
+    "3": { "orbCount": 4 }
+  },
+  "ice_nova": {
+    "1": { "cooldown": 5, "slowPercent": 0.4, "slowDuration": 2 },
+    "2": { "cooldown": 4.5, "slowPercent": 0.45, "slowDuration": 2 },
+    "3": { "cooldown": 4, "slowPercent": 0.5, "slowDuration": 2.5 }
+  },
+  "summon_root": {
+    "1": { "summonCount": 1 },
+    "2": { "summonCount": 2 },
+    "3": { "summonCount": 3 }
+  },
+  "wood_regen": {
+    "1": { "hpRegenPercent": 0.005 },
+    "2": { "hpRegenPercent": 0.007 },
+    "3": { "hpRegenPercent": 0.01 },
+    "4": { "hpRegenPercent": 0.012 },
+    "5": { "hpRegenPercent": 0.015 }
+  },
+  "armor_pierce": {
+    "1": { "armorPen": 0.15 },
+    "2": { "armorPen": 0.2 },
+    "3": { "armorPen": 0.25 }
+  },
+  "crit_up": {
+    "1": { "critChance": 0.1, "critDamage": 0.3 },
+    "2": { "critChance": 0.12, "critDamage": 0.35 },
+    "3": { "critChance": 0.15, "critDamage": 0.4 }
+  },
+  "earth_armor": {
+    "1": { "damageReduction": 0.12 },
+    "2": { "damageReduction": 0.15 },
+    "3": { "damageReduction": 0.18 },
+    "4": { "damageReduction": 0.21 },
+    "5": { "damageReduction": 0.25 }
+  },
+  "thorn_return": {
+    "1": { "thornDamage": 0.15 },
+    "2": { "thornDamage": 0.2 },
+    "3": { "thornDamage": 0.25 }
+  },
+  "vampire": {
+    "1": { "vampirePercent": 0.1 },
+    "2": { "vampirePercent": 0.12 },
+    "3": { "vampirePercent": 0.15 },
+    "4": { "vampirePercent": 0.18 },
+    "5": { "vampirePercent": 0.2 }
+  },
+  "shield": {
+    "1": { "cooldown": 30, "shieldAmount": 50 },
+    "2": { "cooldown": 27, "shieldAmount": 60 },
+    "3": { "cooldown": 24, "shieldAmount": 70 }
+  },
+  "kill_attack": {
+    "1": { "attackBonus": 1 },
+    "2": { "attackBonus": 2 },
+    "3": { "attackBonus": 3 },
+    "4": { "attackBonus": 4 },
+    "5": { "attackBonus": 5 }
+  },
+  "kill_health": {
+    "1": { "healthBonus": 3 },
+    "2": { "healthBonus": 6 },
+    "3": { "healthBonus": 9 },
+    "4": { "healthBonus": 12 },
+    "5": { "healthBonus": 15 }
+  },
+  "kill_speed": {
+    "1": { "speedBonusPercent": 0.01 },
+    "2": { "speedBonusPercent": 0.02 },
+    "3": { "speedBonusPercent": 0.03 },
+    "4": { "speedBonusPercent": 0.04 },
+    "5": { "speedBonusPercent": 0.05 }
+  },
+  "kill_cooldown": {
+    "1": { "cooldownBonus": 0.01 },
+    "2": { "cooldownBonus": 0.02 },
+    "3": { "cooldownBonus": 0.03 },
+    "4": { "cooldownBonus": 0.04 },
+    "5": { "cooldownBonus": 0.05 }
+  },
+  "kill_exp": {
+    "1": { "expBonusPercent": 0.02 },
+    "2": { "expBonusPercent": 0.04 },
+    "3": { "expBonusPercent": 0.06 },
+    "4": { "expBonusPercent": 0.08 },
+    "5": { "expBonusPercent": 0.1 }
+  },
+  "kill_vampire": {
+    "1": { "healAmount": 3 },
+    "2": { "healAmount": 6 },
+    "3": { "healAmount": 9 },
+    "4": { "healAmount": 12 },
+    "5": { "healAmount": 15 }
+  },
+  "kill_shield": {
+    "1": { "shieldAmount": 5 },
+    "2": { "shieldAmount": 10 },
+    "3": { "shieldAmount": 15 },
+    "4": { "shieldAmount": 20 },
+    "5": { "shieldAmount": 25 }
+  },
+  "kill_rage": {
+    "1": { "rageDuration": 3, "rageDamageBonus": 0.3 },
+    "2": { "rageDuration": 3.5, "rageDamageBonus": 0.35 },
+    "3": { "rageDuration": 4, "rageDamageBonus": 0.4 }
+  },
+  "kill_lucky": {
+    "1": { "dropBonusPercent": 0.05 },
+    "2": { "dropBonusPercent": 0.08 },
+    "3": { "dropBonusPercent": 0.1 }
+  },
+  "kill_rebirth": {
+    "1": { "killRequired": 50 },
+    "2": { "killRequired": 45 },
+    "3": { "killRequired": 40 }
+  },
+  "five_elements_awaken": {
+    "1": { "cycleTime": 30 },
+    "2": { "cycleTime": 25 },
+    "3": { "cycleTime": 20 },
+    "4": { "cycleTime": 15 },
+    "5": { "cycleTime": 10 }
+  }
+}

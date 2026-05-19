@@ -1,5 +1,6 @@
 import { _decorator, Collider, Collider2D, Color, Component, Contact2DType, IPhysics2DContact, Node, Sprite } from 'cc';
-import { EventBus } from '../Enemy/EventBus';
+import { EventBus } from '../core/EventBus';
+import { EventNames } from '../utils/EventNames';
 const { ccclass, property } = _decorator;
 
 @ccclass('NetworkEnemy')
@@ -11,6 +12,7 @@ export class NetworkEnemy extends Component {
     private enemyType: 'normal' | 'elite' | 'boss' = 'normal' // 敌人类型
     private damage: number = 10 // 碰撞伤害
     private collider: Collider2D = null // 碰撞组件
+    public isDead: boolean = false
 
     start() {
         // 注册碰撞事件
@@ -31,7 +33,7 @@ export class NetworkEnemy extends Component {
         // 碰到玩家时造成伤害
         if(otherCollider.node.name === 'Player'){
             console.log(`[NetworkEnemy]碰到玩家，伤害：${this.damage}`)
-            EventBus.emit('enemy-hit-player', this.damage)
+            EventBus.emit(EventNames.ENEMY_HIT_PLAYER, this.damage)
         }
     }
 
@@ -90,6 +92,12 @@ export class NetworkEnemy extends Component {
     public updatePosition(x: number, y: number){
         this.targetX = x
         this.targetY = y
+    }
+
+    public die(){
+        if (this.isDead) return
+        this.isDead = true
+        this.node.destroy()
     }
 
     /**

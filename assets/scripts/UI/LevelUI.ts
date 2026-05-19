@@ -1,5 +1,6 @@
 import { _decorator, Component, Label, Node } from 'cc';
-import { EventBus } from '../Enemy/EventBus';
+import { EventBus } from '../core/EventBus';
+import { EventNames } from '../utils/EventNames';
 const { ccclass, property } = _decorator;
 
 @ccclass('LevelUI')
@@ -16,19 +17,30 @@ export class LevelUI extends Component {
     start() {
         if(this.player){
             this.playerScript = this.player.getComponent('PlayerController')
+
+            // 从玩家控制器获取初始等级
+            if(this.playerScript){
+                this.currentLevel = this.playerScript.getLevel()
+            }
+
             // 监听升级事件
-            EventBus.on('player-level-up', this.onLevelUp, this)
+            EventBus.on(EventNames.PLAYER_LEVEL_UP, this.onLevelUp, this)
             // 初始更新
             this.updateLevelDisplay()
         }
     }
 
     protected onDestroy(): void {
-        EventBus.off('player-level-up', this.onLevelUp, this)
+        EventBus.off(EventNames.PLAYER_LEVEL_UP, this.onLevelUp, this)
     }
 
     private onLevelUp(){
-        this.currentLevel++
+        // 升级时也从玩家控制器获取最新等级
+        if(this.playerScript){
+            this.currentLevel = this.playerScript.getLevel()
+        }else{
+            this.currentLevel++
+        }
         this.updateLevelDisplay()
     }
 
