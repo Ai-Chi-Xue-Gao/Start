@@ -2,7 +2,8 @@ import { ServiceLocator } from '../core/ServiceLocator';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
 import { GameState, GameStateMachine } from '../core/GameStateMachine';
-import { PlayerController } from '../entities/player/PlayerController';
+import { IPlayer } from '../interfaces/IPlayer';
+import { IDamageable, isDamageable } from '../interfaces/IDamageable';
 
 export class CombatService {
     private static instance: CombatService;
@@ -42,37 +43,64 @@ export class CombatService {
         return Math.max(1, Math.floor(damage));
     }
 
-    public playerAttackEnemy(enemyNode: any, damage: number): boolean {
-        const enemy = enemyNode.getComponent('Enemy') || enemyNode.getComponent('NetworkEnemy');
-        if (!enemy) return false;
+    /**
+     * 玩家攻击敌人
+     * @param target 目标敌人（需实现 IDamageable 接口）
+     * @param damage 伤害值
+     * @returns 是否击杀
+     */
+    public playerAttackEnemy(target: IDamageable, damage: number): boolean {
+        if (!target || !isDamageable(target)) {
+            return false;
+        }
 
         const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine');
         if (stateMachine && stateMachine.getState() !== GameState.RUNNING) {
             return false;
         }
 
-        const isDead = enemy.takeDamage?.(damage) || false;
+        const isDead = target.takeDamage(damage);
 
         if (isDead) {
-            EventBus.emit(EventNames.ENEMY_DIED, enemyNode.worldPosition, enemy);
+            const pos = target.node?.worldPosition;
+            EventBus.emit(EventNames.ENEMY_DIED, pos, target);
         }
 
         return isDead;
     }
 
+    /**
+     * 敌人攻击玩家
+     * @param damage 伤害值
+     * @returns 玩家是否死亡
+     */
     public enemyAttackPlayer(damage: number): boolean {
-        const playerController = ServiceLocator.getInstance().get<PlayerController>('playerController');
-        if (!playerController) return false;
+        const player = ServiceLocator.getInstance().get<IPlayer>('IPlayer');
+        if (!player) return false;
 
-        const health = playerController.getHealth();
-        if (!health) return false;
-
-        const isDead = health.takeDamage(damage);
+        // 通过 IPlayer 接口获取血量信息
+        const currentHp = player.getCurrentHealth();
+        const maxHp = player.getMaxHealth();
         
+        if (currentHp <= 0) return false;
+
+        const newHp = Math.max(0, currentHp - damage);
+        const isDead = newHp <= 0;
+
+        // 通过 player 的扩展方法更新血量
+        const playerAny = player as any;
+        if (playerAny.takeDamage) {
+            playerAny.takeDamage(damage);
+        } else if (playerAny.health?.takeDamage) {
+            playerAny.health.takeDamage(damage);
+        } else {
+            console.warn('[CombatService] 无法对玩家造成伤害，缺少 takeDamage 方法');
+        }
+
         if (isDead) {
             EventBus.emit(EventNames.PLAYER_DIED);
         } else {
-            EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE);
+            EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, newHp, maxHp);
         }
 
         return isDead;
@@ -83,17 +111,17 @@ export class CombatService {
     }
 
     public getPlayerAttack(): number {
-        const playerController = ServiceLocator.getInstance().get<PlayerController>('playerController');
-        return playerController?.getAttack?.() || 0;
+        const player = ServiceLocator.getInstance().get<IPlayer>('IPlayer');
+        return player?.getAttack?.() || 0;
     }
 
     public getPlayerHealth(): { current: number; max: number } {
-        const playerController = ServiceLocator.getInstance().get<PlayerController>('playerController');
-        if (!playerController) return { current: 0, max: 0 };
+        const player = ServiceLocator.getInstance().get<IPlayer>('IPlayer');
+        if (!player) return { current: 0, max: 0 };
         
         return {
-            current: playerController.getCurrentHealth(),
-            max: playerController.getMaxHealth()
+            current: player.getCurrentHealth(),
+            max: player.getMaxHealth()
         };
     }
 }

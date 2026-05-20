@@ -1,4 +1,8 @@
-import { _decorator, Component, Label, Node, UITransform, Color, tween, UIOpacity, Vec3 } from 'cc';
+// assets/scripts/ui/SkillTooltip.ts
+
+import { _decorator, Color, Label, Node, tween, UIOpacity, Vec3 } from 'cc';
+import { BaseComponent } from '../core/BaseComponent';
+
 const { ccclass, property } = _decorator;
 
 interface SkillData {
@@ -16,32 +20,31 @@ interface SkillData {
  * 用于显示技能的详细信息
  */
 @ccclass('SkillTooltip')
-export class SkillTooltip extends Component {
+export class SkillTooltip extends BaseComponent {
     @property(Label)
-    nameLabel: Label = null           // 技能名称
+    nameLabel: Label = null
 
     @property(Label)
-    descriptionLabel: Label = null    // 技能描述
+    descriptionLabel: Label = null
 
     @property(Label)
-    levelLabel: Label = null          // 等级信息
+    levelLabel: Label = null
 
     @property(Label)
-    upgradeLabel: Label = null        // 下一级解锁提示
+    upgradeLabel: Label = null
 
     @property(Label)
-    rarityLabel: Label = null         // 稀有度标签
+    rarityLabel: Label = null
 
     @property(Node)
-    fusionMark: Node = null           // 合成标记
+    fusionMark: Node = null
 
     @property(Label)
-    fusionRequireLabel: Label = null  // 合成需求
+    fusionRequireLabel: Label = null
 
     @property(Node)
-    background: Node = null           // 背景（用于透明度动画）
+    background: Node = null
 
-    // 稀有度颜色配置
     private readonly rarityColors: Record<string, Color> = {
         'common': new Color(200, 200, 200, 255),
         'rare': new Color(80, 120, 255, 255),
@@ -50,7 +53,6 @@ export class SkillTooltip extends Component {
         'mythic': new Color(255, 80, 160, 255)
     }
 
-    // 稀有度名称
     private readonly rarityNames: Record<string, string> = {
         'common': '普通',
         'rare': '稀有',
@@ -63,15 +65,11 @@ export class SkillTooltip extends Component {
     private currentSkillId: string = ''
 
     start() {
-        // 初始隐藏
         this.node.active = false
     }
 
     /**
      * 显示技能提示
-     * @param skillData 技能数据
-     * @param worldPosition 世界坐标位置
-     * @param skillId 技能ID（可选）
      */
     public show(skillData: SkillData, worldPosition: Vec3, skillId?: string) {
         if (!skillData) return
@@ -79,7 +77,6 @@ export class SkillTooltip extends Component {
         this.currentSkillId = skillId || ''
         this.updateContent(skillData)
 
-        // 设置位置（偏移一些，避免遮挡）
         this.node.worldPosition = new Vec3(
             worldPosition.x + 50,
             worldPosition.y - 30,
@@ -88,8 +85,6 @@ export class SkillTooltip extends Component {
 
         this.node.active = true
         this.isShowing = true
-
-        // 淡入动画
         this.playFadeIn()
     }
 
@@ -109,18 +104,15 @@ export class SkillTooltip extends Component {
      * 更新内容
      */
     private updateContent(data: SkillData) {
-        // 技能名称
         if (this.nameLabel) {
             this.nameLabel.string = data.name
             this.nameLabel.color = this.rarityColors[data.rarity] || Color.WHITE
         }
 
-        // 技能描述
         if (this.descriptionLabel) {
             this.descriptionLabel.string = data.description
         }
 
-        // 等级信息
         if (this.levelLabel) {
             if (data.currentLevel > 0) {
                 this.levelLabel.string = `等级 ${data.currentLevel}/${data.maxLevel}`
@@ -131,7 +123,6 @@ export class SkillTooltip extends Component {
             }
         }
 
-        // 下一级解锁提示
         if (this.upgradeLabel) {
             if (data.nextUpgradeDesc && data.currentLevel > 0) {
                 this.upgradeLabel.string = `✨ 下一级: ${data.nextUpgradeDesc}`
@@ -141,13 +132,11 @@ export class SkillTooltip extends Component {
             }
         }
 
-        // 稀有度
         if (this.rarityLabel) {
             this.rarityLabel.string = this.rarityNames[data.rarity] || ''
             this.rarityLabel.color = this.rarityColors[data.rarity] || Color.WHITE
         }
 
-        // 合成标记和需求
         if (data.fusionRequires && data.fusionRequires.length > 0) {
             if (this.fusionMark) {
                 this.fusionMark.active = true
@@ -201,9 +190,5 @@ export class SkillTooltip extends Component {
      */
     public isVisible(): boolean {
         return this.isShowing && this.node.active
-    }
-
-    update(deltaTime: number) {
-        // 可选：跟随鼠标/手指位置
     }
 }

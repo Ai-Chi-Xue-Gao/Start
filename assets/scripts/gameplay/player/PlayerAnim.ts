@@ -1,45 +1,42 @@
-import { _decorator, Animation, Component, Node } from 'cc';
+import { _decorator, Animation } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
 
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 @ccclass('PlayerAnim')
-export class PlayerAnim extends Component {
+export class PlayerAnim extends BaseComponent {
     private anim: Animation = null
     private currentState: string = ''
     private isPaused: boolean = false
 
     start() {
-        // 获取sprit子节点的Animation组件
+        // 获取Sprite子节点的Animation组件
         const spriteNode = this.node.getChildByName('Sprite')
         
         this.anim = spriteNode.getComponent(Animation)
         this.playIdle()
 
-        // 🆕 监听游戏暂停事件
+        // 监听游戏暂停事件
         EventBus.on(EventNames.GAME_PAUSE, this.onGamePause, this)
     }
 
     protected onDestroy() {
-        // 🆕 移除监听
         EventBus.off(EventNames.GAME_PAUSE, this.onGamePause, this)
     }
 
     /**
-     * 🆕 游戏暂停/恢复回调
+     * 游戏暂停/恢复回调
      */
     private onGamePause(pause: boolean) {
         this.isPaused = pause
         if (pause) {
-            // 暂停动画
             if (this.anim) {
                 this.anim.pause()
             }
         } else {
-            // 恢复动画
             if (this.anim) {
-                // 根据当前状态恢复对应的动画
                 if (this.currentState === 'idle') {
                     this.anim.play('idle')
                 } else if (this.currentState === 'move') {
@@ -54,7 +51,7 @@ export class PlayerAnim extends Component {
     }
 
     // 播放待机动画
-    public playIdle(){
+    public playIdle() {
         if (this.isPaused) return
         if (this.currentState == 'idle') return
         if (this.currentState == 'attack') return
@@ -63,7 +60,7 @@ export class PlayerAnim extends Component {
     }
 
     // 播放移动动画
-    public playMove(){
+    public playMove() {
         if (this.isPaused) return
         if (this.currentState == 'move') return
         if (this.currentState == 'attack') return
@@ -73,7 +70,7 @@ export class PlayerAnim extends Component {
     }
 
     // 播放攻击动画
-    public playAttack(){
+    public playAttack() {
         if (this.isPaused) return
         if (this.currentState == 'attack') return
         this.currentState = 'attack'
@@ -85,22 +82,18 @@ export class PlayerAnim extends Component {
 
         // 使用scheduleOnce延迟恢复待机
         this.scheduleOnce(() => {
-            if(this.currentState == 'attack'){
-                this.currentState = '' // 清空状态
+            if (this.currentState == 'attack') {
+                this.currentState = ''
                 this.playIdle()
             }
         }, duration)
     }
 
     // 播放死亡动画
-    public playDie(){
+    public playDie() {
         if (this.isPaused) return
         if (this.currentState == 'die') return
         this.currentState = 'die'
         this.anim.play('die')
-    }
-
-    update(deltaTime: number) {
-        
     }
 }

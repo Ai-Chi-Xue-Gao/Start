@@ -1,65 +1,56 @@
-import { _decorator, Component, Label, Node } from 'cc';
+// assets/scripts/ui/LevelUI.ts
+
+import { _decorator, Label, Node } from 'cc';
+import { BaseComponent } from '../core/BaseComponent';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
-import { ServiceLocator } from '../core/ServiceLocator';
-import { PlayerController } from '../entities/player/PlayerController';
+import { IPlayer } from '../interfaces/IPlayer';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('LevelUI')
-export class LevelUI extends Component {
+export class LevelUI extends BaseComponent {
     @property(Node)
-    player: Node = null // 玩家节点
+    player: Node = null
 
     @property(Label)
-    levelLabel: Label = null // 等级显示文本
+    levelLabel: Label = null
 
-    private playerScript: any = null
-    private currentLevel: number = 1 // 当前等级
+    private playerService: IPlayer | null = null
+    private currentLevel: number = 1
 
     start() {
-        if(this.player){
-            this.playerScript = ServiceLocator.getInstance().get<PlayerController>('playerController')
+        this.playerService = this.getService<IPlayer>('IPlayer')
 
-            // 从玩家控制器获取初始等级
-            if(this.playerScript){
-                this.currentLevel = this.playerScript.getLevel()
-            }
-
-            // 监听升级事件
-            EventBus.on(EventNames.PLAYER_LEVEL_UP, this.onLevelUp, this)
-            // 初始更新
-            this.updateLevelDisplay()
+        if (this.playerService) {
+            this.currentLevel = this.playerService.getLevel()
         }
+
+        EventBus.on(EventNames.PLAYER_LEVEL_UP, this.onLevelUp, this)
+        
+        this.updateLevelDisplay()
     }
 
     protected onDestroy(): void {
         EventBus.off(EventNames.PLAYER_LEVEL_UP, this.onLevelUp, this)
     }
 
-    private onLevelUp(){
-        // 升级时也从玩家控制器获取最新等级
-        if(this.playerScript){
-            this.currentLevel = this.playerScript.getLevel()
-        }else{
+    private onLevelUp() {
+        if (this.playerService) {
+            this.currentLevel = this.playerService.getLevel()
+        } else {
             this.currentLevel++
         }
         this.updateLevelDisplay()
     }
 
-    private updateLevelDisplay(){
-        if(this.levelLabel){
+    private updateLevelDisplay() {
+        if (this.levelLabel) {
             this.levelLabel.string = `Lv.${this.currentLevel}`
         }
     }
 
-    // 获取当前等级
-    public getLevel(): number{
+    public getLevel(): number {
         return this.currentLevel
     }
-
-    update(deltaTime: number) {
-        
-    }
 }
-
-

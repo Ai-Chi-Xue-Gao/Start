@@ -1,19 +1,20 @@
-import { _decorator, Component } from 'cc';
+import { _decorator } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
-import { GameConstants } from '../../utils/GameConstants';
+import { ExpConfig, PlayerConfig } from '../../configs/GameConfig';
 
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
  * 玩家经验组件
  * 负责：经验获取、升级
  */
 @ccclass('PlayerExperience')
-export class PlayerExperience extends Component {
+export class PlayerExperience extends BaseComponent {
     private exp: number = 0
-    private expToNextLevel: number = GameConstants.BASE_EXP_TO_NEXT_LEVEL
-    private expMultiplier: number = GameConstants.BASE_EXP_MULTIPLIER
+    private expToNextLevel: number = ExpConfig.BASE_TO_NEXT_LEVEL
+    private expMultiplier: number = ExpConfig.BASE_MULTIPLIER
     private currentLevel: number = 1
     
     // 加成属性
@@ -41,7 +42,7 @@ export class PlayerExperience extends Component {
 
     private levelUP() {
         this.exp -= this.expToNextLevel
-        this.expToNextLevel = Math.floor(this.expToNextLevel * GameConstants.EXP_GROWTH_FACTOR)
+        this.expToNextLevel = Math.floor(this.expToNextLevel * ExpConfig.GROWTH_FACTOR)
         this.currentLevel++
         
         EventBus.emit(EventNames.PLAYER_LEVEL_UP, { fromLevelUp: true })
@@ -62,7 +63,7 @@ export class PlayerExperience extends Component {
     public getExpMultiplier(): number {
         let multiplier = this.expMultiplier + this.expBonus
         multiplier = multiplier * this.permanentExpBonus
-        return Math.max(GameConstants.MIN_EXP_MULTIPLIER, multiplier)
+        return Math.max(PlayerConfig.MIN_EXP_MULTIPLIER, multiplier)
     }
 
     public addExpBonus(value: number) {

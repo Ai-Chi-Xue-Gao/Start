@@ -1,10 +1,11 @@
-import { _decorator, Collider, Collider2D, Color, Component, Contact2DType, IPhysics2DContact, Node, Sprite } from 'cc';
+import { _decorator, Collider, Collider2D, Color, Contact2DType, IPhysics2DContact, Node, Sprite } from 'cc';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
+import { BaseComponent } from '../core/BaseComponent';
 const { ccclass, property } = _decorator;
 
 @ccclass('NetworkEnemy')
-export class NetworkEnemy extends Component {
+export class NetworkEnemy extends BaseComponent {
     public enemyId: string = ''
     private targetX: number = 0
     private targetY: number = 0
@@ -17,21 +18,21 @@ export class NetworkEnemy extends Component {
     start() {
         // 注册碰撞事件
         this.collider = this.getComponent(Collider2D)
-        if(this.collider){
+        if (this.collider) {
             this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this)
         }
     }
 
     protected onDestroy(): void {
-        if(this.collider){
+        if (this.collider) {
             this.collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this)
         }
     }
 
     // 碰撞回调
-    private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null){
+    private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         // 碰到玩家时造成伤害
-        if(otherCollider.node.name === 'Player'){
+        if (otherCollider.node.name === 'Player') {
             console.log(`[NetworkEnemy]碰到玩家，伤害：${this.damage}`)
             EventBus.emit(EventNames.ENEMY_HIT_PLAYER, this.damage)
         }
@@ -64,7 +65,7 @@ export class NetworkEnemy extends Component {
      * @param x      初始 X 坐标
      * @param y      初始 Y 坐标
      */
-    public init(id: string, x: number, y: number, type: 'normal' | 'elite' | 'boss' = 'normal'){
+    public init(id: string, x: number, y: number, type: 'normal' | 'elite' | 'boss' = 'normal') {
         this.enemyId = id
         this.targetX = x
         this.targetY = y
@@ -75,9 +76,9 @@ export class NetworkEnemy extends Component {
     }
 
     // 根据类型设置颜色和大小
-    private applyTypeStyle(){
+    private applyTypeStyle() {
         const sprite = this.getComponent(Sprite)
-        if(sprite){
+        if (sprite) {
             sprite.color = this.typeColors[this.enemyType] || this.typeColors.normal
         }
         const scale = this.typeScales[this.enemyType] || 1.0
@@ -89,15 +90,26 @@ export class NetworkEnemy extends Component {
      * @param x 新的 X 坐标
      * @param y 新的 Y 坐标
      */
-    public updatePosition(x: number, y: number){
+    public updatePosition(x: number, y: number) {
         this.targetX = x
         this.targetY = y
     }
 
-    public die(){
+    public die() {
         if (this.isDead) return
         this.isDead = true
         this.node.destroy()
+    }
+
+    /**
+    * 受到伤害（网络敌人由服务端同步状态，客户端不直接扣血）
+    * 但为了兼容 IDamageable 接口，保留此方法
+    */
+    public takeDamage(damage: number): boolean {
+        console.log(`[NetworkEnemy] 收到伤害 ${damage}，由服务端同步状态`)
+        // 网络敌人的血量由服务端同步，客户端不直接修改
+        // 返回 false 表示未立即死亡（等待服务端同步）
+        return false
     }
 
     /**

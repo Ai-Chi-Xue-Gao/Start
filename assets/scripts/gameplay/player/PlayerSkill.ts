@@ -1,5 +1,8 @@
-import { _decorator, Component } from 'cc';
-import { GameConstants } from '../../utils/GameConstants';
+// assets/scripts/gameplay/player/PlayerSkill.ts
+
+import { _decorator } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
+import { AttackConfig, PlayerConfig } from '../../configs/GameConfig';
 
 const { ccclass } = _decorator;
 
@@ -8,9 +11,9 @@ const { ccclass } = _decorator;
  * 负责：技能属性存储、攻击相关技能效果
  */
 @ccclass('PlayerSkill')
-export class PlayerSkill extends Component {
+export class PlayerSkill extends BaseComponent {
     // 攻击相关
-    private attack: number = 20
+    private attack: number = PlayerConfig.BASE_ATTACK
     private attackMultiplierBonus: number = 1.0
     private skill_attackBoost: number = 1.0
     private temporaryAttackBonus: number = 1.0
@@ -65,7 +68,7 @@ export class PlayerSkill extends Component {
     public getAttackCooldownReduction(): number {
         let reduction = this.skill_cooldownReduction
         reduction += this.permanentCooldownBonus
-        return Math.min(GameConstants.MIN_ATTACK_COOLDOWN, reduction)
+        return Math.min(AttackConfig.MIN_COOLDOWN, reduction)
     }
 
     public getHasDoubleFireball(): boolean {
@@ -154,7 +157,7 @@ export class PlayerSkill extends Component {
     public addFireballSpeedMultiplier(mult: number) { this.fireballSpeedMultiplier *= mult }
     public addFireballDamageBonus(bonus: number) { this.fireballDamageBonus += bonus }
     public addVampirePercent(value: number) { this.vampirePercent += value }
-    public addCritChance(value: number) { this.critChance = Math.min(0.75, this.critChance + value) }
+    public addCritChance(value: number) { this.critChance = Math.min(PlayerConfig.MAX_CRIT_CHANCE, this.critChance + value) }
     public addCritDamage(value: number) { this.critDamage += value }
     public addArmorPen(value: number) { this.armorPen = Math.min(1.0, this.armorPen + value) }
     public addThornDamage(value: number) { this.thornDamage += value }

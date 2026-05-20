@@ -1,7 +1,9 @@
-import { PlayerController } from '../entities/player/PlayerController';
+import { IPlayer } from '../interfaces/IPlayer';
+import { IDamageable } from '../interfaces/IDamageable';
 import { EffectSystem, EffectType, EffectParams, EffectContext } from './EffectSystem';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
+import { ServiceLocator } from '../core/ServiceLocator';
 
 /**
  * 触发条件
@@ -38,10 +40,10 @@ export interface TriggerNode {
  */
 export class TriggerSystem {
     private static instance: TriggerSystem
-    private player: PlayerController = null
-    private triggers: Map<string, TriggerNode[]> = new Map()  // 事件名 -> 触发器列表
+    private player: IPlayer | null = null
+    private triggers: Map<string, TriggerNode[]> = new Map()
     private isInitialized: boolean = false
-    private eventHandlers: Map<string, (data: any) => void> = new Map()  // 存储事件处理函数引用
+    private eventHandlers: Map<string, (data: any) => void> = new Map()
 
     private constructor() { }
 
@@ -55,11 +57,15 @@ export class TriggerSystem {
     /**
      * 初始化触发器系统（绑定玩家）
      */
-    public init(player: PlayerController) {
+    public init(player: IPlayer) {
         if (this.isInitialized) return
         this.player = player
         this.setupEventListeners()
         this.isInitialized = true
+        
+        // 注册到 ServiceLocator，供 SkillManager 使用
+        ServiceLocator.getInstance().register('triggerSystem', this)
+        
         console.log('[TriggerSystem] 初始化完成')
     }
 
@@ -97,18 +103,18 @@ export class TriggerSystem {
         this.eventHandlers.set('onHit', onHit)
         this.eventHandlers.set('onSkillUpgrade', onSkillUpgrade)
 
-        // 注册 EventBus 监听
+        // 注册 EventBus 监听（🆕 使用 EventNames 常量）
         EventBus.on(EventNames.PLAYER_HURT, onDamage)
         EventBus.on(EventNames.ENEMY_DIED, onKill)
         EventBus.on(EventNames.PLAYER_HEALTH_CHANGE, onHeal)
-        EventBus.on('player_low_health', onLowHealth)
-        EventBus.on('player_high_health', onHighHealth)
-        EventBus.on('skill_cast', onSkillCast)
-        EventBus.on('player_move', onMoving)
-        EventBus.on('combo_hit', onCombo)
+        EventBus.on(EventNames.PLAYER_LOW_HEALTH, onLowHealth)
+        EventBus.on(EventNames.PLAYER_HIGH_HEALTH, onHighHealth)
+        EventBus.on(EventNames.SKILL_CAST, onSkillCast)
+        EventBus.on(EventNames.PLAYER_MOVE, onMoving)
+        EventBus.on(EventNames.COMBO_HIT, onCombo)
         EventBus.on(EventNames.PLAYER_DIED, onDeath)
         EventBus.on(EventNames.PLAYER_LEVEL_UP, onLevelUp)
-        EventBus.on('player_hit', onHit)
+        EventBus.on(EventNames.PLAYER_HIT, onHit)
         EventBus.on(EventNames.SKILL_SELECTED, onSkillUpgrade)
 
         console.log('[TriggerSystem] 事件监听器已注册')
@@ -247,9 +253,11 @@ export class TriggerSystem {
      * 执行触发器效果
      */
     private executeTrigger(trigger: TriggerNode, data: any) {
+        if (!this.player) return
+
         const context: EffectContext = {
             player: this.player,
-            target: data.target,
+            target: data.target as IDamageable,
             position: data.position,
             source: trigger.triggerId
         }
@@ -292,18 +300,18 @@ export class TriggerSystem {
      * 销毁系统（移除事件监听）
      */
     public destroy() {
-        // 移除所有 EventBus 监听
+        // 移除所有 EventBus 监听（🆕 使用 EventNames 常量）
         EventBus.off(EventNames.PLAYER_HURT, this.eventHandlers.get('onDamage')!)
         EventBus.off(EventNames.ENEMY_DIED, this.eventHandlers.get('onKill')!)
         EventBus.off(EventNames.PLAYER_HEALTH_CHANGE, this.eventHandlers.get('onHeal')!)
-        EventBus.off('player_low_health', this.eventHandlers.get('onLowHealth')!)
-        EventBus.off('player_high_health', this.eventHandlers.get('onHighHealth')!)
-        EventBus.off('skill_cast', this.eventHandlers.get('onSkillCast')!)
-        EventBus.off('player_move', this.eventHandlers.get('onMoving')!)
-        EventBus.off('combo_hit', this.eventHandlers.get('onCombo')!)
+        EventBus.off(EventNames.PLAYER_LOW_HEALTH, this.eventHandlers.get('onLowHealth')!)
+        EventBus.off(EventNames.PLAYER_HIGH_HEALTH, this.eventHandlers.get('onHighHealth')!)
+        EventBus.off(EventNames.SKILL_CAST, this.eventHandlers.get('onSkillCast')!)
+        EventBus.off(EventNames.PLAYER_MOVE, this.eventHandlers.get('onMoving')!)
+        EventBus.off(EventNames.COMBO_HIT, this.eventHandlers.get('onCombo')!)
         EventBus.off(EventNames.PLAYER_DIED, this.eventHandlers.get('onDeath')!)
         EventBus.off(EventNames.PLAYER_LEVEL_UP, this.eventHandlers.get('onLevelUp')!)
-        EventBus.off('player_hit', this.eventHandlers.get('onHit')!)
+        EventBus.off(EventNames.PLAYER_HIT, this.eventHandlers.get('onHit')!)
         EventBus.off(EventNames.SKILL_SELECTED, this.eventHandlers.get('onSkillUpgrade')!)
 
         this.eventHandlers.clear()

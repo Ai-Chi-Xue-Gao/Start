@@ -1,8 +1,11 @@
-import { _decorator, Component, Node, Vec3 } from 'cc';
+// assets/scripts/gameplay/player/PlayerMovement.ts
+
+import { _decorator, Node, Vec3 } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { Joystick } from '../../ui/widgets/Joystick';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
-import { GameConstants } from '../../utils/GameConstants';
+import { WorldConfig } from '../../configs/GameConfig';
 
 const { ccclass, property } = _decorator;
 
@@ -11,15 +14,9 @@ const { ccclass, property } = _decorator;
  * 负责：摇杆控制、边界限制、移动逻辑
  */
 @ccclass('PlayerMovement')
-export class PlayerMovement extends Component {
+export class PlayerMovement extends BaseComponent {
     @property(Node)
     joystick: Node = null
-
-    @property
-    worldWidth: number = GameConstants.WORLD_WIDTH
-
-    @property
-    worldHeight: number = GameConstants.WORLD_HEIGHT
 
     private joystickScript: Joystick = null
     private spriteNode: Node = null
@@ -50,10 +47,10 @@ export class PlayerMovement extends Component {
     }
 
     private calculateBounds() {
-        this.leftBound = -this.worldWidth / 2
-        this.rightBound = this.worldWidth / 2
-        this.bottomBound = -this.worldHeight / 2
-        this.topBound = this.worldHeight / 2
+        this.leftBound = -WorldConfig.WIDTH / 2
+        this.rightBound = WorldConfig.WIDTH / 2
+        this.bottomBound = -WorldConfig.HEIGHT / 2
+        this.topBound = WorldConfig.HEIGHT / 2
     }
 
     public setSpeedMultiplier(multiplier: number) {

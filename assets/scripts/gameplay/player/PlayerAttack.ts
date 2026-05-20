@@ -1,37 +1,38 @@
-import { _decorator, Button, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, Button, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { PlayerAnim } from './PlayerAnim';
 import { FireBall } from '../projectile/FireBall';
-import { Enemy } from '../../entities/enemy/Enemy';
+import { Enemy } from '../enemy/Enemy';
 import { PlayerController } from './PlayerController';
 import { EventBus } from '../../core/EventBus';
-import { NetworkEnemy } from '../../network/NetworkEnemy';
 import { EventNames } from '../../utils/EventNames';
 import { ObjectPool } from '../../utils/ObjectPool';
 import { ServiceLocator } from '../../core/ServiceLocator';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerAttack')
-export class PlayerAttack extends Component {
+export class PlayerAttack extends BaseComponent {
     @property(Node)
-    player: Node = null // 拖入人物节点
+    player: Node = null
 
     @property(Prefab)
-    fireBallPrefab: Prefab = null   // 拖入火球预制体
+    fireBallPrefab: Prefab = null
 
     @property
-    attackCooldown: number = 0.8    // 攻击冷却时间
+    attackCooldown: number = 0.8
 
     private playerAnim: PlayerAnim = null
     private lastAttackTime: number = 0
     private playerController: PlayerController = null
-    private isPaused: boolean = false // 游戏停止标志
+    private isPaused: boolean = false
     private canvasNode: Node = null
 
     start() {
         this.playerAnim = this.player.getComponent(PlayerAnim)
         this.playerController = this.player.getComponent(PlayerController)
 
-        this.canvasNode = ServiceLocator.getInstance().get<Node>('canvasNode')
+        this.canvasNode = this.getService<Node>('canvasNode')
 
         const button = this.node.getComponent(Button)
         button.node.on(Button.EventType.CLICK, this.onAttack, this)
@@ -50,16 +51,13 @@ export class PlayerAttack extends Component {
     private onAttack() {
         if (this.isPaused) return
 
-        // 获取玩家的冷却缩减
         const cdReduction = this.playerController.getAttackCooldownReduction()
         const effectiveCooldown = Math.max(0.2, this.attackCooldown - cdReduction)
 
-        // 冷却检查
         const now = Date.now() / 1000
         if (now - this.lastAttackTime < effectiveCooldown) return
         this.lastAttackTime = now
 
-        // 攻击时面向最近的敌人
         const nearestEnemy = this.findNearestEnemy()
         if (nearestEnemy) {
             const enemyPos = nearestEnemy.worldPosition
@@ -72,10 +70,7 @@ export class PlayerAttack extends Component {
             }
         }
 
-        // 播放攻击动画
         this.playerAnim.playAttack()
-
-        // 生成火球
         this.spawnFireBall()
     }
 
@@ -92,11 +87,9 @@ export class PlayerAttack extends Component {
         const pool = ObjectPool.getInstance()
 
         for (let i = 0; i < count; i++) {
-            // 从对象池获取火球
             let fireball = pool.get('fireball', canvas)
 
             if (!fireball) {
-                // 池中无可用，动态创建
                 fireball = instantiate(this.fireBallPrefab)
                 canvas?.addChild(fireball)
                 const fireballScript = fireball.getComponent(FireBall)
@@ -113,7 +106,6 @@ export class PlayerAttack extends Component {
                 }
             }
 
-            // 添加小偏移量避免完全重叠
             const offsetX = (count === 2) ? (i === 0 ? -15 : 15) : 0
             fireball.setWorldPosition(this.player.worldPosition.x + offsetX, this.player.worldPosition.y, 0)
         }
@@ -125,7 +117,6 @@ export class PlayerAttack extends Component {
         let minDist = Infinity
         let nearest = null
 
-        // 1. 查找 WaveManager 下的敌人（单机模式）
         const waveManager = this.canvasNode.getChildByName('WaveManager')
         if (waveManager) {
             for (const child of waveManager.children) {
@@ -140,10 +131,9 @@ export class PlayerAttack extends Component {
             }
         }
 
-        // 2. 查找网络敌人（联机模式）
         for (const child of this.canvasNode.children) {
             if (child.name.startsWith('NetworkEnemy_') && child.isValid) {
-                const networkEnemy = child.getComponent(NetworkEnemy)
+                const networkEnemy = child.getComponent('NetworkEnemy') as any
                 if (networkEnemy && !networkEnemy.isDead) {
                     const dist = Vec3.distance(this.player.worldPosition, child.worldPosition)
                     if (dist < minDist) {
@@ -157,5 +147,3 @@ export class PlayerAttack extends Component {
         return nearest
     }
 }
-
-

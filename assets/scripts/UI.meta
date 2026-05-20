@@ -5,5 +5,10 @@
   "uuid": "13e008c0-519e-4bfa-a055-2b3dc580f3d5",
   "files": [],
   "subMetas": {},
-  "userData": {}
+  "userData": {
+    "isBundle": true,
+    "bundleName": "ui",
+    "priority": 5,
+    "bundleConfigID": "b7Kt/4YalKjpp6bvEDDDIe"
+  }
 }

@@ -1,8 +1,9 @@
-import { _decorator, Component, Node, UITransform } from 'cc';
+import { _decorator, Node, UITransform } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 const { ccclass, property } = _decorator;
 
 @ccclass('CameraController')
-export class CameraController extends Component {
+export class CameraController extends BaseComponent {
     @property(Node)
     target: Node = null // 要跟随的目标
 

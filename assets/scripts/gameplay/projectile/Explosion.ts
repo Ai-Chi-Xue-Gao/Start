@@ -1,14 +1,18 @@
-import { _decorator, Component, Animation } from 'cc';
+// assets/scripts/gameplay/projectile/Explosion.ts
+
+import { _decorator, Animation } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { ObjectPool } from '../../utils/ObjectPool';
+
 const { ccclass } = _decorator;
 
 @ccclass('Explosion')
-export class Explosion extends Component {
+export class Explosion extends BaseComponent {
     private poolKey: string = 'explosion'
     private isFromPool: boolean = false
     private defaultDuration: number = 0.5
     private isRecycling: boolean = false
-    private isScheduled: boolean = false  // 防止重复调度
+    private isScheduled: boolean = false
 
     start() {
         this.startRecycleTimer();
@@ -26,7 +30,6 @@ export class Explosion extends Component {
             anim.stop()
             anim.play('explosion_clip')
         }
-        // 重置后重新启动回收定时器
         this.startRecycleTimer();
     }
 

@@ -1,9 +1,10 @@
+// assets/scripts/services/SkillService.ts
+
 import { ServiceLocator } from '../core/ServiceLocator';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
 import { GameState, GameStateMachine } from '../core/GameStateMachine';
-import { PlayerController } from '../entities/player/PlayerController';
-import { SkillManager } from '../managers/SkillManager';
+import { SkillManager } from '../Managers/SkillManager';
 
 /**
  * 技能服务

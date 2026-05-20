@@ -1,8 +1,11 @@
-import { _decorator, Component, Node, Sprite, Color } from 'cc';
+// assets/scripts/gameplay/player/PlayerHealth.ts
+
+import { _decorator, Node, Sprite, Color } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
 import { FlashEffect } from '../../utils/FlashEffect';
-import { GameConstants } from '../../utils/GameConstants';
+import { PlayerConfig, InvincibleFlashConfig } from '../../configs/GameConfig';
 
 const { ccclass, property } = _decorator;
 
@@ -11,15 +14,15 @@ const { ccclass, property } = _decorator;
  * 负责：血量管理、受伤、死亡、无敌、复活
  */
 @ccclass('PlayerHealth')
-export class PlayerHealth extends Component {
+export class PlayerHealth extends BaseComponent {
     @property
-    maxHealth: number = GameConstants.PLAYER_BASE_MAX_HEALTH
+    maxHealth: number = PlayerConfig.BASE_MAX_HEALTH
 
     @property
-    currentHealth: number = GameConstants.PLAYER_BASE_CURRENT_HEALTH
+    currentHealth: number = PlayerConfig.BASE_CURRENT_HEALTH
 
     @property
-    invincibleTime: number = GameConstants.PLAYER_INVINCIBLE_TIME
+    invincibleTime: number = PlayerConfig.INVINCIBLE_TIME
 
     private spriteNode: Node = null
     private isInvincible: boolean = false
@@ -77,7 +80,7 @@ export class PlayerHealth extends Component {
     }
 
     public addDamageReduction(value: number) {
-        this.damageReduction = Math.min(GameConstants.MAX_DAMAGE_REDUCTION, this.damageReduction + value)
+        this.damageReduction = Math.min(PlayerConfig.MAX_DAMAGE_REDUCTION, this.damageReduction + value)
     }
 
     public getDamageReduction(): number {
@@ -157,12 +160,12 @@ export class PlayerHealth extends Component {
         }
         this.invincibleFlashInterval = FlashEffect.flash(
             sprite,
-            GameConstants.INVINCIBLE_FLASH_DURATION,
-            GameConstants.INVINCIBLE_FLASH_INTERVAL,
+            InvincibleFlashConfig.DURATION,
+            InvincibleFlashConfig.INTERVAL,
             new Color(
-                GameConstants.INVINCIBLE_FLASH_COLOR_R,
-                GameConstants.INVINCIBLE_FLASH_COLOR_G,
-                GameConstants.INVINCIBLE_FLASH_COLOR_B,
+                InvincibleFlashConfig.COLOR_R,
+                InvincibleFlashConfig.COLOR_G,
+                InvincibleFlashConfig.COLOR_B,
                 255
             ),
             () => { this.invincibleFlashInterval = null }

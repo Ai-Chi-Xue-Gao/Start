@@ -1,8 +1,9 @@
-import { _decorator, Color, Component, Graphics, Node } from 'cc';
+import { _decorator, Color, Graphics, Node } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 const { ccclass, property } = _decorator;
 
 @ccclass('GridBackground')
-export class GridBackground extends Component {
+export class GridBackground extends BaseComponent {
     @property
     gridSize: number = 100 // 网格间距
 
@@ -69,10 +70,6 @@ export class GridBackground extends Component {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight
         this.drawBackground()
-    }
-
-    update(deltaTime: number) {
-        
     }
 }
 

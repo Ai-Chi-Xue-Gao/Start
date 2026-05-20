@@ -1,10 +1,11 @@
-import { _decorator, Component, Prefab } from 'cc';
+import { _decorator, Prefab } from 'cc';
+import { BaseComponent } from '../core/BaseComponent';
 import { ObjectPool } from './ObjectPool';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('PoolManager')
-export class PoolManager extends Component {
+export class PoolManager extends BaseComponent {
     @property(Prefab)
     fireballPrefab: Prefab = null
 
@@ -49,8 +50,8 @@ export class PoolManager extends Component {
             pool.register('skillItem', this.skillItemPrefab, 30)
         }
         if (this.enemyPrefab) {
-            pool.register('enemy', this.enemyPrefab, 200)      // 大怪池
-            pool.register('enemy_minion', this.enemyPrefab, 100) // 小怪独立池
+            pool.register('enemy', this.enemyPrefab, 200)
+            pool.register('enemy_minion', this.enemyPrefab, 100)
         }
 
         console.log('[PoolManager] 所有对象池注册完成')

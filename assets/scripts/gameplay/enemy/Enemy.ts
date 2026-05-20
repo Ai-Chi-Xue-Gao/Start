@@ -1,25 +1,29 @@
-import { _decorator, Animation, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, Vec3 } from 'cc';
+// assets/scripts/gameplay/enemy/Enemy.ts
+
+import { _decorator, Animation, Collider2D, Contact2DType, IPhysics2DContact, Node, Vec3 } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
 import { ServiceLocator } from '../../core/ServiceLocator';
 import { PlayerController } from '../player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
-import { AffixSystem } from '../../managers/AffixSystem';
+import { AffixSystem } from '../managers/AffixSystem';
 import { ObjectPool } from '../../utils/ObjectPool';
-import { GameConstants } from '../../utils/GameConstants';
+import { EnemyConfig } from '../../configs/GameConfig';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('Enemy')
-export class Enemy extends Component {
+export class Enemy extends BaseComponent {
     @property
-    speed: number = GameConstants.ENEMY_NORMAL_SPEED
+    speed: number = EnemyConfig.NORMAL_SPEED
 
     @property
-    damage: number = GameConstants.ENEMY_NORMAL_DAMAGE
+    damage: number = EnemyConfig.NORMAL_DAMAGE
 
     @property
-    maxHealth: number = GameConstants.ENEMY_NORMAL_HEALTH
+    maxHealth: number = EnemyConfig.NORMAL_HEALTH
 
-    private currentHealth: number = GameConstants.ENEMY_NORMAL_HEALTH
+    private currentHealth: number = EnemyConfig.NORMAL_HEALTH
     private target: Node = null
     public isDead: boolean = false
     private collider: Collider2D = null
@@ -28,30 +32,21 @@ export class Enemy extends Component {
     private isMoving: boolean = false
     private affixSystem: AffixSystem = null
 
-    // 对象池相关
     private poolKey: string = 'enemy'
     private isFromPool: boolean = false
 
-    // 分裂怪相关
     public isMinion: boolean = false
     private baseMaxHealth: number = 0
     private runtimeMaxHealth: number = 0
 
-    // ========== 生命周期 ==========
-
     start() {
-        // ⚠️ 注意：对象池复用时 start() 不会再次执行
-        // 初始化工作应该放在 reset() 中
         this.initReferences()
     }
 
-    /**
-     * 一次性初始化引用（只执行一次）
-     */
     private initReferences() {
         this.anim = this.getComponent(Animation)
 
-        const canvas = ServiceLocator.getInstance().get<Node>('canvasNode')
+        const canvas = this.getService<Node>('canvasNode')
         this.target = canvas?.getChildByName('Player')
 
         this.collider = this.getComponent(Collider2D)
@@ -70,49 +65,34 @@ export class Enemy extends Component {
         EventBus.off(EventNames.GAME_PAUSE, this.onPause, this)
     }
 
-    // ========== 对象池接口 ==========
-
-    /**
-     * 重置敌人状态（对象池复用时的唯一入口）
-     * @param fromPool 是否来自对象池
-     */
     public reset(fromPool: boolean = false) {
         this.isFromPool = fromPool
         this.isMinion = false
         this.isDead = false
         this.isMoving = false
-        this.isPaused = false  // 🆕 重置暂停状态
+        this.isPaused = false
 
-        // 重置血量
         this.baseMaxHealth = this.maxHealth
         this.runtimeMaxHealth = this.maxHealth
         this.currentHealth = this.runtimeMaxHealth
 
-        // 重置位置和缩放
         this.node.setPosition(0, 0, 0)
         this.node.setScale(1, 1, 1)
 
-        // 重新启用碰撞器
         if (this.collider) {
             this.collider.enabled = true
         }
 
-        // 清除词条数据
         if ((this as any).__affixData) {
             (this as any).__affixData = null
         }
     }
 
-    /**
-     * 设置分裂怪的血量倍率
-     */
     public setAsMinion(healthPercent: number) {
         this.isMinion = true
         this.runtimeMaxHealth = this.baseMaxHealth * healthPercent
         this.currentHealth = this.runtimeMaxHealth
     }
-
-    // ========== 私有方法 ==========
 
     private onPause(pause: boolean) {
         this.isPaused = pause
@@ -120,11 +100,9 @@ export class Enemy extends Component {
             if (pause) {
                 this.anim.pause()
             } else {
-                // 🆕 恢复动画时，根据当前移动状态恢复对应的动画
                 if (this.isMoving) {
                     this.anim.resume()
                 } else {
-                    // 如果不在移动，恢复 idle 动画
                     const animState = this.anim.getState('enemy_move')
                     if (animState && !animState.isPlaying) {
                         this.anim.play('enemy_move')
@@ -157,7 +135,7 @@ export class Enemy extends Component {
     }
 
     private playMoveAnim() {
-        if (this.isPaused) return  // 🆕 暂停时禁止播放动画
+        if (this.isPaused) return
         if (!this.anim) return
         const animState = this.anim.getState('enemy_move')
         if (animState && !animState.isPlaying) {
@@ -165,10 +143,8 @@ export class Enemy extends Component {
         }
     }
 
-    // ========== 公共方法 ==========
-
-    public takeDamage(damage: number) {
-        if (this.isDead) return
+    public takeDamage(damage: number): boolean {
+        if (this.isDead) return false
 
         if (this.affixSystem && this.affixSystem.isLoaded()) {
             damage = this.affixSystem.onEnemyHit(this, damage)
@@ -179,13 +155,14 @@ export class Enemy extends Component {
 
         if (this.currentHealth <= 0) {
             this.die()
+            return true
         }
+        return false
     }
 
     public die() {
         if (this.isDead) return
 
-        // 分裂怪死亡时不触发分裂词条（避免无限循环）
         let preventDeath = false
         if (!this.isMinion && this.affixSystem && this.affixSystem.isLoaded()) {
             preventDeath = this.affixSystem.onEnemyDeath(this, this.node.worldPosition)
@@ -198,7 +175,6 @@ export class Enemy extends Component {
         this.isDead = true
         EventBus.emit(EventNames.ENEMY_DIED, this.node.worldPosition, this)
 
-        // 回收或销毁
         if (this.isFromPool) {
             const pool = ObjectPool.getInstance()
             pool.recycle(this.poolKey, this.node)
@@ -206,8 +182,6 @@ export class Enemy extends Component {
             this.node.destroy()
         }
     }
-
-    // ========== Getter ==========
 
     public getRuntimeMaxHealth(): number {
         return this.runtimeMaxHealth

@@ -1,3 +1,5 @@
+// assets/scripts/services/GameService.ts
+
 import { _decorator, Component, Node } from 'cc';
 import { ServiceLocator } from '../core/ServiceLocator';
 import { GameState, GameStateMachine } from '../core/GameStateMachine';
@@ -5,6 +7,7 @@ import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
 import { CombatService } from './CombatService';
 import { SkillService } from './SkillService';
+import { TriggerSystem } from '../Managers/TriggerSystem';
 
 const { ccclass, property } = _decorator;
 
@@ -42,16 +45,13 @@ export class GameService extends Component {
 
         // 1. 获取或添加 GameStateMachine
         this.gameStateMachine = this.getComponent(GameStateMachine);
-        console.log('[GameService] GameStateMachine 组件:', this.gameStateMachine)  // ← 添加
         if (!this.gameStateMachine) {
             this.gameStateMachine = this.addComponent(GameStateMachine);
         }
 
         // 2. 注册服务到 ServiceLocator
         ServiceLocator.getInstance().register('stateMachine', this.gameStateMachine);
-        console.log('[GameService] stateMachine 已注册')  // ← 添加
         ServiceLocator.getInstance().register('gameService', this);
-        
 
         // 3. 注册节点引用
         const canvas = this.node.scene.getChildByName('Canvas')
@@ -60,22 +60,28 @@ export class GameService extends Component {
         }
 
         // 4. 注册玩家
-        if(this.playerNode){
+        if (this.playerNode) {
             ServiceLocator.getInstance().register('playerNode', this.playerNode)
             const playerController = this.playerNode.getComponent('PlayerController')
-            if(playerController){
+            if (playerController) {
                 ServiceLocator.getInstance().register('playerController', playerController)
+                ServiceLocator.getInstance().register('IPlayer', playerController)
             }
         }
 
-        // 4. 初始化 CombatService 和 SkillService
+        // 5. 初始化 TriggerSystem（注册到 ServiceLocator）
+        const triggerSystem = TriggerSystem.getInstance();
+        ServiceLocator.getInstance().register('triggerSystem', triggerSystem);
+        console.log('[GameService] TriggerSystem 已注册到 ServiceLocator');
+
+        // 6. 初始化 CombatService 和 SkillService
         CombatService.getInstance().init();
         SkillService.getInstance().init();
 
         this.isInitialized = true;
         console.log('[GameService] 所有服务注册完成');
 
-        // 5. 触发游戏就绪事件
+        // 7. 触发游戏就绪事件
         EventBus.emit(EventNames.GAME_READY);
     }
 

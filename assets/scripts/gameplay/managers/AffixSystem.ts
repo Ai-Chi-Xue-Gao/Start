@@ -1,10 +1,10 @@
 import { resources, JsonAsset, Vec3, Node, Label, Color } from 'cc'
-import { Enemy } from '../entities/enemy/Enemy'
-import { AffixConfig, AffixRarity, EnemyAffixData } from './AffixData'
-import { EventBus } from '../core/EventBus'
-import { EventNames } from '../utils/EventNames'
-import { DEFAULT_AFFIXES, getAffixConfig } from '../configs/AffixConfig'
-import { GameConstants } from '../utils/GameConstants'
+import { Enemy } from '../enemy/Enemy'
+import { EnemyAffixData } from './AffixData'
+import { AffixConfig, AffixRarity, DEFAULT_AFFIXES, getAffixConfig } from '../../configs/AffixConfig'
+import { EventBus } from '../../core/EventBus'
+import { EventNames } from '../../utils/EventNames'
+import { AffixWeightConfig } from '../../configs/GameConfig'
 
 /**
  * 词条系统管理器
@@ -106,10 +106,10 @@ export class AffixSystem {
         if (currentIndex > maxIndex) return 0
 
         const weights: Record<AffixRarity, number> = {
-            common: GameConstants.AFFIX_WEIGHT_COMMON,
-            rare: GameConstants.AFFIX_WEIGHT_RARE,
-            epic: GameConstants.AFFIX_WEIGHT_EPIC,
-            legendary: GameConstants.AFFIX_WEIGHT_LEGENDARY
+            common: AffixWeightConfig.COMMON,
+            rare: AffixWeightConfig.RARE,
+            epic: AffixWeightConfig.EPIC,
+            legendary: AffixWeightConfig.LEGENDARY
         }
         return weights[rarity] || 1
     }
@@ -303,7 +303,7 @@ export class AffixSystem {
         const position = enemy.node.worldPosition
         console.log(`[词条] 召唤师召唤 ${count} 个小怪 at (${position.x}, ${position.y})`)
         // 触发召唤事件，由WaveManager处理
-        EventBus.emit('enemy_summon', { position, count, parentEnemy: enemy })
+        EventBus.emit(EventNames.ENEMY_SUMMON, { position, count, parentEnemy: enemy })
     }
 
     /**
@@ -335,14 +335,14 @@ export class AffixSystem {
                 const explosionDamagePercent = stats?.explosionDamagePercent || 0.5
                 const explosionDamage = enemy.damage * explosionDamagePercent
                 console.log(`[词条] 自爆！半径: ${explosionRadius}, 伤害: ${explosionDamage}`)
-                EventBus.emit('enemy_explosion', { position, radius: explosionRadius, damage: explosionDamage })
+                EventBus.emit(EventNames.ENEMY_EXPLOSION, { position, radius: explosionRadius, damage: explosionDamage })
                 return false
 
             case 'split':
                 const splitCount = stats?.splitCount || 2
                 const splitHealthPercent = stats?.splitHealthPercent || 0.5
                 console.log(`[词条] 分裂成 ${splitCount} 个小怪`)
-                EventBus.emit('enemy_split', { position, count: splitCount, healthPercent: splitHealthPercent })
+                EventBus.emit(EventNames.ENEMY_SPLIT, { position, count: splitCount, healthPercent: splitHealthPercent })
                 return false
 
             case 'immortal':
@@ -454,7 +454,7 @@ export class AffixSystem {
                     const slowPercent = affix.stats?.slowPercent || 0.3
                     const slowDuration = affix.stats?.slowDuration || 1.5
                     console.log(`[词条] 寒霜：减速玩家 ${slowPercent * 100}%，持续 ${slowDuration}秒`)
-                    EventBus.emit('player_slow', { percent: slowPercent, duration: slowDuration })
+                    EventBus.emit(EventNames.PLAYER_SLOW, { percent: slowPercent, duration: slowDuration })
                     break
             }
         }

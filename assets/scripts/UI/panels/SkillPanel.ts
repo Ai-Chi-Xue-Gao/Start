@@ -1,13 +1,16 @@
-import { _decorator, Button, Component, instantiate, Label, Node, Prefab, Color, resources, JsonAsset, Sprite, SpriteFrame, UITransform } from 'cc';
+// assets/scripts/ui/SkillPanel.ts
+
+import { _decorator, Button, instantiate, Label, Node, Prefab, Color, resources, JsonAsset, Sprite, SpriteFrame, UITransform } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
-import { PlayerController } from '../../entities/player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
-import { SkillManager } from '../../managers/SkillManager';
-import { GameConstants } from '../../utils/GameConstants';
+import { SkillManager } from '../../Managers/SkillManager';
+import { SkillPanelColorConfig } from '../../configs/GameConfig';
 import { ObjectPool } from '../../utils/ObjectPool';
 import { ServiceLocator } from '../../core/ServiceLocator';
 import { GameStateMachine } from '../../core/GameStateMachine';
 import { SkillTooltip } from '../SkillTooltip';
+import { IPlayer } from '../../interfaces/IPlayer';
 
 const { ccclass, property } = _decorator;
 
@@ -31,24 +34,24 @@ interface SkillItemData {
  * 技能选择面板
  */
 @ccclass('SkillPanel')
-export class SkillPanel extends Component {
+export class SkillPanel extends BaseComponent {
     @property(Node)
-    panelNode: Node = null              // 面板根节点
+    panelNode: Node = null
 
     @property(Node)
-    contentNode: Node = null            // 技能选项容器
+    contentNode: Node = null
 
     @property(Prefab)
-    skillItemPrefab: Prefab = null      // 技能项预制体（容器节点）
+    skillItemPrefab: Prefab = null
 
     @property(Label)
-    titleLabel: Label = null            // 标题文本
+    titleLabel: Label = null
 
     @property(Node)
-    fusionHintNode: Node = null         // 合成提示节点
+    fusionHintNode: Node = null
 
     @property(Label)
-    fusionHintLabel: Label = null       // 合成提示文本
+    fusionHintLabel: Label = null
 
     @property(SkillTooltip)
     skillTooltip: SkillTooltip = null
@@ -57,13 +60,12 @@ export class SkillPanel extends Component {
     private skillManager: SkillManager = null
     private pendingCallback: ((skillId: string) => void) | null = null
 
-    // 稀有度颜色配置
     private readonly rarityColors: Record<string, Color> = {
-        'common': new Color(200, 200, 200, 255),    // 灰色
-        'rare': new Color(80, 120, 255, 255),       // 蓝色
-        'epic': new Color(160, 80, 255, 255),       // 紫色
-        'legendary': new Color(255, 160, 50, 255),  // 橙色
-        'mythic': new Color(255, 80, 160, 255)      // 粉红
+        'common': new Color(200, 200, 200, 255),
+        'rare': new Color(80, 120, 255, 255),
+        'epic': new Color(160, 80, 255, 255),
+        'legendary': new Color(255, 160, 50, 255),
+        'mythic': new Color(255, 80, 160, 255)
     }
 
     start() {
@@ -85,7 +87,7 @@ export class SkillPanel extends Component {
     private onPlayerLevelUp(data: any) {
         if (!data || !data.fromLevelUp) return
 
-        const player = ServiceLocator.getInstance().get<PlayerController>('playerController')
+        const player = this.getService<IPlayer>('IPlayer')
         if (!player) return
 
         if (!this.skillManager.isReady()) {
@@ -101,8 +103,7 @@ export class SkillPanel extends Component {
         if (this.isOpen) return
         if (!this.skillManager.isReady()) return
 
-        // 通过状态机进入升级状态（会自动设置 timeScale=0 并发射 GAME_PAUSE 事件）
-        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine) {
             stateMachine.enterLevelUp()
             console.log('[SkillPanel] 进入 LEVEL_UP 状态，游戏暂停')
@@ -143,8 +144,7 @@ export class SkillPanel extends Component {
     public closePanel() {
         if (!this.isOpen) return
 
-        // 通过状态机退出升级状态（会自动设置 timeScale=1 并发射 GAME_PAUSE 事件）
-        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine) {
             stateMachine.exitLevelUp()
             console.log('[SkillPanel] 退出 LEVEL_UP 状态，游戏恢复')
@@ -165,7 +165,6 @@ export class SkillPanel extends Component {
         const playerSkills = this.skillManager.getPlayerSkills()
         const excludeIds: string[] = []
 
-        // 排除已达到最大等级的技能
         for (const skill of playerSkills) {
             const maxLevel = this.skillManager.getSkillMaxLevel(skill.skillId)
             if (skill.currentLevel >= maxLevel) {
@@ -173,14 +172,11 @@ export class SkillPanel extends Component {
             }
         }
 
-        // 获取满足条件的合成技能（只有这些才能出现）
         const availableFusions = this.skillManager.getAvailableFusions()
         const fusionIds = availableFusions.map(f => f.fusionId)
 
-        // 获取随机普通技能（排除已满级和已获得的合成技能）
         const normalSkills = this.skillManager.getRandomSkills(count, [...excludeIds, ...fusionIds])
 
-        // 优先显示合成技能
         if (fusionIds.length > 0) {
             const result = [...fusionIds]
             const remainingCount = count - result.length
@@ -232,13 +228,11 @@ export class SkillPanel extends Component {
     }
 
     private getSkillDescription(skillId: string, level: number): string {
-        // 直接从技能定义中获取描述
         const def = this.skillManager.getSkillDef(skillId)
         if (def && def.description) {
             return def.description
         }
 
-        // 没有描述时，尝试从数值生成
         const previewLevel = level === 0 ? 1 : level
         const stats = this.skillManager.getSkillStat(skillId, previewLevel)
 
@@ -306,77 +300,65 @@ export class SkillPanel extends Component {
         }
     }
 
-    /**
-    * 创建技能项UI
-    * 注意：预制体结构是 SkillItem(容器) -> Button(带Button组件)
-    */
     private createSkillItem(data: SkillItemData) {
         if (!this.skillItemPrefab || !this.contentNode) return
 
-        // 从对象池获取或实例化预制体
         const pool = ObjectPool.getInstance()
         let itemNode = pool.get('skillItem', this.contentNode)
 
         if (!itemNode) {
-            // 池中无可用，动态创建
             itemNode = instantiate(this.skillItemPrefab)
             this.contentNode.addChild(itemNode)
         }
 
-        // 找到 Button 子节点（按钮区域）
         const buttonNode = itemNode.getChildByName('Button')
         if (!buttonNode) {
             console.warn('[SkillPanel] 预制体缺少 Button 子节点')
             return
         }
 
-        // 设置技能名称
         const nameLabel = buttonNode.getChildByName('NameLabel')?.getComponent(Label)
         if (nameLabel) {
             nameLabel.string = data.name
             nameLabel.color = this.rarityColors[data.rarity] || Color.WHITE
         }
 
-        // 设置技能描述
         const descLabel = buttonNode.getChildByName('DescLabel')?.getComponent(Label)
         if (descLabel) {
             descLabel.string = data.description
         }
 
-        // 设置等级信息
         const levelLabel = buttonNode.getChildByName('LevelLabel')?.getComponent(Label)
         if (levelLabel) {
             if (data.currentLevel > 0) {
                 levelLabel.string = `Lv.${data.currentLevel}/${data.maxLevel}`
                 levelLabel.color = new Color(
-                    GameConstants.SKILL_LEVEL_COLOR_R,
-                    GameConstants.SKILL_LEVEL_COLOR_G,
-                    GameConstants.SKILL_LEVEL_COLOR_B,
+                    SkillPanelColorConfig.SKILL_LEVEL_R,
+                    SkillPanelColorConfig.SKILL_LEVEL_G,
+                    SkillPanelColorConfig.SKILL_LEVEL_B,
                     255)
             } else {
                 levelLabel.string = `新技能`
                 levelLabel.color = new Color(
-                    GameConstants.SKILL_NEW_COLOR_R,
-                    GameConstants.SKILL_NEW_COLOR_G,
-                    GameConstants.SKILL_NEW_COLOR_B,
+                    SkillPanelColorConfig.SKILL_NEW_R,
+                    SkillPanelColorConfig.SKILL_NEW_G,
+                    SkillPanelColorConfig.SKILL_NEW_B,
                     255)
             }
         }
 
-        // 设置下一级解锁提示
         const upgradeLabel = buttonNode.getChildByName('UpgradeLabel')?.getComponent(Label)
         if (upgradeLabel && data.nextUpgradeDesc && data.currentLevel > 0) {
             upgradeLabel.string = `↓ 升级解锁: ${data.nextUpgradeDesc}`
             upgradeLabel.color = new Color(
-                GameConstants.SKILL_UPGRADE_COLOR_R,
-                GameConstants.SKILL_UPGRADE_COLOR_G,
-                GameConstants.SKILL_UPGRADE_COLOR_B,
+                SkillPanelColorConfig.SKILL_UPGRADE_R,
+                SkillPanelColorConfig.SKILL_UPGRADE_G,
+                SkillPanelColorConfig.SKILL_UPGRADE_B,
                 255)
         } else if (upgradeLabel) {
             upgradeLabel.string = ''
         }
 
-        // 设置稀有度标签
         const rarityLabel = buttonNode.getChildByName('RarityLabel')?.getComponent(Label)
         if (rarityLabel) {
             const rarityNames: Record<string, string> = {
@@ -390,7 +372,6 @@ export class SkillPanel extends Component {
             rarityLabel.color = this.rarityColors[data.rarity] || Color.WHITE
         }
 
-        // 设置合成标记
         const fusionMark = buttonNode.getChildByName('FusionMark')
         if (fusionMark) {
             fusionMark.active = data.isFusion
@@ -402,18 +383,13 @@ export class SkillPanel extends Component {
             }
         }
 
-        // 绑定按钮事件
         const button = buttonNode.getComponent(Button)
         if (button) {
-            // 移除旧的点击事件避免重复绑定
             button.node.off(Button.EventType.CLICK, this.onSkillSelected, this)
-
-            // 绑定点击事件
             button.node.on(Button.EventType.CLICK, () => {
                 this.onSkillSelected(data.skillId)
             }, this)
 
-            // 绑定悬停事件（显示技能提示框）
             if (this.skillTooltip) {
                 button.node.on(Node.EventType.MOUSE_ENTER, () => {
                     this.skillTooltip.show(data, itemNode.worldPosition, data.skillId)

@@ -2,13 +2,13 @@
   "ver": "1.2.0",
   "importer": "directory",
   "imported": true,
-  "uuid": "bfef3daf-01bd-4b86-b8c1-c09442d11721",
+  "uuid": "7e2605c8-bae6-4fd8-ab42-ff7bc4471cae",
   "files": [],
   "subMetas": {},
   "userData": {
     "isBundle": true,
+    "priority": 10,
     "bundleConfigID": "b7Kt/4YalKjpp6bvEDDDIe",
-    "bundleName": "resources",
-    "priority": 8
+    "bundleName": "gameplay"
   }
 }

@@ -1,23 +1,26 @@
-import { _decorator, Collider, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, Vec3 } from 'cc';
+// assets/scripts/gameplay/enemy/ExpBall.ts
+
+import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, Vec3 } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
-import { PlayerController } from '../../entities/player/PlayerController';
+import { PlayerController } from '../player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
 import { ObjectPool } from '../../utils/ObjectPool';
-import { GameConstants } from '../../utils/GameConstants';
+import { ExpBallConfig } from '../../configs/GameConfig';
 import { ServiceLocator } from '../../core/ServiceLocator';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('ExpBall')
-export class ExpBall extends Component {
+export class ExpBall extends BaseComponent {
     @property
-    expValue: number = GameConstants.EXP_BALL_BASE_VALUE // 经验值
+    expValue: number = ExpBallConfig.BASE_VALUE
 
     @property
-    magnetSpeed: number = GameConstants.EXP_BALL_MAGNET_SPEED // 向玩家移动的速度
+    magnetSpeed: number = ExpBallConfig.MAGNET_SPEED
 
     @property
-    magnetRadius: number = GameConstants.EXP_BALL_BASE_MAGNET_RADIUS // 吸引距离，超出此范围不移动
+    magnetRadius: number = ExpBallConfig.BASE_MAGNET_RADIUS
 
     private target: Node = null
     private collider: Collider2D = null
@@ -25,11 +28,9 @@ export class ExpBall extends Component {
     private isFromPool: boolean = false
 
     start() {
-        // 找到玩家节点
-        const canvas = ServiceLocator.getInstance().get<Node>('canvasNode')
+        const canvas = this.getService<Node>('canvasNode')
         this.target = canvas?.getChildByName('Player')
 
-        // 注册碰撞事件（与玩家碰撞）
         this.collider = this.getComponent(Collider2D)
         if (this.collider) {
             this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this)
@@ -42,7 +43,6 @@ export class ExpBall extends Component {
         }
     }
 
-    // 获取当前有效的磁吸半径
     private getCurrentMagnetRadius(): number {
         if (!this.target) return this.magnetRadius
 
@@ -55,7 +55,7 @@ export class ExpBall extends Component {
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact) {
         if (otherCollider.node === this.target) {
             EventBus.emit(EventNames.GAIN_EXP, this.expValue)
-            this.recycleToPool()  // 改用这个方法
+            this.recycleToPool()
         }
     }
 
@@ -64,10 +64,9 @@ export class ExpBall extends Component {
     }
 
     public reset() {
-        // 重置经验球状态
-        this.expValue = GameConstants.EXP_BALL_BASE_VALUE
-        this.magnetSpeed = GameConstants.EXP_BALL_MAGNET_SPEED
-        this.magnetRadius = GameConstants.EXP_BALL_BASE_MAGNET_RADIUS
+        this.expValue = ExpBallConfig.BASE_VALUE
+        this.magnetSpeed = ExpBallConfig.MAGNET_SPEED
+        this.magnetRadius = ExpBallConfig.BASE_MAGNET_RADIUS
         this.node.setPosition(0, 0, 0)
         this.node.setScale(1, 1, 1)
         if (this.collider) {
@@ -87,7 +86,6 @@ export class ExpBall extends Component {
     update(deltaTime: number) {
         if (!this.target) return
 
-        // 计算与玩家的距离
         const myPos = this.node.worldPosition
         const targetPos = this.target.worldPosition
 
@@ -95,10 +93,8 @@ export class ExpBall extends Component {
         Vec3.subtract(dir, targetPos, myPos)
         const distance = dir.length()
 
-        // 动态获取当前磁吸半径
         const currentMagnetRadius = this.getCurrentMagnetRadius()
 
-        // 如果在磁吸范围内，向玩家移动
         if (distance < currentMagnetRadius && distance > 5) {
             dir.normalize()
             const newPos = myPos.clone()
@@ -108,5 +104,3 @@ export class ExpBall extends Component {
         }
     }
 }
-
-

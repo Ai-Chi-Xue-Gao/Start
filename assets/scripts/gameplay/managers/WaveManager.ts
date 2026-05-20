@@ -1,16 +1,18 @@
-import { _decorator, Component, Node, Vec3, instantiate, Prefab, Sprite, Color } from 'cc'
-import { EventBus } from '../core/EventBus'
-import { EventNames } from '../utils/EventNames'
-import { GameConstants } from '../utils/GameConstants'
-import { Enemy } from '../entities/enemy/Enemy'
-import { AffixSystem } from './AffixSystem'
-import { ObjectPool } from '../utils/ObjectPool'
-import { ExpBall } from '../entities/enemy/ExpBall'
-import { EnemyConfig, WaveConfig } from '../configs/GameConfig'
-import { ServiceLocator } from '../core/ServiceLocator'
-import { GameState, GameStateMachine } from '../core/GameStateMachine'
+// assets/scripts/gameplay/managers/WaveManager.ts
 
-const { ccclass, property } = _decorator
+import { _decorator, Node, Vec3, instantiate, Prefab, Sprite, Color } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
+import { EventBus } from '../../core/EventBus';
+import { EventNames } from '../../utils/EventNames';
+import { Enemy } from '../enemy/Enemy';
+import { AffixSystem } from './AffixSystem';
+import { ObjectPool } from '../../utils/ObjectPool';
+import { ExpBall } from '../enemy/ExpBall';
+import { EnemyConfig, WaveConfig, WorldConfig } from '../../configs/GameConfig';
+import { ServiceLocator } from '../../core/ServiceLocator';
+import { GameState, GameStateMachine } from '../../core/GameStateMachine';
+
+const { ccclass, property } = _decorator;
 
 /**
  * 波次类型
@@ -31,7 +33,7 @@ enum EnemyType {
 }
 
 @ccclass('WaveManager')
-export class WaveManager extends Component {
+export class WaveManager extends BaseComponent {
     @property(Prefab)
     enemyPrefab: Prefab = null
 
@@ -41,9 +43,8 @@ export class WaveManager extends Component {
     @property(Node)
     player: Node = null
 
-    // 精英/BOSS 颜色
-    private readonly ELITE_COLOR = new Color(255, 80, 80, 255)   // 红色
-    private readonly BOSS_COLOR = new Color(255, 215, 0, 255)    // 金色
+    private readonly ELITE_COLOR = new Color(255, 80, 80, 255)
+    private readonly BOSS_COLOR = new Color(255, 215, 0, 255)
 
     private currentWave: number = 1
     private waveState: 'active' | 'break' = 'active'
@@ -51,12 +52,10 @@ export class WaveManager extends Component {
     private enemiesRemaining: number = 0
     private enemiesToSpawn: number = 0
 
-    // 生成速度控制
-    private spawnInterval: number = 0.5      // 生成间隔（秒）
-    private spawnCooldown: number = 0        // 当前冷却时间
-    private maxSpawnPerFrame: number = 1     // 每帧最大生成数量
+    private spawnInterval: number = 0.5
+    private spawnCooldown: number = 0
+    private maxSpawnPerFrame: number = 1
 
-    // 各类敌人待生成数量
     private normalToSpawn: number = 0
     private eliteToSpawn: number = 0
     private bossToSpawn: number = 0
@@ -70,8 +69,7 @@ export class WaveManager extends Component {
             return
         }
 
-        // 确保状态机处于 RUNNING 状态
-        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine && stateMachine.getState() === GameState.MENU) {
             stateMachine.startGame()
             console.log('[WaveManager] 手动启动游戏状态')
@@ -85,17 +83,17 @@ export class WaveManager extends Component {
 
         EventBus.on(EventNames.ENEMY_DIED, this.onEnemyDied, this)
         EventBus.on(EventNames.GAME_PAUSE, this.onGamePause, this)
-        EventBus.on('enemy_summon', this.onEnemySummon, this)
-        EventBus.on('enemy_split', this.onEnemySplit, this)
-        EventBus.on('enemy_explosion', this.onEnemyExplosion, this)
+        EventBus.on(EventNames.ENEMY_SUMMON, this.onEnemySummon, this)
+        EventBus.on(EventNames.ENEMY_SPLIT, this.onEnemySplit, this)
+        EventBus.on(EventNames.ENEMY_EXPLOSION, this.onEnemyExplosion, this)
     }
 
     protected onDestroy() {
         EventBus.off(EventNames.ENEMY_DIED, this.onEnemyDied, this)
         EventBus.off(EventNames.GAME_PAUSE, this.onGamePause, this)
-        EventBus.off('enemy_summon', this.onEnemySummon, this)
-        EventBus.off('enemy_split', this.onEnemySplit, this)
-        EventBus.off('enemy_explosion', this.onEnemyExplosion, this)
+        EventBus.off(EventNames.ENEMY_SUMMON, this.onEnemySummon, this)
+        EventBus.off(EventNames.ENEMY_SPLIT, this.onEnemySplit, this)
+        EventBus.off(EventNames.ENEMY_EXPLOSION, this.onEnemyExplosion, this)
     }
 
     private onGamePause(pause: boolean) { }
@@ -143,20 +141,19 @@ export class WaveManager extends Component {
         this.enemiesRemaining = this.enemiesToSpawn
         this.waveState = 'active'
 
-        // 重置生成冷却
         this.spawnCooldown = 0
 
         console.log(`========== 第 ${this.currentWave} 波 ==========`)
         console.log(`类型: ${waveType}, 普通: ${enemyCounts.normal}, 精英: ${enemyCounts.elite}, BOSS: ${enemyCounts.boss}`)
 
-        EventBus.emit('wave_start', { wave: this.currentWave, type: waveType })
+        EventBus.emit(EventNames.WAVE_START, { wave: this.currentWave, type: waveType })
     }
 
     private onWaveComplete() {
         this.waveState = 'break'
         this.breakTimer = WaveConfig.WAVE_BREAK_TIME
         console.log(`第 ${this.currentWave} 波完成！休息 ${this.breakTimer} 秒`)
-        EventBus.emit('wave_complete', { wave: this.currentWave })
+        EventBus.emit(EventNames.WAVE_COMPLETE, { wave: this.currentWave })
     }
 
     private onEnemyExplosion(data: { position: Vec3, radius: number, damage: number }) {
@@ -209,11 +206,7 @@ export class WaveManager extends Component {
         }
     }
 
-    /**
-    * 分裂回调 - 安全版本
-    */
     private onEnemySplit(data: { position: Vec3, count: number, healthPercent: number }) {
-        // 限制分裂数量，防止爆炸
         const maxSplitCount = Math.min(data.count, 5)
 
         for (let i = 0; i < maxSplitCount; i++) {
@@ -223,40 +216,27 @@ export class WaveManager extends Component {
             const enemyScript = enemy.getComponent(Enemy)
             if (!enemyScript) continue
 
-            // 使用安全方法设置分裂怪
             enemyScript.setAsMinion(data.healthPercent)
         }
     }
 
-    /**
-     * 计算敌人生成位置（在玩家周围）
-     * @param playerPos 玩家位置
-     * @returns 生成位置
-     */
     private calculateSpawnPosition(playerPos: Vec3): Vec3 {
-        // 生成角度（随机）
         const angle = Math.random() * Math.PI * 2
-        // 生成距离（玩家周围 300-600 像素）
         const minDistance = 300
         const maxDistance = 600
         const distance = minDistance + Math.random() * (maxDistance - minDistance)
 
-        // 计算位置
         let spawnX = playerPos.x + Math.cos(angle) * distance
         let spawnY = playerPos.y + Math.sin(angle) * distance
 
-        // 边界裁剪
-        const halfWidth = GameConstants.WORLD_WIDTH / 2
-        const halfHeight = GameConstants.WORLD_HEIGHT / 2
+        const halfWidth = WorldConfig.WIDTH / 2
+        const halfHeight = WorldConfig.HEIGHT / 2
         spawnX = Math.max(-halfWidth, Math.min(halfWidth, spawnX))
         spawnY = Math.max(-halfHeight, Math.min(halfHeight, spawnY))
 
         return new Vec3(spawnX, spawnY, 0)
     }
 
-    /**
-    * 生成小怪 - 使用独立池
-    */
     private spawnMinion(position: Vec3): Node | null {
         const pool = ObjectPool.getInstance()
         let minion = pool.get('enemy_minion', this.node)
@@ -267,12 +247,12 @@ export class WaveManager extends Component {
             this.node.addChild(minion)
             const enemyScript = minion.getComponent(Enemy)
             if (enemyScript) {
-                enemyScript.reset(false)  // 不是来自池，直接初始化
+                enemyScript.reset(false)
             }
         } else {
             const enemyScript = minion.getComponent(Enemy)
             if (enemyScript) {
-                enemyScript.reset(true)   // 来自池，重置状态
+                enemyScript.reset(true)
             }
         }
 
@@ -286,15 +266,11 @@ export class WaveManager extends Component {
             const waveBonus = 1
             enemyScript2.speed = EnemyConfig.NORMAL_SPEED * waveBonus * 0.5
             enemyScript2.damage = EnemyConfig.NORMAL_DAMAGE * waveBonus * 0.5
-            // 注意：血量通过 setAsMinion 设置，这里不重复设置
         }
 
         return minion
     }
 
-    /**
-     * 生成敌人（在玩家周围）
-     */
     private spawnEnemy() {
         if (this.enemiesToSpawn <= 0) return
         if (!this.enemyPrefab) return
@@ -389,25 +365,21 @@ export class WaveManager extends Component {
     }
 
     update(deltaTime: number) {
-        // 检查游戏是否暂停（技能选择面板或手动暂停时）
-        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine && stateMachine.isPaused()) {
             return
         }
 
         if (this.waveState === 'active') {
-            // 生成速度控制
             if (this.spawnCooldown > 0) {
                 this.spawnCooldown -= deltaTime
             }
 
             if (this.enemiesToSpawn > 0 && this.spawnCooldown <= 0) {
-                // 每帧最多生成 maxSpawnPerFrame 个
                 let spawnCount = Math.min(this.maxSpawnPerFrame, this.enemiesToSpawn)
                 for (let i = 0; i < spawnCount; i++) {
                     this.spawnEnemy()
                 }
-                // 设置冷却时间
                 this.spawnCooldown = this.spawnInterval
             }
         } else if (this.waveState === 'break') {

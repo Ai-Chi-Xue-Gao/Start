@@ -1,8 +1,3 @@
-/**
- * 游戏配置（类型安全版本）
- * 替代 Utils/GameConstants.ts 中的常量，提供类型安全
- */
-
 // ========== 世界配置 ==========
 export const WorldConfig = {
     WIDTH: 3000,
@@ -29,7 +24,7 @@ export const EnemyConfig = {
 
 // ========== 玩家配置 ==========
 export const PlayerConfig = {
-    BASE_ATTACK: 20,
+    BASE_ATTACK: 15,
     BASE_MAX_HEALTH: 100,
     BASE_CURRENT_HEALTH: 100,
     BASE_SPEED: 300,
@@ -45,7 +40,7 @@ export const PlayerConfig = {
 
 // ========== 经验系统配置 ==========
 export const ExpConfig = {
-    BASE_TO_NEXT_LEVEL: 1,
+    BASE_TO_NEXT_LEVEL: 30,
     GROWTH_FACTOR: 1.2,
     BASE_MULTIPLIER: 1.0,
 } as const;
@@ -143,4 +138,24 @@ export const UIColorConfig = {
     SKILL_UPGRADE_R: 255,
     SKILL_UPGRADE_G: 200,
     SKILL_UPGRADE_B: 100,
+} as const;
+
+// ========== 技能面板颜色配置 ==========
+export const SkillPanelColorConfig = {
+    SKILL_LEVEL_R: 200,
+    SKILL_LEVEL_G: 200,
+    SKILL_LEVEL_B: 100,
+    SKILL_NEW_R: 100,
+    SKILL_NEW_G: 200,
+    SKILL_NEW_B: 255,
+    SKILL_UPGRADE_R: 255,
+    SKILL_UPGRADE_G: 200,
+    SKILL_UPGRADE_B: 100,
+} as const;
+
+// ========== 血条警告颜色配置 ==========
+export const HealthWarningColorConfig = {
+    HEALTH_WARNING_COLOR_R: 255,
+    HEALTH_WARNING_COLOR_G: 200,
+    HEALTH_WARNING_COLOR_B: 0,
 } as const;

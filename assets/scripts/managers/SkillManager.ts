@@ -1,15 +1,15 @@
+// assets/scripts/managers/SkillManager.ts
+
 import { resources, JsonAsset } from 'cc'
-import { PlayerController } from '../entities/player/PlayerController'
+import { ServiceLocator } from '../core/ServiceLocator'
+import { IPlayer } from '../interfaces/IPlayer'
 import { EventBus } from '../core/EventBus'
 import { EventNames } from '../utils/EventNames'
-import { GameConstants } from '../utils/GameConstants'
+import { AffixWeightConfig } from '../configs/GameConfig'
 import { DEFAULT_SKILL_DEFS, DEFAULT_SKILL_STATS, getSkillDef, getSkillStat, getSkillMaxLevel } from '../configs/SkillConfig'
 
 // ========== 类型定义 ==========
 
-/**
- * 技能定义（skill_def.json）
- */
 export interface SkillDef {
     name: string
     description: string
@@ -19,52 +19,36 @@ export interface SkillDef {
     icon: string
 }
 
-/**
- * 技能数值（skill_stat.json）
- * 格式：{ "1": { "healthBonus": 20 }, "2": { "healthBonus": 40 } }
- */
 export interface SkillStat {
     [level: string]: Record<string, any>
 }
 
-/**
- * 升级节点（skill_upgrade.json）
- */
 export interface UpgradeNode {
-    nodeId: string          // 节点唯一ID
-    levelReq: number        // 所需等级
-    trigger: string         // 触发条件（onKill, onDamage, onHeal 等）
-    condition: Record<string, any>  // 额外条件
-    effect: Record<string, any>     // 效果描述
+    nodeId: string
+    levelReq: number
+    trigger: string
+    condition: Record<string, any>
+    effect: Record<string, any>
 }
 
-/**
- * 合成规则（fusion_rule.json）
- */
 export interface FusionRule {
     name: string
     description: string
     requires: { skillId: string, minLevel: number }[]
-    consumes: boolean       // 是否消耗前置技能
-    replace?: string[]      // 替换哪些技能
+    consumes: boolean
+    replace?: string[]
     effect: Record<string, any>
 }
 
-/**
- * 五行归属（element_tag.json）
- */
 export interface ElementTag {
     element: string
     phase: string
 }
 
-/**
- * 玩家已学技能数据
- */
 export interface PlayerSkillData {
     skillId: string
     currentLevel: number
-    unlockedUpgrades: string[]  // 已解锁的升级节点ID
+    unlockedUpgrades: string[]
 }
 
 // ========== SkillManager 类 ==========
@@ -72,18 +56,15 @@ export interface PlayerSkillData {
 export class SkillManager {
     private static instance: SkillManager
 
-    // 配置数据
     private skillDefs: Map<string, SkillDef> = new Map()
     private skillStats: Map<string, SkillStat> = new Map()
     private skillUpgrades: Map<string, UpgradeNode[]> = new Map()
     private fusionRules: Map<string, FusionRule> = new Map()
     private elementTags: Map<string, ElementTag> = new Map()
 
-    // 玩家数据
     private playerSkills: Map<string, PlayerSkillData> = new Map()
-    private player: PlayerController | null = null
+    private player: IPlayer | null = null
 
-    // 加载状态
     private isLoaded: boolean = false
     private loadCallbacks: (() => void)[] = []
 
@@ -98,17 +79,11 @@ export class SkillManager {
 
     // ========== 初始化 ==========
 
-    /**
-     * 初始化技能管理器（绑定玩家）
-     */
-    public init(player: PlayerController) {
+    public init(player: IPlayer) {
         this.player = player
         console.log('[SkillManager] 初始化完成')
     }
 
-    /**
-     * 加载所有技能配置
-     */
     public loadAll(callback?: () => void) {
         if (this.isLoaded) {
             callback?.()
@@ -213,7 +188,7 @@ export class SkillManager {
         })
     }
 
-    // ========== 默认配置（加载失败时使用 TypeScript 配置） ==========
+    // ========== 默认配置 ==========
 
     private loadDefaultSkillDefs() {
         for (const [id, def] of Object.entries(DEFAULT_SKILL_DEFS)) {
@@ -231,16 +206,10 @@ export class SkillManager {
 
     // ========== 技能查询接口 ==========
 
-    /**
-     * 获取所有技能ID列表
-     */
     public getAllSkillIds(): string[] {
         return Array.from(this.skillDefs.keys())
     }
 
-    /**
-     * 获取技能定义
-     */
     public getSkillDef(skillId: string): SkillDef | null {
         if (this.skillDefs.has(skillId)) {
             return this.skillDefs.get(skillId) || null
@@ -248,9 +217,6 @@ export class SkillManager {
         return getSkillDef(skillId) || null
     }
 
-    /**
-     * 获取技能数值（指定等级）
-     */
     public getSkillStat(skillId: string, level: number): Record<string, any> | null {
         const stat = this.skillStats.get(skillId)
         if (stat && stat[String(level)]) {
@@ -259,94 +225,57 @@ export class SkillManager {
         return getSkillStat(skillId, level) || null
     }
 
-    /**
-     * 获取技能的升级节点树
-     */
     public getSkillUpgrades(skillId: string): UpgradeNode[] {
         return this.skillUpgrades.get(skillId) || []
     }
 
-    /**
-     * 获取技能在指定等级解锁的升级节点
-     */
     public getUpgradesAtLevel(skillId: string, level: number): UpgradeNode[] {
         const upgrades = this.skillUpgrades.get(skillId) || []
         return upgrades.filter(u => u.levelReq === level)
     }
 
-    /**
-     * 获取合成规则
-     */
     public getFusionRule(fusionId: string): FusionRule | null {
         return this.fusionRules.get(fusionId) || null
     }
 
-    /**
-     * 获取所有合成规则
-     */
     public getAllFusionRules(): Map<string, FusionRule> {
         return this.fusionRules
     }
 
-    /**
-     * 获取五行归属
-     */
     public getElementTag(skillId: string): ElementTag | null {
         return this.elementTags.get(skillId) || null
     }
 
     // ========== 玩家技能管理 ==========
 
-    /**
-     * 获取玩家已学技能列表
-     */
     public getPlayerSkills(): PlayerSkillData[] {
         return Array.from(this.playerSkills.values())
     }
 
-    /**
-     * 获取玩家已学技能数据
-     */
     public getPlayerSkill(skillId: string): PlayerSkillData | null {
         return this.playerSkills.get(skillId) || null
     }
 
-    /**
-     * 检查玩家是否拥有某个技能
-     */
     public hasSkill(skillId: string): boolean {
         return this.playerSkills.has(skillId)
     }
 
-    /**
-     * 获取技能当前等级
-     */
     public getSkillLevel(skillId: string): number {
         return this.playerSkills.get(skillId)?.currentLevel || 0
     }
 
-    /**
-     * 获取技能最大等级
-     */
     public getSkillMaxLevel(skillId: string): number {
         const def = this.skillDefs.get(skillId)
         if (def) return def.maxLevel
         return getSkillMaxLevel(skillId)
     }
 
-    /**
-     * 检查技能是否可以升级
-     */
     public canUpgradeSkill(skillId: string): boolean {
         const currentLevel = this.getSkillLevel(skillId)
         const maxLevel = this.getSkillMaxLevel(skillId)
         return currentLevel < maxLevel
     }
 
-    /**
-     * 学习或升级技能
-     * @returns 是否成功
-     */
     public learnSkill(skillId: string): boolean {
         const def = this.getSkillDef(skillId)
         if (!def) {
@@ -373,22 +302,15 @@ export class SkillManager {
             this.playerSkills.set(skillId, skillData)
         }
 
-        // 应用技能数值
         this.applySkillStats(skillId, newLevel)
-
-        // 解锁升级节点
         this.unlockUpgrades(skillId, newLevel)
 
-        // 触发技能选择事件
         EventBus.emit(EventNames.SKILL_SELECTED, { skillId, level: newLevel })
 
         console.log(`[SkillManager] 学习技能: ${def.name} Lv.${newLevel}`)
         return true
     }
 
-    /**
-     * 应用技能数值（调用 PlayerController）
-     */
     private applySkillStats(skillId: string, level: number) {
         if (!this.player) return
 
@@ -401,7 +323,7 @@ export class SkillManager {
     }
 
     /**
-     * 将数值应用到玩家
+     * 将数值应用到玩家（直接使用 IPlayer 接口，无需 as any）
      */
     private applyStatToPlayer(statName: string, value: any) {
         if (!this.player) return
@@ -409,97 +331,89 @@ export class SkillManager {
         switch (statName) {
             case 'healthBonus':
                 const newMaxHp = this.player.getMaxHealth() + value
-                this.player.setMaxHealth(newMaxHp)
+                this.player.setMaxHealth?.(newMaxHp)
                 break
             case 'attackMultiplier':
-                this.player.addAttackMultiplier(value)
+                this.player.addAttackMultiplier?.(value)
                 break
             case 'speedMultiplier':
-                this.player.addSpeedMultiplier(value)
+                this.player.addSpeedMultiplier?.(value)
                 break
             case 'expBonus':
-                this.player.addExpBonus(value)
+                this.player.addExpBonus?.(value)
                 break
             case 'cooldownReduction':
-                this.player.addCooldownReduction(value)
+                this.player.addCooldownReduction?.(value)
                 break
             case 'magnetBonus':
-                this.player.addMagnetBonus(value)
+                this.player.addMagnetBonus?.(value)
                 break
             case 'vampirePercent':
-                this.player.addVampirePercent(value)
+                this.player.addVampirePercent?.(value)
                 break
             case 'damageReduction':
-                this.player.addDamageReduction(value)
+                this.player.addDamageReduction?.(value)
                 break
             case 'critChance':
-                this.player.addCritChance(value)
+                this.player.addCritChance?.(value)
                 break
             case 'critDamage':
-                this.player.addCritDamage(value)
+                this.player.addCritDamage?.(value)
                 break
             case 'armorPen':
-                this.player.addArmorPen(value)
+                this.player.addArmorPen?.(value)
                 break
             case 'thornDamage':
-                this.player.addThornDamage(value)
+                this.player.addThornDamage?.(value)
                 break
-            // 武器技能
             case 'fireballCount':
-                this.player.setFireballCount(value)
+                this.player.setFireballCount?.(value)
                 break
             case 'pierceCount':
-                this.player.setPierceCount((this.player.getPierceCount() || 0) + value)
+                this.player.setPierceCount?.((this.player.getPierceCount?.() || 0) + value)
                 break
             case 'fireballSpeedMultiplier':
-                this.player.addFireballSpeedMultiplier(value)
+                this.player.addFireballSpeedMultiplier?.(value)
                 break
             case 'sizeMultiplier':
-                this.player.setFireballSizeMultiplier(value)
+                this.player.setFireballSizeMultiplier?.(value)
                 break
             case 'damageBonus':
-                this.player.addFireballDamageBonus(value)
+                this.player.addFireballDamageBonus?.(value)
                 break
-            // 杀怪奖励
             case 'attackBonus':
-                this.player.addPermanentAttack(value)
-                break
-            case 'healthBonus':
-                this.player.addPermanentHealth(value)
+                this.player.addPermanentAttack?.(value)
                 break
             case 'speedBonusPercent':
-                this.player.addPermanentSpeed(value)
+                this.player.addPermanentSpeed?.(value)
                 break
             case 'cooldownBonus':
-                this.player.addPermanentCooldown(value)
+                this.player.addPermanentCooldown?.(value)
                 break
             case 'expBonusPercent':
-                this.player.addPermanentExp(value)
+                this.player.addPermanentExp?.(value)
                 break
             case 'healAmount':
                 // 杀怪回血在 KillSystem 中处理
                 break
             case 'shieldAmount':
-                this.player.addKillShield(value)
+                this.player.addKillShield?.(value)
                 break
             case 'rageDuration':
             case 'rageDamageBonus':
-                this.player.addRageStats(value)
+                this.player.addRageStats?.({ [statName]: value })
                 break
             case 'dropBonusPercent':
-                this.player.addLuckyBonus(value)
+                this.player.addLuckyBonus?.(value)
                 break
             case 'killRequired':
-                this.player.setRebirthKillRequired(value)
+                this.player.setRebirthKillRequired?.(value)
                 break
             default:
                 console.log(`[SkillManager] 未处理的数值: ${statName} = ${value}`)
         }
     }
 
-    /**
-     * 解锁升级节点
-     */
     private unlockUpgrades(skillId: string, level: number) {
         const upgrades = this.getUpgradesAtLevel(skillId, level)
         const skillData = this.playerSkills.get(skillId)
@@ -514,16 +428,10 @@ export class SkillManager {
         }
     }
 
-    /**
-     * 注册升级节点触发器
-     */
     private registerUpgradeTrigger(skillId: string, upgrade: UpgradeNode) {
-        if (!this.player) return
-
-        const triggerSystem = (window as any).TriggerSystem
-        if (triggerSystem && triggerSystem.getInstance) {
-            const ts = triggerSystem.getInstance()
-            ts.registerTrigger(
+        const triggerSystem = ServiceLocator.getInstance().get<any>('triggerSystem')
+        if (triggerSystem && triggerSystem.registerTrigger) {
+            triggerSystem.registerTrigger(
                 upgrade.trigger,
                 upgrade.nodeId,
                 upgrade.condition,
@@ -534,20 +442,14 @@ export class SkillManager {
         }
     }
 
-    // ========== 技能池（用于升级选择） ==========
+    // ========== 技能池 ==========
 
-    /**
-    * 获取随机技能列表（用于升级面板）
-    * 不包含合成技能
-    */
     public getRandomSkills(count: number, excludeIds: string[] = []): string[] {
         const availableSkills: string[] = []
         const fusionIds = Array.from(this.fusionRules.keys())
 
         for (const [skillId, def] of this.skillDefs) {
-            // 排除合成技能
             if (fusionIds.includes(skillId)) continue
-            // 排除已禁用的技能
             if (excludeIds.includes(skillId)) continue
 
             const currentLevel = this.getSkillLevel(skillId)
@@ -558,19 +460,17 @@ export class SkillManager {
 
         if (availableSkills.length === 0) return []
 
-        // 根据稀有度计算权重
         const getWeight = (rarity: string): number => {
             switch (rarity) {
-                case 'common': return GameConstants.AFFIX_WEIGHT_COMMON
-                case 'rare': return GameConstants.AFFIX_WEIGHT_RARE
-                case 'epic': return GameConstants.AFFIX_WEIGHT_EPIC
-                case 'legendary': return GameConstants.AFFIX_WEIGHT_LEGENDARY
+                case 'common': return AffixWeightConfig.COMMON
+                case 'rare': return AffixWeightConfig.RARE
+                case 'epic': return AffixWeightConfig.EPIC
+                case 'legendary': return AffixWeightConfig.LEGENDARY
                 case 'mythic': return 0
                 default: return 5
             }
         }
 
-        // 构建权重数组
         const weighted: string[] = []
         for (const skillId of availableSkills) {
             const def = this.skillDefs.get(skillId)!
@@ -580,13 +480,11 @@ export class SkillManager {
             }
         }
 
-        // 随机打乱
         for (let i = weighted.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
-                ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
+            ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
         }
 
-        // 去重取前 count 个
         const result: string[] = []
         const seen = new Set<string>()
         for (const skillId of weighted) {
@@ -600,17 +498,12 @@ export class SkillManager {
         return result
     }
 
-    /**
- * 检查是否有可用的合成技能
- * @returns 可合成的技能ID列表（未学习且条件满足）
- */
     public getAvailableFusions(): { fusionId: string, rule: FusionRule }[] {
         const result: { fusionId: string, rule: FusionRule }[] = []
 
         for (const [fusionId, rule] of this.fusionRules) {
-            // 检查是否已学习
             if (this.playerSkills.has(fusionId)) {
-                continue  // 已学习，不再显示
+                continue
             }
 
             let canFusion = true
@@ -629,14 +522,10 @@ export class SkillManager {
         return result
     }
 
-    /**
-     * 合成技能
-     */
     public fuseSkill(fusionId: string): boolean {
         const rule = this.fusionRules.get(fusionId)
         if (!rule) return false
 
-        // 检查条件
         for (const req of rule.requires) {
             const skillData = this.playerSkills.get(req.skillId)
             if (!skillData || skillData.currentLevel < req.minLevel) {
@@ -645,14 +534,12 @@ export class SkillManager {
             }
         }
 
-        // 消耗前置技能
         if (rule.consumes && rule.replace) {
             for (const replaceId of rule.replace) {
                 this.playerSkills.delete(replaceId)
             }
         }
 
-        // 学习合成技能
         return this.learnSkill(fusionId)
     }
 
@@ -662,16 +549,12 @@ export class SkillManager {
         return this.isLoaded
     }
 
-    public getPlayer(): PlayerController | null {
+    public getPlayer(): IPlayer | null {
         return this.player
     }
 
-    /**
-     * 重置所有技能（新游戏时调用）
-     */
     public reset() {
         this.playerSkills.clear()
         console.log('[SkillManager] 技能数据已重置')
     }
 }
-

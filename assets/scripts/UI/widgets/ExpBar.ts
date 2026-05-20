@@ -1,72 +1,61 @@
-import { _decorator, Component, Label, Node, Sprite, UITransform } from 'cc';
+// assets/scripts/ui/ExpBar.ts
+
+import { _decorator, Label, Node, Sprite, UITransform } from 'cc';
+import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
-import { PlayerController } from '../../entities/player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
+import { IPlayer } from '../../interfaces/IPlayer';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('ExpBar')
-export class ExpBar extends Component {
+export class ExpBar extends BaseComponent {
     @property(Sprite)
-    fillSprite: Sprite = null // 经验条填充图片
+    fillSprite: Sprite = null
 
     @property(Node)
-    player: Node = null // 玩家节点
+    player: Node = null
 
     @property(Label)
-    expText: Label = null // 经验值文本
+    expText: Label = null
 
-    private playerScript: PlayerController
+    private playerService: IPlayer | null = null
     private originalWidth: number = 0
 
     start() {
-        if(this.player){
-            this.playerScript = this.player.getComponent(PlayerController)
+        this.playerService = this.getService<IPlayer>('IPlayer')
 
-            if(this.fillSprite){
-                const uiTransform = this.fillSprite.node.getComponent(UITransform)
-                this.originalWidth = uiTransform.contentSize.width
-            }
-
-            // 监听经验变化事件
-            EventBus.on(EventNames.EXP_CHANGED, this.onExpChange, this)
-
-            // 初始更新
-            this.updateExpBar()
+        if (this.fillSprite) {
+            const uiTransform = this.fillSprite.node.getComponent(UITransform)
+            this.originalWidth = uiTransform.contentSize.width
         }
 
+        EventBus.on(EventNames.EXP_CHANGED, this.onExpChange, this)
+        this.updateExpBar()
     }
 
     protected onDestroy(): void {
         EventBus.off(EventNames.EXP_CHANGED, this.onExpChange, this)
     }
 
-    private onExpChange(current: number, max: number){
+    private onExpChange(current: number, max: number) {
         this.updateExpBar()
     }
 
-    private updateExpBar(){
-        if(!this.playerScript) return
+    private updateExpBar() {
+        if (!this.playerService) return
 
-        const current = this.playerScript.getExp()
-        const max = this.playerScript.getExpToNextLevel()
+        const current = this.playerService.getExp()
+        const max = this.playerService.getExpToNextLevel()
         const percent = Math.min(1, current / max)
 
-        // 更新经验条宽度
-        if(this.fillSprite && this.originalWidth > 0){
+        if (this.fillSprite && this.originalWidth > 0) {
             const uiTransform = this.fillSprite.node.getComponent(UITransform)
-            uiTransform.setContentSize(this.originalWidth * percent, uiTransform.contentSize.height
-            )
+            uiTransform.setContentSize(this.originalWidth * percent, uiTransform.contentSize.height)
         }
 
-        // 更新经验值文本
-        if(this.expText){
-            this.expText.string = `${current}/${max}`
+        if (this.expText) {
+            this.expText.string = `${Math.floor(current)}/${Math.floor(max)}`
         }
-    }
-
-    update(deltaTime: number) {
-        
     }
 }
-
-
