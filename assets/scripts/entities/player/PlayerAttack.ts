@@ -7,6 +7,7 @@ import { EventBus } from '../../core/EventBus';
 import { NetworkEnemy } from '../../network/NetworkEnemy';
 import { EventNames } from '../../utils/EventNames';
 import { ObjectPool } from '../../utils/ObjectPool';
+import { ServiceLocator } from '../../core/ServiceLocator';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerAttack')
@@ -24,11 +25,13 @@ export class PlayerAttack extends Component {
     private lastAttackTime: number = 0
     private playerController: PlayerController = null
     private isPaused: boolean = false // 游戏停止标志
+    private canvasNode: Node = null
 
     start() {
         this.playerAnim = this.player.getComponent(PlayerAnim)
         this.playerController = this.player.getComponent(PlayerController)
 
+        this.canvasNode = ServiceLocator.getInstance().get<Node>('canvasNode')
 
         const button = this.node.getComponent(Button)
         button.node.on(Button.EventType.CLICK, this.onAttack, this)
@@ -85,7 +88,7 @@ export class PlayerAttack extends Component {
         const double = this.playerController.getHasDoubleFireball()
         const count = double ? 2 : 1
         const attackValue = this.playerController.getAttack()
-        const canvas = this.player.scene.getChildByName('Canvas')
+        const canvas = this.canvasNode
         const pool = ObjectPool.getInstance()
 
         for (let i = 0; i < count; i++) {
@@ -117,14 +120,13 @@ export class PlayerAttack extends Component {
     }
 
     private findNearestEnemy(): Node | null {
-        const canvas = this.player.scene.getChildByName('Canvas')
-        if (!canvas) return null
+        if (!this.canvasNode) return null
 
         let minDist = Infinity
         let nearest = null
 
         // 1. 查找 WaveManager 下的敌人（单机模式）
-        const waveManager = canvas.getChildByName('WaveManager')
+        const waveManager = this.canvasNode.getChildByName('WaveManager')
         if (waveManager) {
             for (const child of waveManager.children) {
                 const enemyScript = child.getComponent(Enemy)
@@ -139,7 +141,7 @@ export class PlayerAttack extends Component {
         }
 
         // 2. 查找网络敌人（联机模式）
-        for (const child of canvas.children) {
+        for (const child of this.canvasNode.children) {
             if (child.name.startsWith('NetworkEnemy_') && child.isValid) {
                 const networkEnemy = child.getComponent(NetworkEnemy)
                 if (networkEnemy && !networkEnemy.isDead) {

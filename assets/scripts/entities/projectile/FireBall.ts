@@ -8,6 +8,7 @@ import { NetworkManager } from '../../network/NetworkManager';
 import { EventNames } from '../../utils/EventNames';
 import { ObjectPool } from '../../utils/ObjectPool';
 import { Explosion } from './Explosion';
+import { ServiceLocator } from '../../core/ServiceLocator';
 
 @ccclass('FireBall')
 export class FireBall extends Component {
@@ -28,6 +29,7 @@ export class FireBall extends Component {
     private networkManager: NetworkManager = null // 缓存网络管理器
     private poolKey: string = 'fireball' // 对象池标识
     private isFromPool: boolean = false // 是否来自对象池
+    private canvasNode: Node = null
 
     // 外部调用，初始化火球，设置目标敌人
     public init(targetEnemy: Node, attackValue: number) {
@@ -35,8 +37,10 @@ export class FireBall extends Component {
         this.damage = attackValue // 使用玩家攻击力作为伤害
 
         // 获取玩家控制器，修正速度
-        const canvas = this.node.scene.getChildByName('Canvas')
-        const playerNode = canvas?.getChildByName('Player')
+        if (!this.canvasNode) {
+            this.canvasNode = ServiceLocator.getInstance().get<Node>('canvasNode')
+        }
+        const playerNode = this.canvasNode?.getChildByName('Player')
         if (playerNode) {
             const pc = playerNode.getComponent(PlayerController)
             if (pc) {
@@ -49,8 +53,8 @@ export class FireBall extends Component {
         }
 
         // 缓存网络管理器
-        if (canvas) {
-            this.networkManager = canvas.getComponentInChildren(NetworkManager)
+        if (this.canvasNode) {
+            this.networkManager = this.canvasNode.getComponentInChildren(NetworkManager)
         }
 
         if (this.target && this.target.isValid) {
@@ -65,6 +69,8 @@ export class FireBall extends Component {
         if (this.collider) {
             this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this)
         }
+
+        this.canvasNode = ServiceLocator.getInstance().get<Node>('canvasNode')
 
         // 如果没有指定目标，则自动寻找最近敌人
         if (!this.target || !this.target.isValid) {
@@ -124,8 +130,7 @@ export class FireBall extends Component {
      * @param excludeEnemy 排除的敌人节点（用于穿透后避开原目标）
      */
     private findNearestEnemy(excludeEnemy: Node = null) {
-        const canvas = this.node.scene.getChildByName('Canvas')
-        if (!canvas) return
+        if (!this.canvasNode) return
 
         let minDist = Infinity
         let nearest = null
@@ -133,7 +138,7 @@ export class FireBall extends Component {
 
         if (!isOnline) {
             // ========= 单机模式：查找 WaveManager 下的敌人 =========
-            const waveManager = canvas.getChildByName('WaveManager')
+            const waveManager = this.canvasNode.getChildByName('WaveManager')
             if (waveManager) {
                 for (const child of waveManager.children) {
                     if (excludeEnemy && child === excludeEnemy) continue
@@ -150,7 +155,7 @@ export class FireBall extends Component {
             }
         } else {
             // ========= 联机模式：查找 Canvas 下的 NetworkEnemy_ 节点 =========
-            for (const child of canvas.children) {
+            for (const child of this.canvasNode.children) {
                 if (!child.name.startsWith('NetworkEnemy_')) continue
                 if (excludeEnemy && child === excludeEnemy) continue
 
@@ -190,8 +195,7 @@ export class FireBall extends Component {
         else if (networkEnemy && !networkEnemy.isDead) {
             const deathPos = networkEnemy.node.worldPosition.clone()
 
-            const canvas = this.node.scene.getChildByName('Canvas')
-            const playerNode = canvas?.getChildByName('Player')
+            const playerNode = this.canvasNode?.getChildByName('Player')
             const playerController = playerNode?.getComponent(PlayerController)
             const attackValue = playerController?.getAttack() || this.damage
 
@@ -215,7 +219,6 @@ export class FireBall extends Component {
     }
 
     private spawnExplosionAt(position: Vec3) {
-        console.log(`[火球] spawnExplosionAt 位置: (${position.x.toFixed(1)}, ${position.y.toFixed(1)})`)
 
         const canvas = this.node.scene.getChildByName('Canvas')
         if (!canvas) return
@@ -232,14 +235,12 @@ export class FireBall extends Component {
             if (expScript) {
                 expScript.setFromPool(false)
             }
-            console.log(`[爆炸] 动态创建爆炸特效`)
         } else {
             const expScript = explosion.getComponent(Explosion)
             if (expScript) {
                 expScript.setFromPool(true)
                 expScript.reset()  // 重置状态（如果需要）
             }
-            console.log(`[爆炸] 从对象池获取爆炸特效`)
         }
 
         explosion.worldPosition = position

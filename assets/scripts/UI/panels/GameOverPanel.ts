@@ -2,6 +2,7 @@ import { _decorator, Button, Component, director, Label, Node } from 'cc';
 import { EventBus } from '../../core/EventBus';
 import { PlayerController } from '../../entities/player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
+import { ServiceLocator } from '../../core/ServiceLocator';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameOverPanel')
@@ -49,7 +50,7 @@ export class GameOverPanel extends Component {
         this.finalTime = Math.floor(Date.now() / 1000 - this.startTime)
 
         // 获取玩家等级
-        const canvas = this.node.scene.getChildByName('Canvas')
+        const canvas = ServiceLocator.getInstance().get<Node>('canvasNode')
         const player = canvas?.getChildByName('Player')
         let level = 1
         if(player){

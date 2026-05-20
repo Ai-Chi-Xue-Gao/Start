@@ -1,5 +1,6 @@
 import { _decorator, Animation, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, Vec3 } from 'cc';
 import { EventBus } from '../../core/EventBus';
+import { ServiceLocator } from '../../core/ServiceLocator';
 import { PlayerController } from '../player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
 import { AffixSystem } from '../../managers/AffixSystem';
@@ -50,7 +51,7 @@ export class Enemy extends Component {
     private initReferences() {
         this.anim = this.getComponent(Animation)
 
-        const canvas = this.node.scene.getChildByName('Canvas')
+        const canvas = ServiceLocator.getInstance().get<Node>('canvasNode')
         this.target = canvas?.getChildByName('Player')
 
         this.collider = this.getComponent(Collider2D)
@@ -80,6 +81,7 @@ export class Enemy extends Component {
         this.isMinion = false
         this.isDead = false
         this.isMoving = false
+        this.isPaused = false  // 🆕 重置暂停状态
 
         // 重置血量
         this.baseMaxHealth = this.maxHealth
@@ -118,7 +120,16 @@ export class Enemy extends Component {
             if (pause) {
                 this.anim.pause()
             } else {
-                this.anim.resume()
+                // 🆕 恢复动画时，根据当前移动状态恢复对应的动画
+                if (this.isMoving) {
+                    this.anim.resume()
+                } else {
+                    // 如果不在移动，恢复 idle 动画
+                    const animState = this.anim.getState('enemy_move')
+                    if (animState && !animState.isPlaying) {
+                        this.anim.play('enemy_move')
+                    }
+                }
             }
         }
     }
@@ -146,6 +157,7 @@ export class Enemy extends Component {
     }
 
     private playMoveAnim() {
+        if (this.isPaused) return  // 🆕 暂停时禁止播放动画
         if (!this.anim) return
         const animState = this.anim.getState('enemy_move')
         if (animState && !animState.isPlaying) {

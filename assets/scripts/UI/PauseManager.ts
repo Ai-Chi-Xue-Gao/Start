@@ -1,6 +1,9 @@
 import { _decorator, Button, Component, director, Node } from 'cc';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
+import { ServiceLocator } from '../core/ServiceLocator';
+import { GameStateMachine } from '../core/GameStateMachine';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('PauseManager')
@@ -41,7 +44,9 @@ export class PauseManager extends Component {
         }
     }
 
-    // 点击暂停按钮
+    /**
+     * 点击暂停按钮
+     */
     private onPauseClick(){
         if(this.isPaused) return
         this.isPaused = true
@@ -51,11 +56,17 @@ export class PauseManager extends Component {
             this.pausePanel.active = true
         }
 
-        // 发射暂停事件（通知游戏暂停）
-        EventBus.emit(EventNames.GAME_PAUSE, true)
+        // 通过状态机进入暂停状态（会自动设置 timeScale=0 并发射 GAME_PAUSE 事件）
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine) {
+            stateMachine.pause()
+            console.log('[PauseManager] 游戏暂停')
+        }
     }
 
-    // 点击继续游戏按钮
+    /**
+     * 点击继续游戏按钮
+     */
     private onResumeClick(){
         if(!this.isPaused) return
         this.isPaused = false
@@ -65,14 +76,26 @@ export class PauseManager extends Component {
             this.pausePanel.active = false
         }
 
-        // 发生恢复事件
-        EventBus.emit(EventNames.GAME_PAUSE, false)
+        // 通过状态机恢复游戏（会自动设置 timeScale=1 并发射 GAME_PAUSE 事件）
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine) {
+            stateMachine.resume()
+            console.log('[PauseManager] 游戏恢复')
+        }
     }
 
-    // 点击返回主菜单按钮
+    /**
+     * 点击返回主菜单按钮
+     */
     private onMenuClick(){
-        // 恢复游戏
-        EventBus.emit(EventNames.GAME_PAUSE, false)
+        // 先恢复游戏状态（重置暂停标记）
+        this.isPaused = false
+        
+        // 通过状态机恢复游戏
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine) {
+            stateMachine.resume()
+        }
 
         // 加载主菜单场景
         director.loadScene('Main')
@@ -99,5 +122,3 @@ export class PauseManager extends Component {
         
     }
 }
-
-

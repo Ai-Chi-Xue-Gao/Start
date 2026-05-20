@@ -4,6 +4,7 @@ import { PlayerController } from '../../entities/player/PlayerController';
 import { EventNames } from '../../utils/EventNames';
 import { ObjectPool } from '../../utils/ObjectPool';
 import { GameConstants } from '../../utils/GameConstants';
+import { ServiceLocator } from '../../core/ServiceLocator';
 
 const { ccclass, property } = _decorator;
 
@@ -25,7 +26,7 @@ export class ExpBall extends Component {
 
     start() {
         // 找到玩家节点
-        const canvas = this.node.scene.getChildByName('Canvas')
+        const canvas = ServiceLocator.getInstance().get<Node>('canvasNode')
         this.target = canvas?.getChildByName('Player')
 
         // 注册碰撞事件（与玩家碰撞）

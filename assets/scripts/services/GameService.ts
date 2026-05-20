@@ -42,20 +42,29 @@ export class GameService extends Component {
 
         // 1. 获取或添加 GameStateMachine
         this.gameStateMachine = this.getComponent(GameStateMachine);
+        console.log('[GameService] GameStateMachine 组件:', this.gameStateMachine)  // ← 添加
         if (!this.gameStateMachine) {
             this.gameStateMachine = this.addComponent(GameStateMachine);
         }
 
         // 2. 注册服务到 ServiceLocator
         ServiceLocator.getInstance().register('stateMachine', this.gameStateMachine);
+        console.log('[GameService] stateMachine 已注册')  // ← 添加
         ServiceLocator.getInstance().register('gameService', this);
+        
 
-        // 3. 注册玩家
-        if (this.playerNode) {
-            ServiceLocator.getInstance().register('playerNode', this.playerNode);
-            const playerController = this.playerNode.getComponent('PlayerController');
-            if (playerController) {
-                ServiceLocator.getInstance().register('playerController', playerController);
+        // 3. 注册节点引用
+        const canvas = this.node.scene.getChildByName('Canvas')
+        if (canvas) {
+            ServiceLocator.getInstance().register('canvasNode', canvas)
+        }
+
+        // 4. 注册玩家
+        if(this.playerNode){
+            ServiceLocator.getInstance().register('playerNode', this.playerNode)
+            const playerController = this.playerNode.getComponent('PlayerController')
+            if(playerController){
+                ServiceLocator.getInstance().register('playerController', playerController)
             }
         }
 

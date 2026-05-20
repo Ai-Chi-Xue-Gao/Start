@@ -5,6 +5,9 @@ import { EventNames } from '../../utils/EventNames';
 import { SkillManager } from '../../managers/SkillManager';
 import { GameConstants } from '../../utils/GameConstants';
 import { ObjectPool } from '../../utils/ObjectPool';
+import { ServiceLocator } from '../../core/ServiceLocator';
+import { GameStateMachine } from '../../core/GameStateMachine';
+import { SkillTooltip } from '../SkillTooltip';
 
 const { ccclass, property } = _decorator;
 
@@ -47,9 +50,11 @@ export class SkillPanel extends Component {
     @property(Label)
     fusionHintLabel: Label = null       // 合成提示文本
 
+    @property(SkillTooltip)
+    skillTooltip: SkillTooltip = null
+
     private isOpen: boolean = false
     private skillManager: SkillManager = null
-    private player: PlayerController = null
     private pendingCallback: ((skillId: string) => void) | null = null
 
     // 稀有度颜色配置
@@ -80,11 +85,8 @@ export class SkillPanel extends Component {
     private onPlayerLevelUp(data: any) {
         if (!data || !data.fromLevelUp) return
 
-        const canvas = this.node.scene.getChildByName('Canvas')
-        const playerNode = canvas?.getChildByName('Player')
-        this.player = playerNode?.getComponent(PlayerController)
-
-        if (!this.player) return
+        const player = ServiceLocator.getInstance().get<PlayerController>('playerController')
+        if (!player) return
 
         if (!this.skillManager.isReady()) {
             this.skillManager.loadAll(() => {
@@ -98,6 +100,13 @@ export class SkillPanel extends Component {
     private openPanel() {
         if (this.isOpen) return
         if (!this.skillManager.isReady()) return
+
+        // 通过状态机进入升级状态（会自动设置 timeScale=0 并发射 GAME_PAUSE 事件）
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine) {
+            stateMachine.enterLevelUp()
+            console.log('[SkillPanel] 进入 LEVEL_UP 状态，游戏暂停')
+        }
 
         const skillIds = this.getAvailableSkills(3)
 
@@ -129,11 +138,17 @@ export class SkillPanel extends Component {
         }
 
         this.isOpen = true
-        EventBus.emit(EventNames.GAME_PAUSE, true)
     }
 
     public closePanel() {
         if (!this.isOpen) return
+
+        // 通过状态机退出升级状态（会自动设置 timeScale=1 并发射 GAME_PAUSE 事件）
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine) {
+            stateMachine.exitLevelUp()
+            console.log('[SkillPanel] 退出 LEVEL_UP 状态，游戏恢复')
+        }
 
         if (this.panelNode) {
             this.panelNode.active = false
@@ -144,7 +159,6 @@ export class SkillPanel extends Component {
 
         this.isOpen = false
         this.pendingCallback = null
-        EventBus.emit(EventNames.GAME_PAUSE, false)
     }
 
     private getAvailableSkills(count: number): string[] {
@@ -388,13 +402,27 @@ export class SkillPanel extends Component {
             }
         }
 
-        // 绑定按钮事件（先移除旧的避免重复绑定）
+        // 绑定按钮事件
         const button = buttonNode.getComponent(Button)
         if (button) {
+            // 移除旧的点击事件避免重复绑定
             button.node.off(Button.EventType.CLICK, this.onSkillSelected, this)
+
+            // 绑定点击事件
             button.node.on(Button.EventType.CLICK, () => {
                 this.onSkillSelected(data.skillId)
             }, this)
+
+            // 绑定悬停事件（显示技能提示框）
+            if (this.skillTooltip) {
+                button.node.on(Node.EventType.MOUSE_ENTER, () => {
+                    this.skillTooltip.show(data, itemNode.worldPosition, data.skillId)
+                }, this)
+
+                button.node.on(Node.EventType.MOUSE_LEAVE, () => {
+                    this.skillTooltip.hide()
+                }, this)
+            }
         }
     }
 
@@ -448,4 +476,3 @@ export class SkillPanel extends Component {
         this.pendingCallback = callback
     }
 }
-

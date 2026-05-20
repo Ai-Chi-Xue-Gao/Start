@@ -1,6 +1,8 @@
 import { _decorator, Component, Label, Node } from 'cc';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
+import { ServiceLocator } from '../core/ServiceLocator';
+import { PlayerController } from '../entities/player/PlayerController';
 const { ccclass, property } = _decorator;
 
 @ccclass('LevelUI')
@@ -16,7 +18,7 @@ export class LevelUI extends Component {
 
     start() {
         if(this.player){
-            this.playerScript = this.player.getComponent('PlayerController')
+            this.playerScript = ServiceLocator.getInstance().get<PlayerController>('playerController')
 
             // 从玩家控制器获取初始等级
             if(this.playerScript){

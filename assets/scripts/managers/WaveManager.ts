@@ -7,6 +7,8 @@ import { AffixSystem } from './AffixSystem'
 import { ObjectPool } from '../utils/ObjectPool'
 import { ExpBall } from '../entities/enemy/ExpBall'
 import { EnemyConfig, WaveConfig } from '../configs/GameConfig'
+import { ServiceLocator } from '../core/ServiceLocator'
+import { GameState, GameStateMachine } from '../core/GameStateMachine'
 
 const { ccclass, property } = _decorator
 
@@ -66,6 +68,13 @@ export class WaveManager extends Component {
         if (gameMode === 'multi') {
             this.enabled = false
             return
+        }
+
+        // 确保状态机处于 RUNNING 状态
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine && stateMachine.getState() === GameState.MENU) {
+            stateMachine.startGame()
+            console.log('[WaveManager] 手动启动游戏状态')
         }
 
         this.affixSystem = AffixSystem.getInstance()
@@ -380,6 +389,12 @@ export class WaveManager extends Component {
     }
 
     update(deltaTime: number) {
+        // 检查游戏是否暂停（技能选择面板或手动暂停时）
+        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
+        if (stateMachine && stateMachine.isPaused()) {
+            return
+        }
+
         if (this.waveState === 'active') {
             // 生成速度控制
             if (this.spawnCooldown > 0) {

@@ -1,4 +1,7 @@
 import { _decorator, Component, director } from 'cc';
+import { EventBus } from './EventBus';
+import { EventNames } from '../utils/EventNames';
+
 const { ccclass } = _decorator;
 
 /**
@@ -27,6 +30,7 @@ export interface StateChangeEvent {
  * - 管理游戏状态流转
  * - 自动处理 Time.timeScale（暂停相关状态）
  * - 触发状态变更事件，供其他模块监听
+ * - 统一发射 GAME_PAUSE 事件，通知所有组件
  */
 @ccclass('GameStateMachine')
 export class GameStateMachine extends Component {
@@ -92,7 +96,7 @@ export class GameStateMachine extends Component {
         // 切换状态
         this.currentState = newState;
 
-        // 处理时间缩放
+        // 处理时间缩放（会同时发射 GAME_PAUSE 事件）
         this.updateTimeScale();
 
         // 执行状态进入逻辑
@@ -224,11 +228,16 @@ export class GameStateMachine extends Component {
     }
 
     /**
-     * 根据状态更新时间缩放
+     * 根据状态更新时间缩放，并发射暂停事件
      */
     private updateTimeScale() {
         const shouldPause = this.pausedStates.has(this.currentState);
-        director.getScheduler().setTimeScale(shouldPause ? 0 : 1)
+        
+        // 设置时间缩放
+        director.getScheduler().setTimeScale(shouldPause ? 0 : 1);
+        
+        // 🆕 发射暂停事件，通知所有监听 GAME_PAUSE 的组件
+        EventBus.emit(EventNames.GAME_PAUSE, shouldPause);
     }
 
     /**
@@ -241,5 +250,3 @@ export class GameStateMachine extends Component {
         }
     }
 }
-
-

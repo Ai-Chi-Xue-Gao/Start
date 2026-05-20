@@ -60,10 +60,8 @@ export class Explosion extends Component {
         if (this.isFromPool) {
             const pool = ObjectPool.getInstance()
             pool.recycle(this.poolKey, this.node)
-            console.log(`[爆炸] 已回收至对象池`)
         } else {
             this.node.destroy()
-            console.log(`[爆炸] 直接销毁`)
         }
     }
 }
