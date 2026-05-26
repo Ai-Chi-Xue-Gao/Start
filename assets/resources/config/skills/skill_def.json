@@ -56,8 +56,8 @@
     "icon": "icon_fireball"
   },
   "fireball_pierce": {
-    "name": "火球弹射",
-    "description": "击杀敌人后弹射一次",
+    "name": "火球穿透",
+    "description": "命中敌人穿透一次",
     "rarity": "rare",
     "tags": ["weapon", "fire", "chain"],
     "maxLevel": 5,
@@ -73,7 +73,7 @@
   },
   "fireball_size": {
     "name": "巨型火球",
-    "description": "火球体积 +50%，伤害 +30%",
+    "description": "火球体积 +100%，伤害 +30%",
     "rarity": "epic",
     "tags": ["weapon", "fire", "aoe"],
     "maxLevel": 5,
@@ -81,7 +81,7 @@
   },
   "water_trail": {
     "name": "流步残痕",
-    "description": "移动路径留下水域，敌人减速 25%",
+    "description": "移动路径留下水域，敌人减速 50%",
     "rarity": "rare",
     "tags": ["passive", "water", "control"],
     "maxLevel": 5,

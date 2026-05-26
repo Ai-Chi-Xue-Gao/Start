@@ -55,6 +55,7 @@ export class Enemy extends BaseComponent {
         }
 
         EventBus.on(EventNames.GAME_PAUSE, this.onPause, this)
+        EventBus.on('player_reflect_damage', this.onReflectDamage, this)
         this.affixSystem = AffixSystem.getInstance()
     }
 
@@ -63,6 +64,15 @@ export class Enemy extends BaseComponent {
             this.collider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this)
         }
         EventBus.off(EventNames.GAME_PAUSE, this.onPause, this)
+        EventBus.off('player_reflect_damage', this.onReflectDamage, this)
+    }
+
+    // 添加反伤处理方法
+    private onReflectDamage(data: { damage: number }) {
+        if (!this.isDead && this.currentHealth > 0) {
+            this.takeDamage(data.damage);
+            console.log(`[反伤] 敌人受到 ${data.damage} 点反伤`);
+        }
     }
 
     public reset(fromPool: boolean = false) {
@@ -83,14 +93,22 @@ export class Enemy extends BaseComponent {
             this.collider.enabled = true
         }
 
+        // 清除词条数据（重置词条记录）
         if ((this as any).__affixData) {
             (this as any).__affixData = null
+        }
+
+        // 通知词条系统清除记录
+        const affixSystem = AffixSystem.getInstance()
+        if (affixSystem) {
+            affixSystem.resetEnemyAffixRecord(this)
         }
     }
 
     public setAsMinion(healthPercent: number) {
         this.isMinion = true
-        this.runtimeMaxHealth = this.baseMaxHealth * healthPercent
+        //  血量取整，避免浮点精度问题
+        this.runtimeMaxHealth = Math.floor(this.baseMaxHealth * healthPercent)
         this.currentHealth = this.runtimeMaxHealth
     }
 
@@ -143,6 +161,10 @@ export class Enemy extends BaseComponent {
         }
     }
 
+    /**
+     * 受到伤害
+     *  添加伤害取整和血量取整，避免浮点精度问题
+     */
     public takeDamage(damage: number): boolean {
         if (this.isDead) return false
 
@@ -150,8 +172,12 @@ export class Enemy extends BaseComponent {
             damage = this.affixSystem.onEnemyHit(this, damage)
         }
 
-        this.currentHealth -= damage
-        console.log(`敌人受到${damage}伤害, 剩余血量：${this.currentHealth}/${this.runtimeMaxHealth}`)
+        //  伤害向上取整
+        damage = Math.ceil(damage);
+        this.currentHealth -= damage;
+
+        //  血量取整显示
+        console.log(`敌人受到${damage}伤害, 剩余血量：${Math.floor(this.currentHealth)}/${Math.floor(this.runtimeMaxHealth)}`)
 
         if (this.currentHealth <= 0) {
             this.die()
@@ -184,7 +210,29 @@ export class Enemy extends BaseComponent {
     }
 
     public getRuntimeMaxHealth(): number {
-        return this.runtimeMaxHealth
+        //  返回取整后的最大血量
+        return Math.floor(this.runtimeMaxHealth)
+    }
+
+    /**
+     * 获取当前速度
+     */
+    public getSpeed(): number {
+        return this.speed;
+    }
+
+    /**
+     * 设置速度（用于减速效果）
+     */
+    public setSpeed(newSpeed: number) {
+        this.speed = newSpeed;
+    }
+
+    /**
+     * 获取原始速度
+     */
+    public getOriginalSpeed(): number {
+        return (this as any).__originalSpeed || this.speed;
     }
 
     update(deltaTime: number) {

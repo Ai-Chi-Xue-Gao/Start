@@ -409,6 +409,13 @@ export class SkillManager {
             case 'killRequired':
                 this.player.setRebirthKillRequired?.(value)
                 break
+
+            case 'orbCount':
+                // WaterOrbManager 会通过 SKILL_SELECTED 事件自行处理
+                // 这里不需要额外操作，只记录日志避免警告
+                console.log(`[SkillManager] 水灵法球数量: ${value}（由 WaterOrbManager 处理）`);
+                break
+                
             default:
                 console.log(`[SkillManager] 未处理的数值: ${statName} = ${value}`)
         }
@@ -449,17 +456,24 @@ export class SkillManager {
         const fusionIds = Array.from(this.fusionRules.keys())
 
         for (const [skillId, def] of this.skillDefs) {
+            // 跳过融合技能（融合技能单独处理）
             if (fusionIds.includes(skillId)) continue
+
+            // 跳过排除列表中的技能
             if (excludeIds.includes(skillId)) continue
 
+            // 检查技能是否已达最大等级
             const currentLevel = this.getSkillLevel(skillId)
-            if (currentLevel < def.maxLevel) {
-                availableSkills.push(skillId)
+            if (currentLevel >= def.maxLevel) {
+                continue  // 已满级，跳过
             }
+
+            availableSkills.push(skillId)
         }
 
         if (availableSkills.length === 0) return []
 
+        // 根据稀有度计算权重
         const getWeight = (rarity: string): number => {
             switch (rarity) {
                 case 'common': return AffixWeightConfig.COMMON
@@ -471,6 +485,7 @@ export class SkillManager {
             }
         }
 
+        // 构建权重数组
         const weighted: string[] = []
         for (const skillId of availableSkills) {
             const def = this.skillDefs.get(skillId)!
@@ -480,11 +495,13 @@ export class SkillManager {
             }
         }
 
+        // 随机打乱
         for (let i = weighted.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
-            ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
+                ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
         }
 
+        // 去重取前 count 个
         const result: string[] = []
         const seen = new Set<string>()
         for (const skillId of weighted) {

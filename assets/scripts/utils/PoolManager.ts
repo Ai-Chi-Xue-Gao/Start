@@ -24,6 +24,10 @@ export class PoolManager extends BaseComponent {
     @property(Prefab)
     enemyPrefab: Prefab = null
 
+    @property(Prefab)
+    waterOrbPrefab: Prefab = null;
+
+
     private static instance: PoolManager
 
     start() {
@@ -52,6 +56,10 @@ export class PoolManager extends BaseComponent {
         if (this.enemyPrefab) {
             pool.register('enemy', this.enemyPrefab, 200)
             pool.register('enemy_minion', this.enemyPrefab, 100)
+        }
+
+        if (this.waterOrbPrefab) {
+            pool.register('waterOrb', this.waterOrbPrefab, 10)
         }
 
         console.log('[PoolManager] 所有对象池注册完成')

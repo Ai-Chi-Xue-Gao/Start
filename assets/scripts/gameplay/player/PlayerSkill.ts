@@ -25,10 +25,9 @@ export class PlayerSkill extends BaseComponent {
     private permanentCooldownBonus: number = 0
     
     // 武器技能
-    private hasDoubleFireball: boolean = false
     private hasPierceFireball: boolean = false
     private pierceCount: number = 0
-    private fireballCount: number = 1
+    private fireballCount: number = 1           //  火球数量（1-多）
     private fireballSpeedMultiplier: number = 1.0
     private fireballSizeMultiplier: number = 1.0
     private fireballDamageBonus: number = 0
@@ -71,8 +70,18 @@ export class PlayerSkill extends BaseComponent {
         return Math.min(AttackConfig.MIN_COOLDOWN, reduction)
     }
 
+    /**
+     *  获取火球数量
+     */
+    public getFireballCount(): number {
+        return this.fireballCount
+    }
+
+    /**
+     * @deprecated 请使用 getFireballCount() >= 2
+     */
     public getHasDoubleFireball(): boolean {
-        return this.hasDoubleFireball
+        return this.fireballCount >= 2
     }
 
     public getHasPierceFireball(): boolean {
@@ -81,10 +90,6 @@ export class PlayerSkill extends BaseComponent {
 
     public getPierceCount(): number {
         return this.pierceCount
-    }
-
-    public getFireballCount(): number {
-        return this.fireballCount
     }
 
     public getFireballSpeedMultiplier(): number {
@@ -137,32 +142,102 @@ export class PlayerSkill extends BaseComponent {
 
     // ========== Setter 方法 ==========
 
-    public setDoubleFireball(active: boolean) { this.hasDoubleFireball = active }
-    public setPierceFireball(active: boolean) { this.hasPierceFireball = active }
-    public setPierceCount(count: number) { this.pierceCount = count }
-    public setFireballCount(count: number) { this.fireballCount = count }
-    public setFireballSpeedMultiplier(mult: number) { this.fireballSpeedMultiplier = mult }
-    public setFireballSizeMultiplier(mult: number) { this.fireballSizeMultiplier = mult }
-    public setAttackCooldownReduction(reduce: number) { this.skill_cooldownReduction = reduce }
-    public setMagnetBonus(value: number) { this.magnetBonus = value }
-    public setRebirthKillRequired(required: number) { this.rebirthKillRequired = required }
+    /**
+     * @deprecated 请使用 setFireballCount
+     */
+    public setDoubleFireball(active: boolean) {
+        this.fireballCount = active ? 2 : 1
+    }
+    
+    public setPierceFireball(active: boolean) {
+        this.hasPierceFireball = active
+    }
+    
+    public setPierceCount(count: number) {
+        this.pierceCount = count
+    }
+    
+    public setFireballCount(count: number) {
+        this.fireballCount = count
+    }
+    
+    public setFireballSpeedMultiplier(mult: number) {
+        this.fireballSpeedMultiplier = mult
+    }
+    
+    public setFireballSizeMultiplier(mult: number) {
+        this.fireballSizeMultiplier = mult
+    }
+    
+    public setAttackCooldownReduction(reduce: number) {
+        this.skill_cooldownReduction = reduce
+    }
+    
+    public setMagnetBonus(value: number) {
+        this.magnetBonus = value
+    }
+    
+    public setRebirthKillRequired(required: number) {
+        this.rebirthKillRequired = required
+    }
 
     // ========== Add 方法 ==========
 
-    public addAttackMultiplier(value: number) { this.attackMultiplierBonus *= value }
-    public addCooldownReduction(value: number) { this.skill_cooldownReduction += value }
-    public addPermanentAttack(bonus: number) { this.permanentAttackBonus += bonus }
-    public addPermanentCooldown(bonus: number) { this.permanentCooldownBonus += bonus }
-    public addPermanentSpeed(bonusPercent: number) { this.permanentSpeedBonus += bonusPercent }
-    public addFireballSpeedMultiplier(mult: number) { this.fireballSpeedMultiplier *= mult }
-    public addFireballDamageBonus(bonus: number) { this.fireballDamageBonus += bonus }
-    public addVampirePercent(value: number) { this.vampirePercent += value }
-    public addCritChance(value: number) { this.critChance = Math.min(PlayerConfig.MAX_CRIT_CHANCE, this.critChance + value) }
-    public addCritDamage(value: number) { this.critDamage += value }
-    public addArmorPen(value: number) { this.armorPen = Math.min(1.0, this.armorPen + value) }
-    public addThornDamage(value: number) { this.thornDamage += value }
-    public addMagnetBonus(value: number) { this.magnetBonus += value }
-    public addLuckyBonus(value: number) { this.luckyBonus += value }
+    public addAttackMultiplier(value: number) {
+        this.attackMultiplierBonus *= value
+    }
+    
+    public addCooldownReduction(value: number) {
+        this.skill_cooldownReduction += value
+    }
+    
+    public addPermanentAttack(bonus: number) {
+        this.permanentAttackBonus += bonus
+    }
+    
+    public addPermanentCooldown(bonus: number) {
+        this.permanentCooldownBonus += bonus
+    }
+    
+    public addPermanentSpeed(bonusPercent: number) {
+        this.permanentSpeedBonus += bonusPercent
+    }
+    
+    public addFireballSpeedMultiplier(mult: number) {
+        this.fireballSpeedMultiplier *= mult
+    }
+    
+    public addFireballDamageBonus(bonus: number) {
+        this.fireballDamageBonus += bonus
+    }
+    
+    public addVampirePercent(value: number) {
+        this.vampirePercent += value
+    }
+    
+    public addCritChance(value: number) {
+        this.critChance = Math.min(PlayerConfig.MAX_CRIT_CHANCE, this.critChance + value)
+    }
+    
+    public addCritDamage(value: number) {
+        this.critDamage += value
+    }
+    
+    public addArmorPen(value: number) {
+        this.armorPen = Math.min(1.0, this.armorPen + value)
+    }
+    
+    public addThornDamage(value: number) {
+        this.thornDamage += value
+    }
+    
+    public addMagnetBonus(value: number) {
+        this.magnetBonus += value
+    }
+    
+    public addLuckyBonus(value: number) {
+        this.luckyBonus += value
+    }
 
     // ========== 临时效果 ==========
 

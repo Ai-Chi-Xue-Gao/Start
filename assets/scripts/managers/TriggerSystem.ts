@@ -58,16 +58,24 @@ export class TriggerSystem {
      * 初始化触发器系统（绑定玩家）
      */
     public init(player: IPlayer) {
-        if (this.isInitialized) return
-        this.player = player
-        this.setupEventListeners()
-        this.isInitialized = true
-        
-        // 注册到 ServiceLocator，供 SkillManager 使用
-        ServiceLocator.getInstance().register('triggerSystem', this)
-        
-        console.log('[TriggerSystem] 初始化完成')
+        if (this.isInitialized) {
+            console.warn('[TriggerSystem] 已经初始化过，跳过');
+            return;
+        }
+
+        this.player = player;
+
+        // 注册到 ServiceLocator（如果还没有）
+        if (!ServiceLocator.getInstance().has('triggerSystem')) {
+            ServiceLocator.getInstance().register('triggerSystem', this);
+        }
+
+        this.setupEventListeners();
+        this.isInitialized = true;
+
+        console.log('[TriggerSystem] 初始化完成，玩家已绑定');
     }
+
 
     /**
      * 设置事件监听器（使用 EventBus）
@@ -103,7 +111,7 @@ export class TriggerSystem {
         this.eventHandlers.set('onHit', onHit)
         this.eventHandlers.set('onSkillUpgrade', onSkillUpgrade)
 
-        // 注册 EventBus 监听（🆕 使用 EventNames 常量）
+        // 注册 EventBus 监听（ 使用 EventNames 常量）
         EventBus.on(EventNames.PLAYER_HURT, onDamage)
         EventBus.on(EventNames.ENEMY_DIED, onKill)
         EventBus.on(EventNames.PLAYER_HEALTH_CHANGE, onHeal)
@@ -131,6 +139,11 @@ export class TriggerSystem {
         effectParams: EffectParams,
         cooldown: number = 0
     ) {
+        if (!this.isInitialized) {
+            console.warn('[TriggerSystem] 系统未初始化，无法注册触发器');
+            return;
+        }
+
         if (!this.triggers.has(triggerName)) {
             this.triggers.set(triggerName, [])
         }
@@ -300,22 +313,44 @@ export class TriggerSystem {
      * 销毁系统（移除事件监听）
      */
     public destroy() {
-        // 移除所有 EventBus 监听（🆕 使用 EventNames 常量）
-        EventBus.off(EventNames.PLAYER_HURT, this.eventHandlers.get('onDamage')!)
-        EventBus.off(EventNames.ENEMY_DIED, this.eventHandlers.get('onKill')!)
-        EventBus.off(EventNames.PLAYER_HEALTH_CHANGE, this.eventHandlers.get('onHeal')!)
-        EventBus.off(EventNames.PLAYER_LOW_HEALTH, this.eventHandlers.get('onLowHealth')!)
-        EventBus.off(EventNames.PLAYER_HIGH_HEALTH, this.eventHandlers.get('onHighHealth')!)
-        EventBus.off(EventNames.SKILL_CAST, this.eventHandlers.get('onSkillCast')!)
-        EventBus.off(EventNames.PLAYER_MOVE, this.eventHandlers.get('onMoving')!)
-        EventBus.off(EventNames.COMBO_HIT, this.eventHandlers.get('onCombo')!)
-        EventBus.off(EventNames.PLAYER_DIED, this.eventHandlers.get('onDeath')!)
-        EventBus.off(EventNames.PLAYER_LEVEL_UP, this.eventHandlers.get('onLevelUp')!)
-        EventBus.off(EventNames.PLAYER_HIT, this.eventHandlers.get('onHit')!)
-        EventBus.off(EventNames.SKILL_SELECTED, this.eventHandlers.get('onSkillUpgrade')!)
+        const onDamage = this.eventHandlers.get('onDamage');
+        if (onDamage) EventBus.off(EventNames.PLAYER_HURT, onDamage);
 
-        this.eventHandlers.clear()
-        this.isInitialized = false
-        console.log('[TriggerSystem] 已销毁')
+        const onKill = this.eventHandlers.get('onKill');
+        if (onKill) EventBus.off(EventNames.ENEMY_DIED, onKill);
+
+        const onHeal = this.eventHandlers.get('onHeal');
+        if (onHeal) EventBus.off(EventNames.PLAYER_HEALTH_CHANGE, onHeal);
+
+        const onLowHealth = this.eventHandlers.get('onLowHealth');
+        if (onLowHealth) EventBus.off(EventNames.PLAYER_LOW_HEALTH, onLowHealth);
+
+        const onHighHealth = this.eventHandlers.get('onHighHealth');
+        if (onHighHealth) EventBus.off(EventNames.PLAYER_HIGH_HEALTH, onHighHealth);
+
+        const onSkillCast = this.eventHandlers.get('onSkillCast');
+        if (onSkillCast) EventBus.off(EventNames.SKILL_CAST, onSkillCast);
+
+        const onMoving = this.eventHandlers.get('onMoving');
+        if (onMoving) EventBus.off(EventNames.PLAYER_MOVE, onMoving);
+
+        const onCombo = this.eventHandlers.get('onCombo');
+        if (onCombo) EventBus.off(EventNames.COMBO_HIT, onCombo);
+
+        const onDeath = this.eventHandlers.get('onDeath');
+        if (onDeath) EventBus.off(EventNames.PLAYER_DIED, onDeath);
+
+        const onLevelUp = this.eventHandlers.get('onLevelUp');
+        if (onLevelUp) EventBus.off(EventNames.PLAYER_LEVEL_UP, onLevelUp);
+
+        const onHit = this.eventHandlers.get('onHit');
+        if (onHit) EventBus.off(EventNames.PLAYER_HIT, onHit);
+
+        const onSkillUpgrade = this.eventHandlers.get('onSkillUpgrade');
+        if (onSkillUpgrade) EventBus.off(EventNames.SKILL_SELECTED, onSkillUpgrade);
+
+        this.eventHandlers.clear();
+        this.isInitialized = false;
+        console.log('[TriggerSystem] 已销毁');
     }
 }

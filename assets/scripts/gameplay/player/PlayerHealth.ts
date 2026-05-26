@@ -5,13 +5,14 @@ import { BaseComponent } from '../../core/BaseComponent';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
 import { FlashEffect } from '../../utils/FlashEffect';
-import { PlayerConfig, InvincibleFlashConfig } from '../../configs/GameConfig';
+import { PlayerConfig } from '../../configs/GameConfig';
+import { Enemy } from '../enemy/Enemy';
 
 const { ccclass, property } = _decorator;
 
 /**
  * 玩家血量组件
- * 负责：血量管理、受伤、死亡、无敌、复活
+ * 负责：血量管理、受伤、死亡、复活、反伤、护盾
  */
 @ccclass('PlayerHealth')
 export class PlayerHealth extends BaseComponent {
@@ -21,20 +22,20 @@ export class PlayerHealth extends BaseComponent {
     @property
     currentHealth: number = PlayerConfig.BASE_CURRENT_HEALTH
 
-    @property
-    invincibleTime: number = PlayerConfig.INVINCIBLE_TIME
-
     private spriteNode: Node = null
-    private isInvincible: boolean = false
-    private invincibleTimer: number = 0
-    private invincibleFlashInterval: any = null
     private hurtFlashInterval: any = null
-    
+
     // 属性加成
     private healthMultiplier: number = 1.0
     private permanentHealthBonus: number = 0
     private damageReduction: number = 0
     private killShield: number = 0
+    private thornDamage: number = 0
+    private rebirthAvailable: boolean = false;
+    private rebirthCount: number = 0;
+
+    // 护盾属性
+    private shield: number = 0;
 
     start() {
         this.spriteNode = this.node.getChildByName('Sprite')
@@ -42,163 +43,255 @@ export class PlayerHealth extends BaseComponent {
     }
 
     protected onDestroy() {
-        if (this.invincibleFlashInterval !== null) {
-            clearInterval(this.invincibleFlashInterval)
-            this.invincibleFlashInterval = null
-        }
         if (this.hurtFlashInterval !== null) {
             clearInterval(this.hurtFlashInterval)
             this.hurtFlashInterval = null
         }
     }
 
+    /**
+     * 获取最大生命值（取整）
+     */
     public getMaxHealth(): number {
-        return (this.maxHealth + this.permanentHealthBonus) * this.healthMultiplier
+        return Math.floor((this.maxHealth + this.permanentHealthBonus) * this.healthMultiplier);
     }
 
+    /**
+     * 获取当前生命值（取整）
+     */
     public getCurrentHealth(): number {
-        return this.currentHealth
+        return Math.floor(this.currentHealth);
     }
 
+    /**
+     * 获取生命值百分比
+     */
     public getHealthPercent(): number {
-        return this.currentHealth / this.getMaxHealth()
+        return this.getCurrentHealth() / this.getMaxHealth();
     }
+
+    // ========== 护盾相关方法 ==========
+
+    public addShield(amount: number) {
+        this.shield += Math.floor(amount);
+        console.log(`[护盾] 添加护盾，护盾值: ${this.shield}`);
+        EventBus.emit(EventNames.PLAYER_SHIELD_CHANGE, this.shield);
+    }
+
+    public useShield(amount: number): number {
+        const used = Math.min(this.shield, amount);
+        this.shield -= used;
+        EventBus.emit(EventNames.PLAYER_SHIELD_CHANGE, this.shield);
+        return used;
+    }
+
+    public getShield(): number {
+        return this.shield;
+    }
+
+    // ========== 血量加成方法 ==========
 
     public addHealthMultiplier(value: number) {
-        const oldMax = this.getMaxHealth()
-        this.healthMultiplier *= value
-        const newMax = this.getMaxHealth()
-        this.currentHealth = this.currentHealth * (newMax / oldMax)
-        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.currentHealth, newMax)
+        const oldMax = this.getMaxHealth();
+        this.healthMultiplier *= value;
+        const newMax = this.getMaxHealth();
+        const ratio = oldMax > 0 ? this.currentHealth / oldMax : 1;
+        this.currentHealth = Math.floor(newMax * ratio);
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), newMax);
     }
 
     public addPermanentHealth(bonus: number) {
-        this.permanentHealthBonus += bonus
-        const newMax = this.getMaxHealth()
-        this.currentHealth += bonus
-        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.currentHealth, newMax)
+        const bonusInt = Math.floor(bonus);
+        this.permanentHealthBonus += bonusInt;
+        const newMax = this.getMaxHealth();
+        this.currentHealth = Math.min(newMax, this.currentHealth + bonusInt);
+        this.currentHealth = Math.floor(this.currentHealth);
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), newMax);
     }
 
     public addDamageReduction(value: number) {
-        this.damageReduction = Math.min(PlayerConfig.MAX_DAMAGE_REDUCTION, this.damageReduction + value)
+        this.damageReduction = Math.min(PlayerConfig.MAX_DAMAGE_REDUCTION, this.damageReduction + value);
     }
 
     public getDamageReduction(): number {
-        return this.damageReduction
+        return this.damageReduction;
     }
 
+    // ========== 击杀护盾相关 ==========
+
     public addKillShield(amount: number) {
-        this.killShield += amount
+        this.killShield += Math.floor(amount);
     }
 
     public useKillShield(amount: number): number {
-        const used = Math.min(this.killShield, amount)
-        this.killShield -= used
-        return used
+        const used = Math.min(this.killShield, amount);
+        this.killShield -= used;
+        return used;
     }
 
+    // ========== 反伤相关 ==========
+
+    public addThornDamage(value: number) {
+        this.thornDamage += value;
+        console.log(`[石肤荆棘] 反伤百分比: ${this.thornDamage * 100}%`);
+    }
+
+    public getThornDamage(): number {
+        return this.thornDamage;
+    }
+
+    // ========== 受到伤害 ==========
+
     public takeDamage(damage: number): boolean {
-        if (this.isInvincible) return false
-        if (this.currentHealth <= 0) return false
+        if (this.currentHealth <= 0) return false;
 
-        let finalDamage = damage
+        let remainingDamage = damage;
 
-        // 护盾吸收
-        if (this.killShield > 0) {
-            const absorbed = this.useKillShield(finalDamage)
-            finalDamage -= absorbed
+        // 优先使用护盾
+        let shieldAbsorbed = 0;
+        if (this.shield > 0) {
+            shieldAbsorbed = this.useShield(remainingDamage);
+            remainingDamage -= shieldAbsorbed;
+        }
+
+        // 使用击杀护盾
+        let killShieldAbsorbed = 0;
+        if (remainingDamage > 0 && this.killShield > 0) {
+            killShieldAbsorbed = this.useKillShield(remainingDamage);
+            remainingDamage -= killShieldAbsorbed;
+        }
+
+        // 如果伤害被完全抵消
+        if (remainingDamage <= 0) {
+            EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), this.getMaxHealth());
+            return false;
         }
 
         // 减伤
+        let finalDamage = remainingDamage;
         if (this.damageReduction > 0 && finalDamage > 0) {
-            finalDamage = finalDamage * (1 - this.damageReduction)
+            finalDamage = finalDamage * (1 - this.damageReduction);
         }
 
-        if (finalDamage <= 0) return false
+        // 伤害向上取整
+        finalDamage = Math.ceil(finalDamage);
+        this.currentHealth -= finalDamage;
+        this.currentHealth = Math.max(0, Math.floor(this.currentHealth));
 
-        this.currentHealth -= finalDamage
-        this.currentHealth = Math.max(0, this.currentHealth)
-        
-        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.currentHealth, this.getMaxHealth())
-        this.playHurtFlash()
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), this.getMaxHealth());
 
+        // 只有真正扣血时才播放受伤闪烁
+        if (finalDamage > 0) {
+            this.playHurtFlash();
+        }
+
+        // 反伤效果
+        if (this.thornDamage > 0 && damage > 0) {
+            this.applyThornDamage(damage);
+        }
+
+        // 玩家死亡时检查复活
         if (this.currentHealth <= 0) {
-            return true  // 死亡
-        } else {
-            this.startInvincible()
-            return false
+            if (this.rebirthAvailable) {
+                this.doRebirth();
+                return false;
+            }
+            return true;  // 真正死亡
         }
+
+        return false;
     }
 
-    public heal(amount: number) {
-        if (this.currentHealth <= 0) return
-        const oldHealth = this.currentHealth
-        this.currentHealth = Math.min(this.getMaxHealth(), this.currentHealth + amount)
-        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.currentHealth, this.getMaxHealth())
-    }
+    /**
+     * 应用反伤效果
+     */
+    private applyThornDamage(originalDamage: number) {
+        const reflectDamage = Math.max(1, Math.floor(originalDamage * this.thornDamage));
 
-    public revive(hpPercent: number) {
-        if (this.currentHealth > 0) return
-        this.currentHealth = this.getMaxHealth() * hpPercent
-        this.isInvincible = true
-        this.invincibleTimer = 0
-        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.currentHealth, this.getMaxHealth())
-    }
+        const canvas = this.node.scene?.getChildByName('Canvas');
+        if (!canvas) return;
 
-    private startInvincible() {
-        this.isInvincible = true
-        this.invincibleTimer = 0
-        this.startFlashEffect()
-    }
+        const waveManager = canvas.getChildByName('WaveManager');
+        let reflectCount = 0;
 
-    private startFlashEffect() {
-        const sprite = this.spriteNode?.getComponent(Sprite)
-        if (!sprite) return
-        if (this.invincibleFlashInterval !== null) {
-            FlashEffect.cancel(this.invincibleFlashInterval)
-            this.invincibleFlashInterval = null
-        }
-        this.invincibleFlashInterval = FlashEffect.flash(
-            sprite,
-            InvincibleFlashConfig.DURATION,
-            InvincibleFlashConfig.INTERVAL,
-            new Color(
-                InvincibleFlashConfig.COLOR_R,
-                InvincibleFlashConfig.COLOR_G,
-                InvincibleFlashConfig.COLOR_B,
-                255
-            ),
-            () => { this.invincibleFlashInterval = null }
-        ) as any
-    }
-
-    private playHurtFlash() {
-        const sprite = this.spriteNode?.getComponent(Sprite)
-        if (!sprite) return
-        if (this.hurtFlashInterval !== null) {
-            FlashEffect.cancel(this.hurtFlashInterval)
-            this.hurtFlashInterval = null
-        }
-        this.hurtFlashInterval = FlashEffect.flash(
-            sprite, 0.4, 0.1, Color.RED,
-            () => { this.hurtFlashInterval = null }
-        ) as any
-    }
-
-    public updateInvincible(deltaTime: number) {
-        if (this.isInvincible) {
-            this.invincibleTimer += deltaTime
-            if (this.invincibleTimer >= this.invincibleTime) {
-                this.isInvincible = false
-                this.invincibleTimer = 0
+        if (waveManager) {
+            for (const child of waveManager.children) {
+                const enemy = child.getComponent(Enemy);
+                if (enemy && !enemy.isDead) {
+                    enemy.takeDamage(reflectDamage);
+                    reflectCount++;
+                }
             }
         }
+
+        if (reflectCount > 0) {
+            console.log(`[石肤荆棘] 反弹 ${reflectDamage} 点伤害给 ${reflectCount} 个敌人`);
+        }
     }
 
+    // ========== 治疗 ==========
+
+    public heal(amount: number) {
+        if (this.currentHealth <= 0) return;
+        const healAmount = Math.floor(amount);
+        this.currentHealth = Math.min(this.getMaxHealth(), this.currentHealth + healAmount);
+        this.currentHealth = Math.floor(this.currentHealth);
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), this.getMaxHealth());
+    }
+
+    // ========== 复活 ==========
+
+    public revive(hpPercent: number) {
+        if (this.currentHealth > 0) return;
+        this.currentHealth = Math.floor(this.getMaxHealth() * hpPercent);
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), this.getMaxHealth());
+    }
+
+    // ========== 受伤闪烁 ==========
+
+    private playHurtFlash() {
+        const sprite = this.spriteNode?.getComponent(Sprite);
+        if (!sprite) return;
+        if (this.hurtFlashInterval !== null) {
+            FlashEffect.cancel(this.hurtFlashInterval);
+            this.hurtFlashInterval = null;
+        }
+        this.hurtFlashInterval = FlashEffect.flash(
+            sprite, 0.3, 0.08, Color.RED,
+            () => { this.hurtFlashInterval = null }
+        ) as any;
+    }
+
+    // ========== 属性设置 ==========
+
     public setMaxHealth(value: number) {
-        const ratio = this.currentHealth / this.maxHealth
-        this.maxHealth = value
-        this.currentHealth = this.maxHealth * ratio
-        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.currentHealth, this.maxHealth)
+        const ratio = this.currentHealth / this.maxHealth;
+        this.maxHealth = Math.floor(value);
+        this.currentHealth = Math.floor(this.maxHealth * ratio);
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), this.getMaxHealth());
+    }
+
+    // ========== 复活相关 ==========
+
+    public setRebirthAvailable(available: boolean) {
+        this.rebirthAvailable = available;
+        console.log(`[重生] 复活机会可用: ${available}`);
+    }
+
+    public isRebirthAvailable(): boolean {
+        return this.rebirthAvailable;
+    }
+
+    public doRebirth(): boolean {
+        if (!this.rebirthAvailable) return false;
+
+        this.rebirthAvailable = false;
+        const reviveHealth = Math.floor(this.getMaxHealth() * PlayerConfig.REVIVE_HEALTH_PERCENT);
+        this.currentHealth = reviveHealth;
+
+        EventBus.emit(EventNames.PLAYER_HEALTH_CHANGE, this.getCurrentHealth(), this.getMaxHealth());
+
+        console.log(`[重生] 复活！回复 ${reviveHealth} 点生命值 (${PlayerConfig.REVIVE_HEALTH_PERCENT * 100}%)`);
+        return true;
     }
 }

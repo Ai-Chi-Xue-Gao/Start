@@ -25,10 +25,14 @@ export interface IPlayer {
     getSpeed(): number                    // 添加速度获取
     
     // ========== 火球技能相关 ==========
+    /** @deprecated 请使用 getFireballCount() >= 2 */
     getHasDoubleFireball(): boolean
     getHasPierceFireball(): boolean
     getFireballSpeedMultiplier(): number
     getPierceCount(): number
+    getFireballCount(): number            // 获取火球数量
+    getFireballSizeMultiplier(): number
+    getFireballDamageBonus(): number
     
     // ========== 其他属性 ==========
     getMagnetRangeMultiplier(): number

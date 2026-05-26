@@ -11,6 +11,7 @@ import { ExpBall } from '../enemy/ExpBall';
 import { EnemyConfig, WaveConfig, WorldConfig } from '../../configs/GameConfig';
 import { ServiceLocator } from '../../core/ServiceLocator';
 import { GameState, GameStateMachine } from '../../core/GameStateMachine';
+import { GameService } from '../../services/GameService';
 
 const { ccclass, property } = _decorator;
 
@@ -63,16 +64,28 @@ export class WaveManager extends BaseComponent {
     private affixSystem: AffixSystem = null
 
     start() {
-        const gameMode = (window as any).gameMode
-        if (gameMode === 'multi') {
-            this.enabled = false
-            return
+        // 获取游戏服务判断是否联机模式
+        const gameService = ServiceLocator.getInstance().get<GameService>('gameService');
+        
+        if (gameService && gameService.isMultiMode()) {
+            console.log('[WaveManager] 联机模式，波次系统禁用');
+            this.enabled = false;
+            return;
+        }
+
+        // 如果没有获取到 gameService（可能初始化顺序问题），使用 window 临时变量作为后备
+        if (!gameService) {
+            const gameMode = (window as any).gameMode;
+            if (gameMode === 'multi') {
+                console.log('[WaveManager] 联机模式，波次系统禁用');
+                this.enabled = false;
+                return;
+            }
         }
 
         const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine && stateMachine.getState() === GameState.MENU) {
             stateMachine.startGame()
-            console.log('[WaveManager] 手动启动游戏状态')
         }
 
         this.affixSystem = AffixSystem.getInstance()
@@ -86,6 +99,7 @@ export class WaveManager extends BaseComponent {
         EventBus.on(EventNames.ENEMY_SUMMON, this.onEnemySummon, this)
         EventBus.on(EventNames.ENEMY_SPLIT, this.onEnemySplit, this)
         EventBus.on(EventNames.ENEMY_EXPLOSION, this.onEnemyExplosion, this)
+        EventBus.on('spawn_bonus_exp', this.onSpawnBonusExp, this);
     }
 
     protected onDestroy() {
@@ -94,6 +108,12 @@ export class WaveManager extends BaseComponent {
         EventBus.off(EventNames.ENEMY_SUMMON, this.onEnemySummon, this)
         EventBus.off(EventNames.ENEMY_SPLIT, this.onEnemySplit, this)
         EventBus.off(EventNames.ENEMY_EXPLOSION, this.onEnemyExplosion, this)
+        EventBus.off('spawn_bonus_exp', this.onSpawnBonusExp, this);
+    }
+
+    private onSpawnBonusExp(position: Vec3) {
+        this.spawnExpBall(position);
+        console.log(`[幸运] 生成额外经验球 at (${position.x.toFixed(1)}, ${position.y.toFixed(1)})`);
     }
 
     private onGamePause(pause: boolean) { }
@@ -321,7 +341,7 @@ export class WaveManager extends BaseComponent {
 
             enemyScript2.speed = EnemyConfig.NORMAL_SPEED * finalMultiplier
             enemyScript2.damage = EnemyConfig.NORMAL_DAMAGE * finalMultiplier
-            enemyScript2.maxHealth = EnemyConfig.NORMAL_HEALTH * finalMultiplier
+            enemyScript2.maxHealth = Math.floor(EnemyConfig.NORMAL_HEALTH * finalMultiplier)
 
             if (enemyType === EnemyType.ELITE) {
                 const sprite = enemyNode.getComponent(Sprite)

@@ -1,3 +1,5 @@
+// assets/scripts/core/GameStateMachine.ts
+
 import { _decorator, Component, director } from 'cc';
 import { EventBus } from './EventBus';
 import { EventNames } from '../utils/EventNames';
@@ -229,14 +231,18 @@ export class GameStateMachine extends Component {
 
     /**
      * 根据状态更新时间缩放，并发射暂停事件
+     *  添加空值检查，防止场景销毁时出错
      */
     private updateTimeScale() {
         const shouldPause = this.pausedStates.has(this.currentState);
         
-        // 设置时间缩放
-        director.getScheduler().setTimeScale(shouldPause ? 0 : 1);
+        // 添加空值检查，防止场景销毁时 director.getScheduler() 返回 null
+        const scheduler = director.getScheduler();
+        if (scheduler) {
+            scheduler.setTimeScale(shouldPause ? 0 : 1);
+        }
         
-        // 🆕 发射暂停事件，通知所有监听 GAME_PAUSE 的组件
+        // 发射暂停事件，通知所有监听 GAME_PAUSE 的组件
         EventBus.emit(EventNames.GAME_PAUSE, shouldPause);
     }
 

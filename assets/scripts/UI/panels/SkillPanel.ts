@@ -1,4 +1,4 @@
-// assets/scripts/ui/SkillPanel.ts
+// assets/scripts/ui/panels/SkillPanel.ts
 
 import { _decorator, Button, instantiate, Label, Node, Prefab, Color, resources, JsonAsset, Sprite, SpriteFrame, UITransform } from 'cc';
 import { BaseComponent } from '../../core/BaseComponent';
@@ -60,6 +60,9 @@ export class SkillPanel extends BaseComponent {
     private skillManager: SkillManager = null
     private pendingCallback: ((skillId: string) => void) | null = null
 
+    //  存储当前活动按钮的事件处理函数，用于精确解绑
+    private activeClickHandlers: Map<Node, (event: any) => void> = new Map()
+
     private readonly rarityColors: Record<string, Color> = {
         'common': new Color(200, 200, 200, 255),
         'rare': new Color(80, 120, 255, 255),
@@ -82,6 +85,8 @@ export class SkillPanel extends BaseComponent {
 
     protected onDestroy() {
         EventBus.off(EventNames.PLAYER_LEVEL_UP, this.onPlayerLevelUp, this)
+        //  清理所有事件绑定
+        this.clearAllButtonHandlers();
     }
 
     private onPlayerLevelUp(data: any) {
@@ -109,12 +114,22 @@ export class SkillPanel extends BaseComponent {
             console.log('[SkillPanel] 进入 LEVEL_UP 状态，游戏暂停')
         }
 
+        // 调试：打印所有已学技能等级
+        const allSkills = this.skillManager.getPlayerSkills();
+        console.log('[SkillPanel] 当前已学技能:');
+        for (const skill of allSkills) {
+            const maxLevel = this.skillManager.getSkillMaxLevel(skill.skillId);
+            console.log(`  - ${skill.skillId}: Lv.${skill.currentLevel}/${maxLevel} ${skill.currentLevel >= maxLevel ? '(已满级)' : ''}`);
+        }
+
         const skillIds = this.getAvailableSkills(3)
 
         if (skillIds.length === 0) {
             this.closePanel()
             return
         }
+
+        console.log('[SkillPanel] 候选技能:', skillIds);
 
         const skillItems: SkillItemData[] = []
         for (const skillId of skillIds) {
@@ -165,6 +180,7 @@ export class SkillPanel extends BaseComponent {
         const playerSkills = this.skillManager.getPlayerSkills()
         const excludeIds: string[] = []
 
+        // 收集已满级的技能ID
         for (const skill of playerSkills) {
             const maxLevel = this.skillManager.getSkillMaxLevel(skill.skillId)
             if (skill.currentLevel >= maxLevel) {
@@ -172,11 +188,16 @@ export class SkillPanel extends BaseComponent {
             }
         }
 
+        console.log('[SkillPanel] excludeIds:', excludeIds);
+
+        // 获取可用的融合技能
         const availableFusions = this.skillManager.getAvailableFusions()
         const fusionIds = availableFusions.map(f => f.fusionId)
 
+        // 获取普通技能（排除已满级和已拥有的融合技能）
         const normalSkills = this.skillManager.getRandomSkills(count, [...excludeIds, ...fusionIds])
 
+        // 优先显示融合技能
         if (fusionIds.length > 0) {
             const result = [...fusionIds]
             const remainingCount = count - result.length
@@ -291,11 +312,39 @@ export class SkillPanel extends BaseComponent {
         return titles[Math.floor(Math.random() * titles.length)]
     }
 
+    /**
+     *  清除所有按钮的事件处理函数
+     */
+    private clearAllButtonHandlers() {
+        for (const [node, handler] of this.activeClickHandlers) {
+            if (node && node.isValid) {
+                node.off(Button.EventType.CLICK, handler, this);
+            }
+        }
+        this.activeClickHandlers.clear();
+    }
+
+    /**
+     *  清除单个技能项的事件
+     */
+    private clearItemButtonHandlers(itemNode: Node) {
+        const button = itemNode.getComponentInChildren(Button);
+        if (button && button.node) {
+            const handler = this.activeClickHandlers.get(button.node);
+            if (handler) {
+                button.node.off(Button.EventType.CLICK, handler, this);
+                this.activeClickHandlers.delete(button.node);
+            }
+        }
+    }
+
     private clearItems() {
         if (!this.contentNode) return
         const pool = ObjectPool.getInstance()
         const children = [...this.contentNode.children]
         for (const child of children) {
+            //  解绑按钮事件
+            this.clearItemButtonHandlers(child);
             pool.recycle('skillItem', child)
         }
     }
@@ -385,12 +434,26 @@ export class SkillPanel extends BaseComponent {
 
         const button = buttonNode.getComponent(Button)
         if (button) {
-            button.node.off(Button.EventType.CLICK, this.onSkillSelected, this)
-            button.node.on(Button.EventType.CLICK, () => {
+            //  先解绑旧事件，避免重复绑定
+            const oldHandler = this.activeClickHandlers.get(button.node);
+            if (oldHandler) {
+                button.node.off(Button.EventType.CLICK, oldHandler, this);
+                this.activeClickHandlers.delete(button.node);
+            }
+            
+            //  创建新的事件处理函数并存储
+            const clickHandler = () => {
                 this.onSkillSelected(data.skillId)
-            }, this)
+            }
+            this.activeClickHandlers.set(button.node, clickHandler);
+            button.node.on(Button.EventType.CLICK, clickHandler, this);
 
+            // 工具提示绑定
             if (this.skillTooltip) {
+                // 先解绑旧的鼠标事件
+                button.node.off(Node.EventType.MOUSE_ENTER);
+                button.node.off(Node.EventType.MOUSE_LEAVE);
+                
                 button.node.on(Node.EventType.MOUSE_ENTER, () => {
                     this.skillTooltip.show(data, itemNode.worldPosition, data.skillId)
                 }, this)

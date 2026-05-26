@@ -1,3 +1,5 @@
+// assets/scripts/configs/GameConfig.ts
+
 // ========== 世界配置 ==========
 export const WorldConfig = {
     WIDTH: 3000,
@@ -59,7 +61,7 @@ export const SkillEffectConfig = {
 export const AttackConfig = {
     BASE_COOLDOWN: 0.8,
     MIN_COOLDOWN: 0.2,
-    FIREBALL_BASE_SPEED: 500,
+    FIREBALL_BASE_SPEED: 300,
 } as const;
 
 // ========== 经验球配置 ==========
@@ -81,7 +83,7 @@ export const NetworkConfig = {
 
 // ========== 波次配置 ==========
 export const WaveConfig = {
-    BASE_ENEMY_COUNT: 5,
+    BASE_ENEMY_COUNT: 60,                    // 基础敌人数量（原 5 → 60）
     ENEMY_COUNT_WAVE_DIVISOR: 2,
 
     THREAT_WAVE_MULTIPLIER: 1.5,

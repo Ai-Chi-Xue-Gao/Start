@@ -1,3 +1,5 @@
+// assets/scripts/gameplay/managers/AffixSystem.ts
+
 import { resources, JsonAsset, Vec3, Node, Label, Color } from 'cc'
 import { Enemy } from '../enemy/Enemy'
 import { EnemyAffixData } from './AffixData'
@@ -16,6 +18,9 @@ export class AffixSystem {
     private isLoading: boolean = false
     private loadCallbacks: (() => void)[] = []
     private isReady: boolean = false
+
+    // 记录已应用词条的敌人（防止重复应用）
+    private appliedEnemies: WeakSet<Enemy> = new WeakSet()
 
     private constructor() { }
 
@@ -116,8 +121,15 @@ export class AffixSystem {
 
     /**
      * 为敌人随机分配词条
+     * 添加防重复检查
      */
     public applyRandomAffixes(enemy: Enemy, wave: number): AffixConfig[] {
+        // 防止重复应用词条
+        if (this.appliedEnemies.has(enemy)) {
+            console.warn('[词条系统] 敌人已应用过词条，跳过');
+            return [];
+        }
+
         const { count, maxRarity } = this.getWaveAffixConfig(wave)
         if (count === 0) return []
 
@@ -153,12 +165,26 @@ export class AffixSystem {
 
         this.showAffixesOnEnemy(enemy, selected)
 
+        // 标记已应用
+        this.appliedEnemies.add(enemy)
+
         return selected
     }
 
     /**
- * 在敌人头上显示词条
- */
+     * 重置敌人词条记录（敌人从对象池取出时调用）
+     */
+    public resetEnemyAffixRecord(enemy: Enemy): void {
+        this.appliedEnemies.delete(enemy);
+        // 清除词条数据
+        if ((enemy as any).__affixData) {
+            (enemy as any).__affixData = null;
+        }
+    }
+
+    /**
+     * 在敌人头上显示词条
+     */
     private showAffixesOnEnemy(enemy: Enemy, affixes: AffixConfig[]) {
         if (affixes.length === 0) return
 
@@ -207,6 +233,7 @@ export class AffixSystem {
 
     /**
      * 应用词条效果到敌人
+     *  添加血量取整，避免浮点精度问题
      */
     private applyAffixToEnemy(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData): void {
         const stats = affix.stats
@@ -219,8 +246,10 @@ export class AffixSystem {
         }
 
         if (stats.healthMultiplier) {
-            (enemy as any).maxHealth = (enemy as any).maxHealth * stats.healthMultiplier
-                ; (enemy as any).currentHealth = (enemy as any).maxHealth
+            //  血量取整
+            const newMaxHealth = Math.floor((enemy as any).maxHealth * stats.healthMultiplier);
+            (enemy as any).maxHealth = newMaxHealth;
+            (enemy as any).currentHealth = newMaxHealth;
         }
 
         if (stats.damageMultiplier) {
@@ -259,6 +288,7 @@ export class AffixSystem {
 
     /**
      * 处理更新回调
+     *  添加血量取整，避免浮点精度问题
      */
     private handleUpdateCallback(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, deltaTime: number): void {
         const stats = affix.stats
@@ -268,11 +298,12 @@ export class AffixSystem {
                 enemyData.regenerateTimer += deltaTime
                 if (enemyData.regenerateTimer >= 1.0) {
                     enemyData.regenerateTimer = 0
-                    const healAmount = (enemy as any).maxHealth * stats.regeneratePercent
-                        ; (enemy as any).currentHealth = Math.min(
-                            (enemy as any).maxHealth,
-                            (enemy as any).currentHealth + healAmount
-                        )
+                    //  回血取整
+                    const healAmount = Math.floor((enemy as any).maxHealth * stats.regeneratePercent);
+                    (enemy as any).currentHealth = Math.min(
+                        (enemy as any).maxHealth,
+                        (enemy as any).currentHealth + healAmount
+                    );
                 }
                 break
 
@@ -325,6 +356,7 @@ export class AffixSystem {
     /**
      * 处理死亡回调
      * @returns true 表示阻止死亡（复活），false 表示正常死亡
+     *  添加血量取整，避免浮点精度问题
      */
     private handleDeathCallback(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, position: Vec3): boolean {
         const stats = affix.stats
@@ -348,9 +380,10 @@ export class AffixSystem {
             case 'immortal':
                 if (enemyData.reviveLeft > 0) {
                     enemyData.reviveLeft = 0
-                    const reviveHealth = (enemy as any).maxHealth * (stats?.reviveHealthPercent || 0.5)
-                        ; (enemy as any).currentHealth = reviveHealth
-                        ; (enemy as any).isDead = false
+                    //  复活血量取整
+                    const reviveHealth = Math.floor((enemy as any).maxHealth * (stats?.reviveHealthPercent || 0.5));
+                    (enemy as any).currentHealth = reviveHealth;
+                    (enemy as any).isDead = false;
                     console.log(`[词条] 不朽复活！生命值 ${reviveHealth}`)
                     return true
                 }
@@ -443,11 +476,13 @@ export class AffixSystem {
             switch (affix.id) {
                 case 'vampire':
                     const healAmount = damage * 0.5
-                        ; (enemy as any).currentHealth = Math.min(
-                            (enemy as any).maxHealth,
-                            (enemy as any).currentHealth + healAmount
-                        )
-                    console.log(`[词条] 吸血回复 ${healAmount}`)
+                    //  吸血治疗取整
+                    const healInt = Math.floor(healAmount);
+                    (enemy as any).currentHealth = Math.min(
+                        (enemy as any).maxHealth,
+                        (enemy as any).currentHealth + healInt
+                    )
+                    console.log(`[词条] 吸血回复 ${healInt}`)
                     break
 
                 case 'frost':
@@ -469,7 +504,6 @@ export class AffixSystem {
         const enemyData = this.getEnemyAffixData(enemy)
         return enemyData.affixes || []
     }
-
 
     /**
      * 检查是否已加载

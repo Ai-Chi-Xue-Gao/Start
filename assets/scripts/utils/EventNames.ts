@@ -11,6 +11,7 @@ export class EventNames {
     public static readonly PLAYER_LEVEL_UP = 'player-level-up'           // 玩家升级
     public static readonly PLAYER_DIED = 'player-died'                   // 玩家死亡
     public static readonly PLAYER_HEALTH_CHANGE = 'player-health-change' // 血量变化
+    public static readonly PLAYER_SHIELD_CHANGE = 'player-shield-change' // 护盾值变化
     public static readonly PLAYER_HURT = 'player-hurt'                   // 玩家受伤
     public static readonly PLAYER_SLOW = 'player-slow'                   // 玩家减速
     public static readonly PLAYER_MOVE = 'player-move'                   // 玩家移动

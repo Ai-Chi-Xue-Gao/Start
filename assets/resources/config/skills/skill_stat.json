@@ -47,8 +47,10 @@
   "fireball_pierce": {
     "1": { "pierceCount": 1 },
     "2": { "pierceCount": 2 },
-    "3": { "pierceCount": 3 }
-  },
+    "3": { "pierceCount": 3 },
+    "4": { "pierceCount": 4 },
+    "5": { "pierceCount": 5 }
+},
   "fireball_speed": {
     "1": { "fireballSpeedMultiplier": 1.5 },
     "2": { "fireballSpeedMultiplier": 1.7 },
@@ -57,14 +59,14 @@
     "5": { "fireballSpeedMultiplier": 2.3 }
   },
   "fireball_size": {
-    "1": { "sizeMultiplier": 1.5, "damageBonus": 0.3 },
-    "2": { "sizeMultiplier": 1.7, "damageBonus": 0.35 },
-    "3": { "sizeMultiplier": 1.9, "damageBonus": 0.4 }
+    "1": { "sizeMultiplier": 2.0, "damageBonus": 0.3 },
+    "2": { "sizeMultiplier": 3.0, "damageBonus": 0.35 },
+    "3": { "sizeMultiplier": 5.0, "damageBonus": 0.4 }
   },
   "water_trail": {
-    "1": { "slowPercent": 0.25 },
-    "2": { "slowPercent": 0.3 },
-    "3": { "slowPercent": 0.35 }
+    "1": { "slowPercent": 0.5, "duration": 3},
+    "2": { "slowPercent": 0.75, "duration": 3.5},
+    "3": { "slowPercent": 0.90, "duration": 4.0}
   },
   "water_orb": {
     "1": { "orbCount": 2 },
@@ -82,11 +84,11 @@
     "3": { "summonCount": 3 }
   },
   "wood_regen": {
-    "1": { "hpRegenPercent": 0.005 },
-    "2": { "hpRegenPercent": 0.007 },
-    "3": { "hpRegenPercent": 0.01 },
-    "4": { "hpRegenPercent": 0.012 },
-    "5": { "hpRegenPercent": 0.015 }
+    "1": { "hpRegenPercent": 0.01 },
+    "2": { "hpRegenPercent": 0.03 },
+    "3": { "hpRegenPercent": 0.05 },
+    "4": { "hpRegenPercent": 0.07 },
+    "5": { "hpRegenPercent": 0.1 }
   },
   "armor_pierce": {
     "1": { "armorPen": 0.15 },
@@ -106,9 +108,9 @@
     "5": { "damageReduction": 0.25 }
   },
   "thorn_return": {
-    "1": { "thornDamage": 0.15 },
-    "2": { "thornDamage": 0.2 },
-    "3": { "thornDamage": 0.25 }
+    "1": { "thornDamage": 0.5 },
+    "2": { "thornDamage": 0.75 },
+    "3": { "thornDamage": 1.0 }
   },
   "vampire": {
     "1": { "vampirePercent": 0.1 },

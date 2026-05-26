@@ -8,6 +8,7 @@ import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
 import { INetworkService } from '../interfaces/INetworkService';
 import { ServiceLocator } from '../core/ServiceLocator';
+import { GameService } from '../services/GameService';
 
 const { ccclass, property } = _decorator;
 
@@ -74,11 +75,17 @@ export class NetworkManager extends BaseComponent implements INetworkService {
 
     start() {
         ServiceLocator.getInstance().register('INetworkService', this)
-        const mode = (window as any).gameMode
-        if (mode !== 'multi') {
-            console.log('非联机模式，网络管理器不启动')
-            return
+        
+        // 获取游戏服务判断是否联机模式
+        const gameService = ServiceLocator.getInstance().get<GameService>('gameService');
+        
+        if (!gameService || !gameService.isMultiMode()) {
+            console.log('[NetworkManager] 单机模式，网络管理器不启动');
+            this.enabled = false;
+            return;
         }
+        
+        console.log('[NetworkManager] 联机模式，等待连接...');
     }
 
     private createNetworkPlayer(playerData: PlayerData) {
@@ -114,10 +121,12 @@ export class NetworkManager extends BaseComponent implements INetworkService {
     }
 
     public connect(serverUrl: string = 'ws://localhost:8080') {
-        if ((window as any).gameMode !== 'multi') {
-            console.warn('单机模式下无法连接服务器')
+        const gameService = ServiceLocator.getInstance().get<GameService>('gameService');
+        if (!gameService || !gameService.isMultiMode()) {
+            console.warn('[NetworkManager] 单机模式下无法连接服务器');
             return
         }
+        
         this.ws = new WebSocket(serverUrl)
         this.ws.onopen = () => {
             console.log('WebSocket 连接成功')

@@ -65,10 +65,24 @@ export interface EffectParams {
 }
 
 /**
+ * 临时属性记录
+ */
+interface TemporaryStatRecord {
+    stat: string
+    originalValue: number
+    remainingTime: number
+    target: any  // 目标对象（PlayerMovement 或 PlayerSkill）
+    restoreMethod: (value: number) => void  // 恢复方法
+}
+
+/**
  * 效果执行器
  */
 export class EffectSystem {
-    
+    //  临时属性存储
+    private static temporaryStats: Map<string, TemporaryStatRecord[]> = new Map()
+    private static updateTimer: number = -1
+
     public static execute(effectType: EffectType, params: EffectParams, context: EffectContext): void {
         switch (effectType) {
             case 'modifyStat':
@@ -196,8 +210,124 @@ export class EffectSystem {
         }
     }
     
+    /**
+     *  应用临时属性（带持续时间）
+     */
     private static applyTemporaryStat(player: IPlayer, stat: string, value: number, duration: number): void {
-        console.log(`[EffectSystem] 临时属性（待实现）: ${stat} +${value}，持续 ${duration}秒`);
+        const playerNode = (player as any).node;
+        if (!playerNode) return;
+
+        let target: any = null;
+        let originalValue: number = 0;
+        let restoreMethod: (value: number) => void = () => {};
+
+        // 根据属性类型获取目标组件和原始值
+        switch (stat) {
+            case 'speedMultiplier':
+                target = playerNode.getComponent('PlayerMovement');
+                if (target) {
+                    originalValue = target.getSpeedMultiplier?.() || 1;
+                    restoreMethod = (v: number) => target.setSpeedMultiplier?.(v);
+                    target.setSpeedMultiplier(originalValue * value);
+                }
+                break;
+            case 'attackMultiplier':
+                target = playerNode.getComponent('PlayerSkill');
+                if (target) {
+                    // 攻击力临时加成通过 addTemporaryAttackBonus 处理
+                    (player as any).addTemporaryAttackBonus?.(value - 1, duration);
+                    return;
+                }
+                break;
+            case 'critChance':
+                target = playerNode.getComponent('PlayerSkill');
+                if (target) {
+                    originalValue = target.getCritChance?.() || 0;
+                    restoreMethod = (v: number) => {
+                        const current = target.getCritChance?.() || 0;
+                        const delta = current - originalValue;
+                        if (delta > 0) {
+                            target.addCritChance?.(-delta);
+                        }
+                    };
+                    target.addCritChance?.(value);
+                }
+                break;
+            default:
+                console.log(`[EffectSystem] 临时属性（待扩展）: ${stat} +${value}，持续 ${duration}秒`);
+                return;
+        }
+
+        if (!target) {
+            console.warn(`[EffectSystem] 无法应用临时属性 ${stat}：找不到目标组件`);
+            return;
+        }
+
+        // 存储临时属性记录
+        const record: TemporaryStatRecord = {
+            stat: stat,
+            originalValue: originalValue,
+            remainingTime: duration,
+            target: target,
+            restoreMethod: restoreMethod
+        };
+
+        const key = `${playerNode.uuid}_${stat}`;
+        if (!this.temporaryStats.has(key)) {
+            this.temporaryStats.set(key, []);
+        }
+        this.temporaryStats.get(key)!.push(record);
+
+        // 启动更新循环
+        this.startUpdateLoop();
+    }
+
+    /**
+     *  启动临时属性更新循环
+     */
+    private static startUpdateLoop(): void {
+        if (this.updateTimer !== -1) return;
+
+        let lastTime = Date.now() / 1000;
+        
+        const update = () => {
+            const now = Date.now() / 1000;
+            const deltaTime = Math.min(0.1, now - lastTime);
+            lastTime = now;
+
+            let hasActiveRecords = false;
+
+            for (const [key, records] of this.temporaryStats) {
+                const remainingRecords: TemporaryStatRecord[] = [];
+                
+                for (const record of records) {
+                    record.remainingTime -= deltaTime;
+                    
+                    if (record.remainingTime <= 0) {
+                        // 时间到，恢复原始值
+                        record.restoreMethod(record.originalValue);
+                        console.log(`[EffectSystem] 临时属性恢复: ${record.stat} -> ${record.originalValue}`);
+                    } else {
+                        remainingRecords.push(record);
+                        hasActiveRecords = true;
+                    }
+                }
+                
+                if (remainingRecords.length === 0) {
+                    this.temporaryStats.delete(key);
+                } else {
+                    this.temporaryStats.set(key, remainingRecords);
+                }
+            }
+
+            if (hasActiveRecords) {
+                requestAnimationFrame(update);
+            } else {
+                this.updateTimer = -1;
+            }
+        };
+
+        this.updateTimer = requestAnimationFrame(update) as unknown as number;
     }
 
     // ========== Buff 系统 ==========
@@ -396,5 +526,22 @@ export class EffectSystem {
         
         console.log(`[EffectSystem] 吸引敌人，半径: ${radius}`);
         EventBus.emit(EventNames.PULL_ENEMY, { position, radius });
+    }
+
+    /**
+     *  清除所有临时属性（场景切换时调用）
+     */
+    public static clearAllTemporaryStats(): void {
+        for (const [key, records] of this.temporaryStats) {
+            for (const record of records) {
+                record.restoreMethod(record.originalValue);
+            }
+        }
+        this.temporaryStats.clear();
+        if (this.updateTimer !== -1) {
+            cancelAnimationFrame(this.updateTimer as number);
+            this.updateTimer = -1;
+        }
+        console.log('[EffectSystem] 所有临时属性已清除');
     }
 }
