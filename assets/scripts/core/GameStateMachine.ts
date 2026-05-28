@@ -3,6 +3,7 @@
 import { _decorator, Component, director } from 'cc';
 import { EventBus } from './EventBus';
 import { EventNames } from '../utils/EventNames';
+import { ServiceLocator } from './ServiceLocator';
 
 const { ccclass } = _decorator;
 
@@ -39,16 +40,33 @@ export class GameStateMachine extends Component {
     private static instance: GameStateMachine;
     private currentState: GameState = GameState.MENU;
     private listeners: Map<GameState, Array<(event: StateChangeEvent) => void>> = new Map();
+    private pausedStates: Set<GameState>;
 
-    // 需要暂停游戏的状态（timeScale = 0）
-    private readonly pausedStates: Set<GameState> = new Set([
-        GameState.LEVEL_UP,
-        GameState.PAUSED,
-        GameState.GAME_OVER
-    ]);
+    constructor() {
+        super();
+        // ✅ 在构造函数中初始化，避免为 null
+        this.pausedStates = new Set([
+            GameState.LEVEL_UP,
+            GameState.PAUSED,
+            GameState.GAME_OVER
+        ]);
+    }
 
     protected onLoad() {
         GameStateMachine.instance = this;
+        
+        // ✅ 注册到 ServiceLocator，确保其他组件可以获取
+        ServiceLocator.getInstance().register('stateMachine', this, true);
+    }
+
+    protected onDestroy() {
+        // ✅ 场景销毁时清理静态实例
+        if (GameStateMachine.instance === this) {
+            GameStateMachine.instance = null;
+        }
+        
+        // ✅ 从 ServiceLocator 中移除
+        ServiceLocator.getInstance().unregister('stateMachine');
     }
 
     protected start() {
@@ -70,6 +88,11 @@ export class GameStateMachine extends Component {
      * 判断当前是否处于暂停状态（游戏逻辑不应更新）
      */
     isPaused(): boolean {
+        // ✅ 添加空值保护
+        if (!this.pausedStates) {
+            console.warn('[GameStateMachine] pausedStates 未初始化');
+            return false;
+        }
         return this.pausedStates.has(this.currentState);
     }
 
@@ -231,9 +254,13 @@ export class GameStateMachine extends Component {
 
     /**
      * 根据状态更新时间缩放，并发射暂停事件
-     *  添加空值检查，防止场景销毁时出错
      */
     private updateTimeScale() {
+        // ✅ 添加空值保护
+        if (!this.pausedStates) {
+            return;
+        }
+        
         const shouldPause = this.pausedStates.has(this.currentState);
         
         // 添加空值检查，防止场景销毁时 director.getScheduler() 返回 null

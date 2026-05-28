@@ -32,7 +32,6 @@ export class PlayerHealth extends BaseComponent {
     private killShield: number = 0
     private thornDamage: number = 0
     private rebirthAvailable: boolean = false;
-    private rebirthCount: number = 0;
 
     // 护盾属性
     private shield: number = 0;
@@ -44,8 +43,8 @@ export class PlayerHealth extends BaseComponent {
 
     protected onDestroy() {
         if (this.hurtFlashInterval !== null) {
-            clearInterval(this.hurtFlashInterval)
-            this.hurtFlashInterval = null
+            FlashEffect.cancel(this.hurtFlashInterval);
+            this.hurtFlashInterval = null;
         }
     }
 
@@ -249,16 +248,31 @@ export class PlayerHealth extends BaseComponent {
 
     // ========== 受伤闪烁 ==========
 
+    /**
+     * 播放受伤闪烁效果
+     */
     private playHurtFlash() {
         const sprite = this.spriteNode?.getComponent(Sprite);
         if (!sprite) return;
+
+        // 取消之前的闪烁定时器
         if (this.hurtFlashInterval !== null) {
             FlashEffect.cancel(this.hurtFlashInterval);
             this.hurtFlashInterval = null;
         }
+
+        // 确保先恢复原色，避免卡在红色
+        sprite.color = Color.WHITE;
+
+        // 开始新的闪烁
         this.hurtFlashInterval = FlashEffect.flash(
             sprite, 0.3, 0.08, Color.RED,
-            () => { this.hurtFlashInterval = null }
+            () => {
+                this.hurtFlashInterval = null;
+                if (sprite && sprite.isValid) {
+                    sprite.color = Color.WHITE;
+                }
+            }
         ) as any;
     }
 

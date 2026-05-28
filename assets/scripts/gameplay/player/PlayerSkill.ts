@@ -8,11 +8,12 @@ const { ccclass } = _decorator;
 
 /**
  * 玩家技能组件
- * 负责：技能属性存储、攻击相关技能效果
+ * 负责：基础属性存储（攻击、冷却、暴击等）
+ * 注意：主动技能由 GenericSkill 系统管理
  */
 @ccclass('PlayerSkill')
 export class PlayerSkill extends BaseComponent {
-    // 攻击相关
+    // ========== 攻击相关 ==========
     private attack: number = PlayerConfig.BASE_ATTACK
     private attackMultiplierBonus: number = 1.0
     private skill_attackBoost: number = 1.0
@@ -20,38 +21,29 @@ export class PlayerSkill extends BaseComponent {
     private temporaryBonusTimer: number = 0
     private temporaryBonusDuration: number = 0
     
-    // 冷却相关
+    // ========== 冷却相关 ==========
     private skill_cooldownReduction: number = 0
     private permanentCooldownBonus: number = 0
     
-    // 武器技能
-    private hasPierceFireball: boolean = false
-    private pierceCount: number = 0
-    private fireballCount: number = 1           //  火球数量（1-多）
-    private fireballSpeedMultiplier: number = 1.0
-    private fireballSizeMultiplier: number = 1.0
-    private fireballDamageBonus: number = 0
-    
-    // 特殊属性
+    // ========== 特殊属性 ==========
     private vampirePercent: number = 0
     private critChance: number = 0
     private critDamage: number = 0.5
     private armorPen: number = 0
-    private thornDamage: number = 0
     private magnetBonus: number = 0
     
-    // 永久加成
+    // ========== 永久加成 ==========
     private permanentAttackBonus: number = 0
     private permanentSpeedBonus: number = 1.0
     
-    // 暴怒相关
+    // ========== 暴怒相关 ==========
     private rageDurationBonus: number = 0
     private rageDamageBonus: number = 0
 
-    // 幸运相关
+    // ========== 幸运相关 ==========
     private luckyBonus: number = 0
 
-    // 重生相关
+    // ========== 重生相关 ==========
     private rebirthKillRequired: number = 0
 
     // ========== Getter 方法 ==========
@@ -70,40 +62,6 @@ export class PlayerSkill extends BaseComponent {
         return Math.min(AttackConfig.MIN_COOLDOWN, reduction)
     }
 
-    /**
-     *  获取火球数量
-     */
-    public getFireballCount(): number {
-        return this.fireballCount
-    }
-
-    /**
-     * @deprecated 请使用 getFireballCount() >= 2
-     */
-    public getHasDoubleFireball(): boolean {
-        return this.fireballCount >= 2
-    }
-
-    public getHasPierceFireball(): boolean {
-        return this.hasPierceFireball
-    }
-
-    public getPierceCount(): number {
-        return this.pierceCount
-    }
-
-    public getFireballSpeedMultiplier(): number {
-        return this.fireballSpeedMultiplier
-    }
-
-    public getFireballSizeMultiplier(): number {
-        return this.fireballSizeMultiplier
-    }
-
-    public getFireballDamageBonus(): number {
-        return 1 + this.fireballDamageBonus
-    }
-
     public getVampirePercent(): number {
         return this.vampirePercent
     }
@@ -118,10 +76,6 @@ export class PlayerSkill extends BaseComponent {
 
     public getArmorPen(): number {
         return this.armorPen
-    }
-
-    public getThornDamage(): number {
-        return this.thornDamage
     }
 
     public getMagnetBonus(): number {
@@ -142,33 +96,6 @@ export class PlayerSkill extends BaseComponent {
 
     // ========== Setter 方法 ==========
 
-    /**
-     * @deprecated 请使用 setFireballCount
-     */
-    public setDoubleFireball(active: boolean) {
-        this.fireballCount = active ? 2 : 1
-    }
-    
-    public setPierceFireball(active: boolean) {
-        this.hasPierceFireball = active
-    }
-    
-    public setPierceCount(count: number) {
-        this.pierceCount = count
-    }
-    
-    public setFireballCount(count: number) {
-        this.fireballCount = count
-    }
-    
-    public setFireballSpeedMultiplier(mult: number) {
-        this.fireballSpeedMultiplier = mult
-    }
-    
-    public setFireballSizeMultiplier(mult: number) {
-        this.fireballSizeMultiplier = mult
-    }
-    
     public setAttackCooldownReduction(reduce: number) {
         this.skill_cooldownReduction = reduce
     }
@@ -203,14 +130,6 @@ export class PlayerSkill extends BaseComponent {
         this.permanentSpeedBonus += bonusPercent
     }
     
-    public addFireballSpeedMultiplier(mult: number) {
-        this.fireballSpeedMultiplier *= mult
-    }
-    
-    public addFireballDamageBonus(bonus: number) {
-        this.fireballDamageBonus += bonus
-    }
-    
     public addVampirePercent(value: number) {
         this.vampirePercent += value
     }
@@ -225,10 +144,6 @@ export class PlayerSkill extends BaseComponent {
     
     public addArmorPen(value: number) {
         this.armorPen = Math.min(1.0, this.armorPen + value)
-    }
-    
-    public addThornDamage(value: number) {
-        this.thornDamage += value
     }
     
     public addMagnetBonus(value: number) {

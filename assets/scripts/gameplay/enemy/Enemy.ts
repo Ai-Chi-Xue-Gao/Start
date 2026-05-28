@@ -39,6 +39,11 @@ export class Enemy extends BaseComponent {
     private baseMaxHealth: number = 0
     private runtimeMaxHealth: number = 0
 
+    // ========== 减速相关属性 ==========
+    public isSlowed: boolean = false
+    private originalSpeedCache: number = 0
+    private slowScheduleId: any = null
+
     start() {
         this.initReferences()
     }
@@ -65,6 +70,11 @@ export class Enemy extends BaseComponent {
         }
         EventBus.off(EventNames.GAME_PAUSE, this.onPause, this)
         EventBus.off('player_reflect_damage', this.onReflectDamage, this)
+        
+        // 清理减速定时器
+        if (this.slowScheduleId !== null) {
+            this.unschedule(this.slowScheduleId)
+        }
     }
 
     // 添加反伤处理方法
@@ -81,6 +91,14 @@ export class Enemy extends BaseComponent {
         this.isDead = false
         this.isMoving = false
         this.isPaused = false
+        
+        // 重置减速状态
+        this.isSlowed = false
+        this.originalSpeedCache = 0
+        if (this.slowScheduleId !== null) {
+            this.unschedule(this.slowScheduleId)
+            this.slowScheduleId = null
+        }
 
         this.baseMaxHealth = this.maxHealth
         this.runtimeMaxHealth = this.maxHealth
@@ -107,7 +125,7 @@ export class Enemy extends BaseComponent {
 
     public setAsMinion(healthPercent: number) {
         this.isMinion = true
-        //  血量取整，避免浮点精度问题
+        // 血量取整，避免浮点精度问题
         this.runtimeMaxHealth = Math.floor(this.baseMaxHealth * healthPercent)
         this.currentHealth = this.runtimeMaxHealth
     }
@@ -163,7 +181,7 @@ export class Enemy extends BaseComponent {
 
     /**
      * 受到伤害
-     *  添加伤害取整和血量取整，避免浮点精度问题
+     * 添加伤害取整和血量取整，避免浮点精度问题
      */
     public takeDamage(damage: number): boolean {
         if (this.isDead) return false
@@ -172,11 +190,11 @@ export class Enemy extends BaseComponent {
             damage = this.affixSystem.onEnemyHit(this, damage)
         }
 
-        //  伤害向上取整
+        // 伤害向上取整
         damage = Math.ceil(damage);
         this.currentHealth -= damage;
 
-        //  血量取整显示
+        // 血量取整显示
         console.log(`敌人受到${damage}伤害, 剩余血量：${Math.floor(this.currentHealth)}/${Math.floor(this.runtimeMaxHealth)}`)
 
         if (this.currentHealth <= 0) {
@@ -210,7 +228,7 @@ export class Enemy extends BaseComponent {
     }
 
     public getRuntimeMaxHealth(): number {
-        //  返回取整后的最大血量
+        // 返回取整后的最大血量
         return Math.floor(this.runtimeMaxHealth)
     }
 
@@ -233,6 +251,43 @@ export class Enemy extends BaseComponent {
      */
     public getOriginalSpeed(): number {
         return (this as any).__originalSpeed || this.speed;
+    }
+
+    /**
+     * ========== 减速效果方法 ==========
+     * 应用减速效果
+     * @param percent 减速百分比 (0-1)
+     * @param duration 持续时间（秒）
+     */
+    public applySlow(percent: number, duration: number) {
+        if (this.isDead) return
+        
+        // 保存原始速度
+        if (!this.isSlowed) {
+            this.originalSpeedCache = this.speed
+        }
+        
+        this.isSlowed = true
+        // 限制最大减速90%
+        const finalPercent = Math.min(0.9, percent)
+        const newSpeed = this.originalSpeedCache * (1 - finalPercent)
+        this.speed = Math.max(20, newSpeed)
+        
+        // 取消之前的定时器
+        if (this.slowScheduleId !== null) {
+            this.unschedule(this.slowScheduleId)
+        }
+        
+        // 设置恢复定时器
+        this.slowScheduleId = this.scheduleOnce(() => {
+            if (this.isValid && !this.isDead) {
+                this.speed = this.originalSpeedCache
+                this.isSlowed = false
+                this.slowScheduleId = null
+            }
+        }, duration)
+        
+        console.log(`[Enemy] 减速 ${finalPercent * 100}%，持续 ${duration}秒，当前速度: ${this.speed}`)
     }
 
     update(deltaTime: number) {

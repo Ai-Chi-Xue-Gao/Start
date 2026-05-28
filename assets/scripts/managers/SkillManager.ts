@@ -6,7 +6,6 @@ import { IPlayer } from '../interfaces/IPlayer'
 import { EventBus } from '../core/EventBus'
 import { EventNames } from '../utils/EventNames'
 import { AffixWeightConfig } from '../configs/GameConfig'
-import { DEFAULT_SKILL_DEFS, DEFAULT_SKILL_STATS, getSkillDef, getSkillStat, getSkillMaxLevel } from '../configs/SkillConfig'
 
 // ========== 类型定义 ==========
 
@@ -124,6 +123,8 @@ export class SkillManager {
             } else {
                 const data = asset.json as Record<string, SkillDef>
                 for (const [id, def] of Object.entries(data)) {
+                    // 跳过注释行（以 ========== 开头的键）
+                    if (id.startsWith('==========')) continue
                     this.skillDefs.set(id, def)
                 }
             }
@@ -139,6 +140,8 @@ export class SkillManager {
             } else {
                 const data = asset.json as Record<string, SkillStat>
                 for (const [id, stat] of Object.entries(data)) {
+                    // 跳过注释行（以 ========== 开头的键）
+                    if (id.startsWith('==========')) continue
                     this.skillStats.set(id, stat)
                 }
             }
@@ -153,6 +156,8 @@ export class SkillManager {
             } else {
                 const data = asset.json as Record<string, UpgradeNode[]>
                 for (const [id, upgrades] of Object.entries(data)) {
+                    // 跳过注释行（以 ========== 开头的键）
+                    if (id.startsWith('==========')) continue
                     this.skillUpgrades.set(id, upgrades)
                 }
             }
@@ -167,6 +172,8 @@ export class SkillManager {
             } else {
                 const data = asset.json as Record<string, FusionRule>
                 for (const [id, rule] of Object.entries(data)) {
+                    // 跳过注释行（以 ========== 开头的键）
+                    if (id.startsWith('==========')) continue
                     this.fusionRules.set(id, rule)
                 }
             }
@@ -181,6 +188,8 @@ export class SkillManager {
             } else {
                 const data = asset.json as Record<string, ElementTag>
                 for (const [id, tag] of Object.entries(data)) {
+                    // 跳过注释行（以 ========== 开头的键）
+                    if (id.startsWith('==========')) continue
                     this.elementTags.set(id, tag)
                 }
             }
@@ -188,20 +197,16 @@ export class SkillManager {
         })
     }
 
-    // ========== 默认配置 ==========
+    // ========== 默认配置（空实现，依赖 JSON 配置） ==========
 
     private loadDefaultSkillDefs() {
-        for (const [id, def] of Object.entries(DEFAULT_SKILL_DEFS)) {
-            this.skillDefs.set(id, def)
-        }
-        console.log('[SkillManager] 使用 TypeScript 默认技能定义，共', this.skillDefs.size, '个')
+        console.warn('[SkillManager] JSON 技能定义加载失败，请检查配置文件')
+        // 不再使用 TypeScript 默认配置，完全依赖 JSON
     }
 
     private loadDefaultSkillStats() {
-        for (const [id, stat] of Object.entries(DEFAULT_SKILL_STATS)) {
-            this.skillStats.set(id, stat)
-        }
-        console.log('[SkillManager] 使用 TypeScript 默认技能数值')
+        console.warn('[SkillManager] JSON 技能数值加载失败，请检查配置文件')
+        // 不再使用 TypeScript 默认配置，完全依赖 JSON
     }
 
     // ========== 技能查询接口 ==========
@@ -211,10 +216,7 @@ export class SkillManager {
     }
 
     public getSkillDef(skillId: string): SkillDef | null {
-        if (this.skillDefs.has(skillId)) {
-            return this.skillDefs.get(skillId) || null
-        }
-        return getSkillDef(skillId) || null
+        return this.skillDefs.get(skillId) || null
     }
 
     public getSkillStat(skillId: string, level: number): Record<string, any> | null {
@@ -222,7 +224,7 @@ export class SkillManager {
         if (stat && stat[String(level)]) {
             return stat[String(level)]
         }
-        return getSkillStat(skillId, level) || null
+        return null
     }
 
     public getSkillUpgrades(skillId: string): UpgradeNode[] {
@@ -267,7 +269,7 @@ export class SkillManager {
     public getSkillMaxLevel(skillId: string): number {
         const def = this.skillDefs.get(skillId)
         if (def) return def.maxLevel
-        return getSkillMaxLevel(skillId)
+        return 1
     }
 
     public canUpgradeSkill(skillId: string): boolean {
@@ -323,7 +325,7 @@ export class SkillManager {
     }
 
     /**
-     * 将数值应用到玩家（直接使用 IPlayer 接口，无需 as any）
+     * 将数值应用到玩家
      */
     private applyStatToPlayer(statName: string, value: any) {
         if (!this.player) return
@@ -409,10 +411,7 @@ export class SkillManager {
             case 'killRequired':
                 this.player.setRebirthKillRequired?.(value)
                 break
-
             case 'orbCount':
-                // WaterOrbManager 会通过 SKILL_SELECTED 事件自行处理
-                // 这里不需要额外操作，只记录日志避免警告
                 console.log(`[SkillManager] 水灵法球数量: ${value}（由 WaterOrbManager 处理）`);
                 break
                 
@@ -465,7 +464,7 @@ export class SkillManager {
             // 检查技能是否已达最大等级
             const currentLevel = this.getSkillLevel(skillId)
             if (currentLevel >= def.maxLevel) {
-                continue  // 已满级，跳过
+                continue
             }
 
             availableSkills.push(skillId)
@@ -498,7 +497,7 @@ export class SkillManager {
         // 随机打乱
         for (let i = weighted.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
-                ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
+            ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
         }
 
         // 去重取前 count 个

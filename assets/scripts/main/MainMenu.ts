@@ -78,7 +78,7 @@ export class MainMenu extends BaseComponent {
     }
 
     /**
-     * 预加载所有分包
+     * 预加载所有分包（简化版，不加载不存在的资源）
      */
     private preloadBundles() {
         if (this.bundlesLoaded || this.bundlesLoading) return;
@@ -87,7 +87,6 @@ export class MainMenu extends BaseComponent {
         console.log('[MainMenu] 开始预加载分包...');
 
         let loadedCount = 0;
-        let hasError = false;
         const totalBundles = 3; // gameplay, ui, network
 
         const onLoadComplete = () => {
@@ -96,7 +95,6 @@ export class MainMenu extends BaseComponent {
                 this.bundlesLoading = false;
                 this.bundlesLoaded = true;
                 console.log('[MainMenu] 所有分包预加载完成');
-                this.ensureKeyScriptsLoaded();
             }
         };
 
@@ -104,7 +102,6 @@ export class MainMenu extends BaseComponent {
         assetManager.loadBundle('gameplay', (err, bundle) => {
             if (err) {
                 console.error('[MainMenu] 加载 gameplay 分包失败:', err);
-                hasError = true;
             } else {
                 console.log('[MainMenu] gameplay 分包加载成功');
             }
@@ -115,7 +112,6 @@ export class MainMenu extends BaseComponent {
         assetManager.loadBundle('ui', (err, bundle) => {
             if (err) {
                 console.error('[MainMenu] 加载 ui 分包失败:', err);
-                hasError = true;
             } else {
                 console.log('[MainMenu] ui 分包加载成功');
             }
@@ -126,7 +122,6 @@ export class MainMenu extends BaseComponent {
         assetManager.loadBundle('network', (err, bundle) => {
             if (err) {
                 console.error('[MainMenu] 加载 network 分包失败:', err);
-                hasError = true;
             } else {
                 console.log('[MainMenu] network 分包加载成功');
             }
@@ -280,84 +275,7 @@ export class MainMenu extends BaseComponent {
         console.log('[MainMenu] 成就功能待开发');
     }
 
-    // ========== 单机/联机 ==========
-    private async onSinglePlayer() {
-        if (this.isSwitchingScene) {
-            console.log('[MainMenu] 正在切换场景中，忽略重复点击');
-            return;
-        }
-
-        console.log('选择单机模式');
-        this.closeModeSelect();
-
-        // ✅ 确保分包已加载
-        if (!this.bundlesLoaded) {
-            console.log('[MainMenu] 分包尚未加载完成，等待加载...');
-
-            // 如果还没开始加载，开始加载
-            if (!this.bundlesLoading) {
-                this.preloadBundles();
-            }
-
-            // 等待加载完成
-            await this.waitForBundlesLoaded();
-        }
-
-        console.log('分包加载完成，进入游戏');
-        (window as any).gameMode = 'single';
-
-        this.isSwitchingScene = true;
-
-        this.scheduleOnce(() => {
-            director.loadScene('Game', (err) => {
-                if (err) {
-                    console.error('[MainMenu] 加载 Game 场景失败:', err);
-                } else {
-                    console.log('[MainMenu] Game 场景加载成功');
-                }
-            });
-        }, 0.05);
-    }
-
-    private async onMultiPlayer() {
-        if (this.isSwitchingScene) {
-            console.log('[MainMenu] 正在切换场景中，忽略重复点击');
-            return;
-        }
-
-        console.log('选择联机模式');
-        this.closeModeSelect();
-
-        // ✅ 确保分包已加载
-        if (!this.bundlesLoaded) {
-            console.log('[MainMenu] 分包尚未加载完成，等待加载...');
-
-            if (!this.bundlesLoading) {
-                this.preloadBundles();
-            }
-
-            await this.waitForBundlesLoaded();
-        }
-
-        console.log('分包加载完成，进入联机模式');
-        (window as any).gameMode = 'multi';
-
-        this.isSwitchingScene = true;
-
-        this.scheduleOnce(() => {
-            director.loadScene('Game', (err) => {
-                if (err) {
-                    console.error('[MainMenu] 加载 Game 场景失败:', err);
-                } else {
-                    console.log('[MainMenu] Game 场景加载成功');
-                }
-            });
-        }, 0.05);
-    }
-
-    /**
-    * 等待分包加载完成
-    */
+    // ========== 等待分包加载完成 ==========
     private waitForBundlesLoaded(): Promise<void> {
         return new Promise((resolve) => {
             if (this.bundlesLoaded) {
@@ -374,31 +292,75 @@ export class MainMenu extends BaseComponent {
         });
     }
 
-    /**
-    * 确保关键脚本已注册（在分包加载完成后调用）
-    */
-    private ensureKeyScriptsLoaded() {
-        console.log('[MainMenu] 确保关键脚本已注册...');
+    // ========== 单机/联机 ==========
+    private async onSinglePlayer() {
+        if (this.isSwitchingScene) {
+            console.log('[MainMenu] 正在切换场景中，忽略重复点击');
+            return;
+        }
+
+        console.log('选择单机模式');
+        this.closeModeSelect();
+
+        // 确保分包已加载
+        if (!this.bundlesLoaded) {
+            console.log('[MainMenu] 分包尚未加载完成，等待加载...');
+            if (!this.bundlesLoading) {
+                this.preloadBundles();
+            }
+            await this.waitForBundlesLoaded();
+        }
+
+        console.log('分包加载完成，进入游戏');
+        (window as any).gameMode = 'single';
+
+        this.isSwitchingScene = true;
 
         this.scheduleOnce(() => {
-            const gameplayBundle = assetManager.getBundle('gameplay');
-            if (gameplayBundle) {
-                gameplayBundle.load('player/GridBackground', (err, asset) => {
-                    if (!err) {
-                        console.log('[MainMenu] ✓ GridBackground 脚本已注册');
-                    } else {
-                        console.warn('[MainMenu] GridBackground 加载失败:', err);
-                    }
-                });
+            director.loadScene('Game', (err) => {
+                if (err) {
+                    console.error('[MainMenu] 加载 Game 场景失败:', err);
+                } else {
+                    console.log('[MainMenu] Game 场景加载成功');
+                }
+                // 重置标志（场景切换后此脚本会被销毁，这行可能不会执行）
+                this.isSwitchingScene = false;
+            });
+        }, 0.05);
+    }
 
-                gameplayBundle.load('player/CameraController', (err, asset) => {
-                    if (!err) {
-                        console.log('[MainMenu] ✓ CameraController 脚本已注册');
-                    } else {
-                        console.warn('[MainMenu] CameraController 加载失败:', err);
-                    }
-                });
+    private async onMultiPlayer() {
+        if (this.isSwitchingScene) {
+            console.log('[MainMenu] 正在切换场景中，忽略重复点击');
+            return;
+        }
+
+        console.log('选择联机模式');
+        this.closeModeSelect();
+
+        // 确保分包已加载
+        if (!this.bundlesLoaded) {
+            console.log('[MainMenu] 分包尚未加载完成，等待加载...');
+            if (!this.bundlesLoading) {
+                this.preloadBundles();
             }
-        }, 0.1);
+            await this.waitForBundlesLoaded();
+        }
+
+        console.log('分包加载完成，进入联机模式');
+        (window as any).gameMode = 'multi';
+
+        this.isSwitchingScene = true;
+
+        this.scheduleOnce(() => {
+            director.loadScene('Game', (err) => {
+                if (err) {
+                    console.error('[MainMenu] 加载 Game 场景失败:', err);
+                } else {
+                    console.log('[MainMenu] Game 场景加载成功');
+                }
+                this.isSwitchingScene = false;
+            });
+        }, 0.05);
     }
 }

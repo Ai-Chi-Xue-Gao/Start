@@ -7299,7 +7299,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -8.0986328125,
+      "x": -38.0986328125,
       "y": 0,
       "z": 0
     },
@@ -7438,7 +7438,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 303.802734375,
+      "x": 243.802734375,
       "y": 0,
       "z": 0
     },
@@ -7766,7 +7766,7 @@
     "_paddingRight": 0,
     "_paddingTop": 0,
     "_paddingBottom": 0,
-    "_spacingX": 260,
+    "_spacingX": 230,
     "_spacingY": 0,
     "_verticalDirection": 1,
     "_horizontalDirection": 0,

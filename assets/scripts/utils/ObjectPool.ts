@@ -1,3 +1,5 @@
+// assets/scripts/utils/ObjectPool.ts
+
 import { _decorator, Node, Prefab, instantiate } from 'cc';
 
 const { ccclass, property } = _decorator;
@@ -28,9 +30,6 @@ export class ObjectPool {
 
     /**
      * 注册对象池
-     * @param key 池标识
-     * @param prefab 预制体
-     * @param maxSize 最大数量（超过时直接销毁，不警告）
      */
     public register(key: string, prefab: Prefab, maxSize: number = 100) {
         this.prefabs.set(key, prefab)
@@ -41,8 +40,6 @@ export class ObjectPool {
 
     /**
      * 从池中获取对象
-     * 如果池为空，动态创建
-     * 如果池已满但有空闲对象，返回空闲对象
      */
     public get(key: string, parent?: Node): Node | null {
         const pool = this.pools.get(key)
@@ -76,7 +73,6 @@ export class ObjectPool {
             parent.addChild(newNode)
         }
         
-        // 加入池中（标记为使用中）
         pool.push({ node: newNode, isActive: true })
         
         return newNode
@@ -84,7 +80,6 @@ export class ObjectPool {
 
     /**
      * 回收对象到池中
-     * 如果池已满，直接销毁节点
      */
     public recycle(key: string, node: Node): void {
         if (!node || !node.isValid) return
@@ -101,6 +96,9 @@ export class ObjectPool {
         for (let i = 0; i < pool.length; i++) {
             const item = pool[i]
             if (item.node === node && item.isActive) {
+                // 在回收前重置组件状态
+                this.resetComponentState(node, key);
+                
                 item.isActive = false
                 item.node.active = false
                 item.node.removeFromParent()
@@ -114,14 +112,37 @@ export class ObjectPool {
 
         // 节点不在池中，根据容量决定是否加入
         if (pool.length < maxSize) {
+            this.resetComponentState(node, key);
             node.active = false
             node.removeFromParent()
             node.setPosition(0, 0, 0)
             node.setScale(1, 1, 1)
             pool.push({ node: node, isActive: false })
         } else {
-            // 池已满，直接销毁
             node.destroy()
+        }
+    }
+
+    /**
+     * 重置组件状态
+     */
+    private resetComponentState(node: Node, key: string): void {
+        // 根据池类型调用对应的重置方法
+        if (key === 'genericArea') {
+            const area = node.getComponent('GenericArea') as any;
+            if (area && area.reset) {
+                area.reset();
+            }
+        } else if (key === 'genericProjectile') {
+            const projectile = node.getComponent('GenericProjectile') as any;
+            if (projectile && projectile.reset) {
+                projectile.reset();
+            }
+        } else if (key === 'genericSummon') {
+            const summon = node.getComponent('GenericSummon') as any;
+            if (summon && summon.reset) {
+                summon.reset();
+            }
         }
     }
 

@@ -1,152 +1,731 @@
 {
-  "health_up": [
+  "========== 火系基础技能升级节点 ==========": {},
+  "fire_001": [
     {
-      "nodeId": "vitality",
+      "nodeId": "fire_001_burn",
       "levelReq": 2,
-      "trigger": "onLowHealth",
-      "condition": { "hpPercent": "<0.3" },
-      "effect": { "type": "applyBuff", "buffId": "regen", "value": 5, "duration": 0 }
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "burnPercent", "value": 0.1 }
     },
     {
-      "nodeId": "toughness",
+      "nodeId": "fire_001_double",
       "levelReq": 3,
-      "trigger": "onDamage",
+      "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "flatDamageReduction", "value": 5 }
-    },
-    {
-      "nodeId": "revive",
-      "levelReq": 4,
-      "trigger": "onKill",
-      "condition": {},
-      "effect": { "type": "heal", "value": "5%max" }
-    },
-    {
-      "nodeId": "immortal",
-      "levelReq": 5,
-      "trigger": "onDeath",
-      "condition": {},
-      "effect": { "type": "revive", "hpPercent": 0.5, "once": true }
+      "effect": { "type": "modifyStat", "stat": "projectileCount", "value": 1 }
     }
   ],
-  "speed_up": [
+  "fire_002": [
     {
-      "nodeId": "haste",
+      "nodeId": "fire_002_duration",
       "levelReq": 2,
-      "trigger": "onMoving",
-      "condition": { "duration": 2 },
-      "effect": { "type": "modifyStat", "stat": "speedMultiplier", "value": 1.2, "temporary": true }
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "duration", "value": 1.0 }
     },
     {
-      "nodeId": "dodge",
+      "nodeId": "fire_002_spread",
       "levelReq": 3,
-      "trigger": "onDamage",
+      "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "dodge", "chance": 0.1 }
-    },
-    {
-      "nodeId": "gale",
-      "levelReq": 4,
-      "trigger": "onKill",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "speedMultiplier", "value": 1.5, "duration": 2 }
-    },
-    {
-      "nodeId": "blink",
-      "levelReq": 5,
-      "trigger": "onDamage",
-      "condition": {},
-      "effect": { "type": "teleport", "radius": 300 }
+      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 50 }
     }
   ],
-  "fireball_double": [
+  "fire_003": [
     {
-      "nodeId": "spread",
+      "nodeId": "fire_003_explosion",
       "levelReq": 2,
-      "trigger": "onCast",
+      "trigger": "onProjectileHit",
       "condition": {},
-      "effect": { "type": "modifyProjectile", "stat": "count", "value": 3, "spreadAngle": 30 }
+      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 80 }
     },
     {
-      "nodeId": "return",
+      "nodeId": "fire_003_trail",
+      "levelReq": 3,
+      "trigger": "onProjectileMove",
+      "condition": {},
+      "effect": { "type": "spawnTrail", "damagePercent": 0.2, "duration": 2.0 }
+    }
+  ],
+  "fire_004": [
+    {
+      "nodeId": "fire_004_intensity",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "damagePercent", "value": 0.1 }
+    },
+    {
+      "nodeId": "fire_004_wider",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 50 }
+    }
+  ],
+  "fire_005": [
+    {
+      "nodeId": "fire_005_push",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "knockback", "force": 200 }
+    },
+    {
+      "nodeId": "fire_005_explosion",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 100 }
+    }
+  ],
+  "fire_006": [
+    {
+      "nodeId": "fire_006_spread",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "spreadAngle", "value": 15 }
+    },
+    {
+      "nodeId": "fire_006_return",
       "levelReq": 3,
       "trigger": "onProjectileMiss",
       "condition": {},
-      "effect": { "type": "projectileReturn", "retarget": true }
-    },
-    {
-      "nodeId": "burn",
-      "levelReq": 4,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "applyBuff", "buffId": "burn", "damage": 5, "duration": 3 }
-    },
-    {
-      "nodeId": "meteor",
-      "levelReq": 5,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "spawnProjectile", "projectileId": "meteor", "damage": 50, "radius": 100 }
+      "effect": { "type": "projectileReturn", "damagePercent": 0.5 }
     }
   ],
-  "ice_nova": [
+  "fire_007": [
     {
-      "nodeId": "iceSpike",
+      "nodeId": "fire_007_chain",
       "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": { "skillId": "ice_nova" },
-      "effect": { "type": "dealDamage", "value": 30 }
+      "trigger": "onDebuffTrigger",
+      "condition": {},
+      "effect": { "type": "chainExplosion", "chainCount": 2, "radius": 100 }
     },
     {
-      "nodeId": "freeze",
+      "nodeId": "fire_007_empower",
       "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": { "skillId": "ice_nova" },
-      "effect": { "type": "applyBuff", "buffId": "freeze", "duration": 1 }
-    },
-    {
-      "nodeId": "echo",
-      "levelReq": 4,
-      "trigger": "onSkillCast",
-      "condition": { "skillId": "ice_nova" },
-      "effect": { "type": "repeatCast", "count": 2, "delay": 1 }
-    },
-    {
-      "nodeId": "eternalFreeze",
-      "levelReq": 5,
-      "trigger": "onSkillCast",
-      "condition": { "skillId": "ice_nova", "targetHasBuff": "freeze" },
-      "effect": { "type": "modifyStat", "stat": "armor", "value": 0, "duration": 3 }
+      "trigger": "onDebuffTrigger",
+      "condition": { "targetHpPercent": "<0.2" },
+      "effect": { "type": "execute", "damageMultiplier": 2.0 }
     }
   ],
-  "kill_attack": [
+  "fire_008": [
     {
-      "nodeId": "bloodthirst",
+      "nodeId": "fire_008_regen",
       "levelReq": 2,
-      "trigger": "onKill",
+      "trigger": "onBuffActive",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "critChance", "value": 0.05, "duration": 5 }
+      "effect": { "type": "heal", "healPercent": 0.02, "interval": 1.0 }
     },
     {
-      "nodeId": "berserk",
+      "nodeId": "fire_008_explosion",
       "levelReq": 3,
-      "trigger": "onCombo",
-      "condition": { "comboCount": 3 },
-      "effect": { "type": "modifyStat", "stat": "attackMultiplier", "value": 1.5, "duration": 3 }
-    },
-    {
-      "nodeId": "execute",
-      "levelReq": 4,
-      "trigger": "onDamage",
-      "condition": { "targetHpPercent": "<0.15" },
-      "effect": { "type": "dealDamage", "value": "targetMaxHp", "kill": true }
-    },
-    {
-      "nodeId": "killingField",
-      "levelReq": 5,
-      "trigger": "onKill",
+      "trigger": "onBuffEnd",
       "condition": {},
-      "effect": { "type": "dealAreaDamage", "value": "50%attack", "radius": 150 }
+      "effect": { "type": "areaDamage", "damagePercent": 1.0, "radius": 150 }
+    }
+  ],
+  "fire_009": [
+    {
+      "nodeId": "fire_009_aura",
+      "levelReq": 2,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "damagePercent": 0.2, "radius": 150 }
+    },
+    {
+      "nodeId": "fire_009_explosion",
+      "levelReq": 3,
+      "trigger": "onSummonDeath",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 2.0, "radius": 200 }
+    }
+  ],
+
+  "========== 水系基础技能升级节点 ==========": {},
+  "water_001": [
+    {
+      "nodeId": "water_001_slow",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "slowPercent", "value": 0.2 }
+    },
+    {
+      "nodeId": "water_001_splash",
+      "levelReq": 3,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 80 }
+    }
+  ],
+  "water_002": [
+    {
+      "nodeId": "water_002_damage",
+      "levelReq": 2,
+      "trigger": "onControlEnd",
+      "condition": {},
+      "effect": { "type": "damage", "damagePercent": 0.5 }
+    },
+    {
+      "nodeId": "water_002_spread",
+      "levelReq": 3,
+      "trigger": "onControlStart",
+      "condition": {},
+      "effect": { "type": "chainControl", "chainCount": 2, "radius": 150 }
+    }
+  ],
+  "water_003": [
+    {
+      "nodeId": "water_003_push",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 }
+    },
+    {
+      "nodeId": "water_003_splash",
+      "levelReq": 3,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 0.4, "radius": 100 }
+    }
+  ],
+  "water_004": [
+    {
+      "nodeId": "water_004_cleanse",
+      "levelReq": 2,
+      "trigger": "onHeal",
+      "condition": {},
+      "effect": { "type": "cleanse", "removeDebuff": true }
+    },
+    {
+      "nodeId": "water_004_overheal",
+      "levelReq": 3,
+      "trigger": "onHeal",
+      "condition": { "overheal": true },
+      "effect": { "type": "shield", "shieldPercent": 0.2 }
+    }
+  ],
+  "water_005": [
+    {
+      "nodeId": "water_005_freeze",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "freezeChance", "value": 0.3 }
+    },
+    {
+      "nodeId": "water_005_pulse",
+      "levelReq": 3,
+      "trigger": "onAreaTick",
+      "condition": {},
+      "effect": { "type": "damage", "damagePercent": 0.2 }
+    }
+  ],
+  "water_006": [
+    {
+      "nodeId": "water_006_lifesteal",
+      "levelReq": 2,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "lifesteal", "percent": 0.3 }
+    },
+    {
+      "nodeId": "water_006_ricochet",
+      "levelReq": 3,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "ricochet", "count": 2, "radius": 200 }
+    }
+  ],
+  "water_007": [
+    {
+      "nodeId": "water_007_reflect",
+      "levelReq": 2,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "reflectPercent", "value": 0.3 }
+    },
+    {
+      "nodeId": "water_007_counter",
+      "levelReq": 3,
+      "trigger": "onReflect",
+      "condition": {},
+      "effect": { "type": "heal", "healPercent": 0.1 }
+    }
+  ],
+  "water_008": [
+    {
+      "nodeId": "water_008_regen",
+      "levelReq": 2,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "heal", "healPercent": 0.02, "interval": 1.0 }
+    },
+    {
+      "nodeId": "water_008_explosion",
+      "levelReq": 3,
+      "trigger": "onShieldBreak",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 1.0, "radius": 150 }
+    }
+  ],
+  "water_009": [
+    {
+      "nodeId": "water_009_aura",
+      "levelReq": 2,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "healPercent": 0.03, "radius": 150 }
+    },
+    {
+      "nodeId": "water_009_revive",
+      "levelReq": 3,
+      "trigger": "onSummonDeath",
+      "condition": {},
+      "effect": { "type": "revive", "healPercent": 0.5 }
+    }
+  ],
+
+  "========== 木系基础技能升级节点 ==========": {},
+  "wood_001": [
+    {
+      "nodeId": "wood_001_poison",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "poisonPercent", "value": 0.1 }
+    },
+    {
+      "nodeId": "wood_001_spread",
+      "levelReq": 3,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "chain", "chainCount": 2, "damagePercent": 0.4 }
+    }
+  ],
+  "wood_002": [
+    {
+      "nodeId": "wood_002_damage",
+      "levelReq": 2,
+      "trigger": "onControlEnd",
+      "condition": {},
+      "effect": { "type": "damage", "damagePercent": 0.5 }
+    },
+    {
+      "nodeId": "wood_002_spread",
+      "levelReq": 3,
+      "trigger": "onControlStart",
+      "condition": {},
+      "effect": { "type": "chainControl", "chainCount": 2, "radius": 150 }
+    }
+  ],
+  "wood_003": [
+    {
+      "nodeId": "wood_003_thorn",
+      "levelReq": 2,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "thornPercent": 0.3, "radius": 150 }
+    },
+    {
+      "nodeId": "wood_003_regen",
+      "levelReq": 3,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "regenPercent": 0.03, "radius": 150 }
+    }
+  ],
+  "wood_004": [
+    {
+      "nodeId": "wood_004_cleanse",
+      "levelReq": 2,
+      "trigger": "onHeal",
+      "condition": {},
+      "effect": { "type": "cleanse", "removeDebuff": true }
+    },
+    {
+      "nodeId": "wood_004_overheal",
+      "levelReq": 3,
+      "trigger": "onHeal",
+      "condition": { "overheal": true },
+      "effect": { "type": "shield", "shieldPercent": 0.2 }
+    }
+  ],
+  "wood_005": [
+    {
+      "nodeId": "wood_005_heal",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "healPercent", "value": 0.05 }
+    },
+    {
+      "nodeId": "wood_005_cleanse",
+      "levelReq": 3,
+      "trigger": "onAreaTick",
+      "condition": {},
+      "effect": { "type": "cleanse", "removeDebuff": true }
+    }
+  ],
+  "wood_006": [
+    {
+      "nodeId": "wood_006_thorn",
+      "levelReq": 2,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "thornPercent", "value": 0.2 }
+    },
+    {
+      "nodeId": "wood_006_explosion",
+      "levelReq": 3,
+      "trigger": "onBuffEnd",
+      "condition": {},
+      "effect": { "type": "heal", "healPercent": 0.2 }
+    }
+  ],
+  "wood_007": [
+    {
+      "nodeId": "wood_007_spread",
+      "levelReq": 2,
+      "trigger": "onDebuffTrigger",
+      "condition": {},
+      "effect": { "type": "chainDebuff", "chainCount": 2, "radius": 150 }
+    },
+    {
+      "nodeId": "wood_007_execute",
+      "levelReq": 3,
+      "trigger": "onDebuffTrigger",
+      "condition": { "targetHpPercent": "<0.2" },
+      "effect": { "type": "execute", "damageMultiplier": 2.0 }
+    }
+  ],
+  "wood_008": [
+    {
+      "nodeId": "wood_008_intensity",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "poisonPercent", "value": 0.1 }
+    },
+    {
+      "nodeId": "wood_008_slow",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "slowPercent", "value": 0.2 }
+    }
+  ],
+  "wood_009": [
+    {
+      "nodeId": "wood_009_aura",
+      "levelReq": 2,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "attackSpeedBonus": 0.1, "radius": 150 }
+    },
+    {
+      "nodeId": "wood_009_regen",
+      "levelReq": 3,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "regenPercent": 0.03, "radius": 150 }
+    }
+  ],
+
+  "========== 金系基础技能升级节点 ==========": {},
+  "metal_001": [
+    {
+      "nodeId": "metal_001_pierce",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "pierce", "value": 1 }
+    },
+    {
+      "nodeId": "metal_001_crit",
+      "levelReq": 3,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "critBonus", "value": 0.2 }
+    }
+  ],
+  "metal_002": [
+    {
+      "nodeId": "metal_002_count",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "projectileCount", "value": 3 }
+    },
+    {
+      "nodeId": "metal_002_stun",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.5 }
+    }
+  ],
+  "metal_003": [
+    {
+      "nodeId": "metal_003_reflect",
+      "levelReq": 2,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "reflectPercent", "value": 0.5 }
+    },
+    {
+      "nodeId": "metal_003_heal",
+      "levelReq": 3,
+      "trigger": "onBuffEnd",
+      "condition": {},
+      "effect": { "type": "heal", "healPercent": 0.3 }
+    }
+  ],
+  "metal_004": [
+    {
+      "nodeId": "metal_004_knockback",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 }
+    },
+    {
+      "nodeId": "metal_004_crit",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "critBonus", "value": 0.2 }
+    }
+  ],
+  "metal_005": [
+    {
+      "nodeId": "metal_005_poison",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "poisonPercent", "value": 0.1 }
+    },
+    {
+      "nodeId": "metal_005_homing",
+      "levelReq": 3,
+      "trigger": "onProjectileMove",
+      "condition": {},
+      "effect": { "type": "homing", "radius": 200 }
+    }
+  ],
+  "metal_006": [
+    {
+      "nodeId": "metal_006_heal",
+      "levelReq": 2,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "heal", "healPercent": 0.05, "interval": 1.0 }
+    },
+    {
+      "nodeId": "metal_006_explosion",
+      "levelReq": 3,
+      "trigger": "onBuffEnd",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 2.0, "radius": 200 }
+    }
+  ],
+  "metal_007": [
+    {
+      "nodeId": "metal_007_chain",
+      "levelReq": 2,
+      "trigger": "onDebuffTrigger",
+      "condition": {},
+      "effect": { "type": "chainExplosion", "chainCount": 2, "radius": 100 }
+    },
+    {
+      "nodeId": "metal_007_execute",
+      "levelReq": 3,
+      "trigger": "onDebuffTrigger",
+      "condition": { "targetHpPercent": "<0.2" },
+      "effect": { "type": "execute", "damageMultiplier": 2.5 }
+    }
+  ],
+  "metal_008": [
+    {
+      "nodeId": "metal_008_duration",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "duration", "value": 2.0 }
+    },
+    {
+      "nodeId": "metal_008_pull",
+      "levelReq": 3,
+      "trigger": "onAreaTick",
+      "condition": {},
+      "effect": { "type": "pull", "force": 100 }
+    }
+  ],
+  "metal_009": [
+    {
+      "nodeId": "metal_009_aura",
+      "levelReq": 2,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "critBonus": 0.1, "radius": 150 }
+    },
+    {
+      "nodeId": "metal_009_explosion",
+      "levelReq": 3,
+      "trigger": "onSummonDeath",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 1.5, "radius": 200 }
+    }
+  ],
+
+  "========== 土系基础技能升级节点 ==========": {},
+  "earth_001": [
+    {
+      "nodeId": "earth_001_stun",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.5 }
+    },
+    {
+      "nodeId": "earth_001_splash",
+      "levelReq": 3,
+      "trigger": "onProjectileHit",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 80 }
+    }
+  ],
+  "earth_002": [
+    {
+      "nodeId": "earth_002_count",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "spikeCount", "value": 2 }
+    },
+    {
+      "nodeId": "earth_002_knockup",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "knockup", "force": 150 }
+    }
+  ],
+  "earth_003": [
+    {
+      "nodeId": "earth_003_thorn",
+      "levelReq": 2,
+      "trigger": "onControlActive",
+      "condition": {},
+      "effect": { "type": "damage", "damagePercent": 0.2, "interval": 1.0 }
+    },
+    {
+      "nodeId": "earth_003_explosion",
+      "levelReq": 3,
+      "trigger": "onControlEnd",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 1.0, "radius": 150 }
+    }
+  ],
+  "earth_004": [
+    {
+      "nodeId": "earth_004_intensity",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "damagePercent", "value": 0.1 }
+    },
+    {
+      "nodeId": "earth_004_aftershock",
+      "levelReq": 3,
+      "trigger": "onSkillEnd",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 0.5, "radius": 150 }
+    }
+  ],
+  "earth_005": [
+    {
+      "nodeId": "earth_005_thorn",
+      "levelReq": 2,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "thornPercent", "value": 0.2 }
+    },
+    {
+      "nodeId": "earth_005_regen",
+      "levelReq": 3,
+      "trigger": "onBuffActive",
+      "condition": {},
+      "effect": { "type": "heal", "healPercent": 0.02, "interval": 1.0 }
+    }
+  ],
+  "earth_006": [
+    {
+      "nodeId": "earth_006_push",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 }
+    },
+    {
+      "nodeId": "earth_006_cd",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "cooldownReduction", "value": 2.0 }
+    }
+  ],
+  "earth_007": [
+    {
+      "nodeId": "earth_007_damage",
+      "levelReq": 2,
+      "trigger": "onControlEnd",
+      "condition": {},
+      "effect": { "type": "damage", "damagePercent": 0.5 }
+    },
+    {
+      "nodeId": "earth_007_spread",
+      "levelReq": 3,
+      "trigger": "onControlStart",
+      "condition": {},
+      "effect": { "type": "chainControl", "chainCount": 2, "radius": 150 }
+    }
+  ],
+  "earth_008": [
+    {
+      "nodeId": "earth_008_cd",
+      "levelReq": 2,
+      "trigger": "onShieldActive",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "cooldownReduction", "value": 2.0 }
+    },
+    {
+      "nodeId": "earth_008_explosion",
+      "levelReq": 3,
+      "trigger": "onShieldBreak",
+      "condition": {},
+      "effect": { "type": "areaDamage", "damagePercent": 1.5, "radius": 200 }
+    }
+  ],
+  "earth_009": [
+    {
+      "nodeId": "earth_009_aura",
+      "levelReq": 2,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "defenseBonus": 0.15, "radius": 150 }
+    },
+    {
+      "nodeId": "earth_009_thorn",
+      "levelReq": 3,
+      "trigger": "onSummonActive",
+      "condition": {},
+      "effect": { "type": "aura", "thornPercent": 0.2, "radius": 150 }
     }
   ]
 }

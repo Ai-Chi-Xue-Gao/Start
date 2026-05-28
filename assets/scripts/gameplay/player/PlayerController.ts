@@ -15,12 +15,7 @@ import { ServiceLocator } from '../../core/ServiceLocator';
 import { IPlayer } from '../../interfaces/IPlayer';
 import { INetworkService } from '../../interfaces/INetworkService';
 import { TriggerSystem } from '../../Managers/TriggerSystem';
-import { WaterOrbManager } from '../projectile/WaterOrbManager';
-import { IceNova } from '../skills/IceNova';
-import { SummonRoot } from '../skills/SummonRoot';
-import { WoodRegen } from '../skills/WoodRegen';
-import { Shield } from '../skills/Shield';
-import { KillRewardSystem } from '../systems/KillRewardSystem';
+import { SkillFactory } from '../managers/SkillFactory';
 
 const { ccclass, property } = _decorator;
 
@@ -40,12 +35,12 @@ export class PlayerController extends BaseComponent implements IPlayer {
     private skill: PlayerSkill = null
     private networkService: INetworkService | null = null
     private isPaused: boolean = false
-    private waterOrbManager: WaterOrbManager = null;
-    private iceNova: IceNova = null;
-    private summonRoot: SummonRoot = null
-    private woodRegen = null
-    private shield: Shield = null
-    private killRewardSystem: KillRewardSystem = null
+
+    // ========== 新技能系统 ==========
+    private skillFactory: SkillFactory = null
+
+    // ========== 血木共生 - 永久回血相关 ==========
+    private permanentRegen: number = 0
 
     start() {
         // 获取组件
@@ -54,7 +49,6 @@ export class PlayerController extends BaseComponent implements IPlayer {
         this.health = this.getComponent(PlayerHealth)
         this.experience = this.getComponent(PlayerExperience)
         this.skill = this.getComponent(PlayerSkill)
-        this.iceNova = this.getComponent(IceNova);
 
         // ========== 1. 注册到 ServiceLocator（必须最先执行）==========
         const serviceLocator = ServiceLocator.getInstance()
@@ -86,25 +80,16 @@ export class PlayerController extends BaseComponent implements IPlayer {
             console.log('[PlayerController] 技能系统已加载')
         })
 
-        // ========== 3. TriggerSystem 初始化（放在注册完成之后）==========
+        // ========== 3. 初始化技能工厂 ==========
+        this.skillFactory = SkillFactory.getInstance()
+
+        // ========== 4. TriggerSystem 初始化 ==========
         const triggerSystem = TriggerSystem.getInstance()
         triggerSystem.init(this)
         console.log('[PlayerController] TriggerSystem 已初始化');
 
         // 监听技能选择事件
         EventBus.on(EventNames.SKILL_SELECTED, this.onSkillSelected, this)
-
-        // 技能组件引用
-        this.waterOrbManager = this.getComponent(WaterOrbManager)
-        if (this.waterOrbManager) {
-            this.waterOrbManager.playerNode = this.node
-        }
-
-        this.summonRoot = this.getComponent(SummonRoot)
-        this.woodRegen = this.getComponent(WoodRegen)
-        this.shield = this.getComponent(Shield)
-        this.killRewardSystem = this.getComponent(KillRewardSystem)
-
     }
 
     protected onDestroy() {
@@ -115,6 +100,11 @@ export class PlayerController extends BaseComponent implements IPlayer {
         // 销毁 TriggerSystem
         const triggerSystem = TriggerSystem.getInstance()
         triggerSystem.destroy()
+        
+        // 清除所有技能
+        if (this.skillFactory) {
+            this.skillFactory.clearAllSkills()
+        }
     }
 
     private onGamePause(pause: boolean) {
@@ -144,32 +134,25 @@ export class PlayerController extends BaseComponent implements IPlayer {
         EventBus.emit(EventNames.PLAYER_DIED)
     }
 
+    /**
+     * 技能选择回调
+     * 使用新的通用技能系统
+     */
     private onSkillSelected(data: { skillId: string, level: number }) {
-        // 单个技能处理
-        if (data.skillId === 'water_trail') {
-            this.movement?.updateWaterTrailStatus()
-        } else if (data.skillId === 'water_orb') {
-            this.waterOrbManager?.updateSkillStatus()
-        } else if (data.skillId === 'ice_nova') {
-            this.iceNova?.updateSkillStatus();
-        } else if (data.skillId === 'summon_root') {
-            this.summonRoot?.updateSkillStatus()
-        } else if (data.skillId === 'wood_regen') {
-            this.woodRegen?.updateSkillStatus()
-        } else if (data.skillId === 'shield') {
-            this.shield?.updateSkillStatus()
+        // 使用技能工厂添加技能
+        if (this.skillFactory) {
+            this.skillFactory.addSkillToPlayer(this.node, data.skillId, data.level)
         }
+    }
 
-        // 杀怪奖励技能组
-        const killSkillIds = [
-            'kill_attack', 'kill_health', 'kill_speed',
-            'kill_cooldown', 'kill_exp', 'kill_vampire',
-            'kill_shield', 'kill_rage', 'kill_lucky', 'kill_rebirth'
-        ];
+    // ========== 血木共生 - 永久回血相关 ==========
+    public addPermanentRegen(value: number) {
+        this.permanentRegen += value
+        console.log(`[血木共生] 永久回血增加 ${value}，当前总回血: ${this.permanentRegen}`)
+    }
 
-        if (killSkillIds.includes(data.skillId)) {
-            this.killRewardSystem?.updateAllSkillStatus();
-        }
+    public getPermanentRegen(): number {
+        return this.permanentRegen
     }
 
     public getShield(): number {
@@ -236,35 +219,34 @@ export class PlayerController extends BaseComponent implements IPlayer {
         return baseSpeed * bonus
     }
 
-    // ========== 火球技能相关 ==========
-
+    // ========== 火球技能相关（保留基础攻击）==========
     public getFireballCount(): number {
-        return this.skill?.getFireballCount() || 1
+        // 默认返回1，后续可以通过技能系统修改
+        return 1
     }
 
-    /** @deprecated 请使用 getFireballCount() >= 2 */
     public getHasDoubleFireball(): boolean {
         return this.getFireballCount() >= 2
     }
 
     public getHasPierceFireball(): boolean {
-        return this.skill?.getHasPierceFireball() || false
+        return false
     }
 
     public getFireballSpeedMultiplier(): number {
-        return this.skill?.getFireballSpeedMultiplier() || 1.0
+        return 1.0
     }
 
     public getPierceCount(): number {
-        return this.skill?.getPierceCount() || 0
+        return 0
     }
 
     public getFireballSizeMultiplier(): number {
-        return this.skill?.getFireballSizeMultiplier() || 1.0
+        return 1.0
     }
 
     public getFireballDamageBonus(): number {
-        return this.skill?.getFireballDamageBonus() || 1.0
+        return 1.0
     }
 
     getMagnetRangeMultiplier(): number {
@@ -346,35 +328,35 @@ export class PlayerController extends BaseComponent implements IPlayer {
     }
 
     setDoubleFireball(active: boolean): void {
-        this.skill?.setDoubleFireball(active)
+        // 暂不实现，由新技能系统处理
     }
 
     setPierceFireball(active: boolean): void {
-        this.skill?.setPierceFireball(active)
+        // 暂不实现
     }
 
     setPierceCount(value: number): void {
-        this.skill?.setPierceCount(value)
+        // 暂不实现
     }
 
     setFireballCount(value: number): void {
-        this.skill?.setFireballCount(value)
+        // 暂不实现
     }
 
     setFireballSizeMultiplier(value: number): void {
-        this.skill?.setFireballSizeMultiplier(value)
+        // 暂不实现
     }
 
     setFireballSpeedMultiplier(mult: number): void {
-        this.skill?.setFireballSpeedMultiplier(mult)
+        // 暂不实现
     }
 
     addFireballSpeedMultiplier(mult: number): void {
-        this.skill?.addFireballSpeedMultiplier(mult)
+        // 暂不实现
     }
 
     addFireballDamageBonus(bonus: number): void {
-        this.skill?.addFireballDamageBonus(bonus)
+        // 暂不实现
     }
 
     addVampirePercent(value: number): void {
@@ -440,9 +422,6 @@ export class PlayerController extends BaseComponent implements IPlayer {
         if (this.isPaused) return
         if (!this.health || this.health.getCurrentHealth() <= 0) return
 
-        // ❌ 无敌更新已移除
-        // this.health?.updateInvincible(deltaTime)
-        
         this.skill?.updateTemporaryBonus(deltaTime)
 
         if (this.movement && this.skill) {

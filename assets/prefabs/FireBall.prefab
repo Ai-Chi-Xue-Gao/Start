@@ -173,7 +173,7 @@
     "fileId": "e00eFq6JlCNLO1920f5oR3"
   },
   {
-    "__type__": "1aedaJAAfpAaZVjAegxpCfW",
+    "__type__": "fb678Th8LRGq5OLjl3OYYd1",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -184,17 +184,12 @@
     "__prefab": {
       "__id__": 9
     },
-    "explosionPrefab": {
-      "__uuid__": "2a7bb63f-a3db-4cef-aaca-0d472d92ba94",
-      "__expectedType__": "cc.Prefab"
-    },
-    "speed": 500,
-    "damage": 20,
+    "speed": 400,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "bb/jk5qb9MVK+6+9VK4iJC"
+    "fileId": "b8r1z3JxZG4p5Y2m4+bTrz"
   },
   {
     "__type__": "cc.PrefabInfo",

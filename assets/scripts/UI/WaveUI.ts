@@ -39,9 +39,9 @@ export class WaveUI extends BaseComponent {
     private isBreak: boolean = false
 
     private readonly waveTypeConfig: Record<WaveType, { name: string; color: string }> = {
-        'grind': { name: '⚔️ 战斗', color: '#FFFFFF' },
-        'threat': { name: '🔥 威胁波', color: '#FF6666' },
-        'breather': { name: '💚 喘息波', color: '#66FF66' }
+        'grind': { name: '战斗', color: '#FFFFFF' },
+        'threat': { name: '威胁波', color: '#FF6666' },
+        'breather': { name: '喘息波', color: '#66FF66' }
     }
 
     start() {
@@ -81,7 +81,7 @@ export class WaveUI extends BaseComponent {
         }
 
         if (this.waveStatusLabel) {
-            this.waveStatusLabel.string = '⏸️ 准备中'
+            this.waveStatusLabel.string = '准备中'
         }
     }
 
@@ -91,7 +91,7 @@ export class WaveUI extends BaseComponent {
         }
 
         if (this.waveStatusLabel && !this.isBreak) {
-            this.waveStatusLabel.string = '⚔️ 战斗中'
+            this.waveStatusLabel.string = '战斗中'
         }
     }
 
@@ -145,7 +145,7 @@ export class WaveUI extends BaseComponent {
         }
 
         if (this.waveStatusLabel) {
-            this.waveStatusLabel.string = '⏸️ 准备中'
+            this.waveStatusLabel.string = '准备中'
         }
     }
 
@@ -154,8 +154,7 @@ export class WaveUI extends BaseComponent {
     }
 
     update(deltaTime: number) {
-        const stateMachine = this.getService<GameStateMachine>('stateMachine')
-        if (stateMachine && stateMachine.isPaused()) {
+        if(!this.isGameRunning()){
             return
         }
 

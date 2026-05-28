@@ -19,7 +19,7 @@ export class ServiceLocator {
     private services: Map<string, any> = new Map();
     private factories: Map<string, () => any> = new Map();
 
-    private constructor() {}
+    private constructor() { }
 
     static getInstance(): ServiceLocator {
         if (!ServiceLocator.instance) {
@@ -34,12 +34,14 @@ export class ServiceLocator {
      * @param instance 服务实例
      * @param force 是否强制覆盖（默认 false，已存在时警告但不覆盖）
      */
-    register<T>(key: string, instance: T, force: boolean = false): boolean {
+    register<T>(key: string, instance: T, force: boolean = true): boolean {
         if (this.services.has(key)) {
             if (force) {
-                console.warn(`[ServiceLocator] 服务 ${key} 已存在，强制覆盖`);
+                console.log(`[ServiceLocator] 服务 ${key} 已存在，强制覆盖`);
+                this.services.set(key, instance);
+                return true;
             } else {
-                console.warn(`[ServiceLocator] 服务 ${key} 已存在，跳过注册`);
+                console.log(`[ServiceLocator] 服务 ${key} 已存在，跳过注册`);
                 return false;
             }
         }

@@ -3,15 +3,19 @@
 import { _decorator, Button, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { BaseComponent } from '../../core/BaseComponent';
 import { PlayerAnim } from './PlayerAnim';
-import { FireBall } from '../projectile/FireBall';
-import { Enemy } from '../enemy/Enemy';
 import { PlayerController } from './PlayerController';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
 import { ObjectPool } from '../../utils/ObjectPool';
+import { GenericProjectile } from '../projectile/GenericProjectile';
+import { Enemy } from '../enemy/Enemy';
 
 const { ccclass, property } = _decorator;
 
+/**
+ * 玩家攻击组件（简化版）
+ * 负责：基础火球攻击
+ */
 @ccclass('PlayerAttack')
 export class PlayerAttack extends BaseComponent {
     @property(Node)
@@ -34,15 +38,26 @@ export class PlayerAttack extends BaseComponent {
         this.playerController = this.player.getComponent(PlayerController)
 
         this.canvasNode = this.getService<Node>('canvasNode')
+        if (!this.canvasNode) {
+            const scene = this.node.scene;
+            this.canvasNode = scene?.getChildByName('Canvas');
+        }
 
         const button = this.node.getComponent(Button)
-        button.node.on(Button.EventType.CLICK, this.onAttack, this)
+        if (button) {
+            button.node.on(Button.EventType.CLICK, this.onAttack, this)
+        }
 
         EventBus.on(EventNames.GAME_PAUSE, this.onPause, this)
     }
 
     protected onDestroy(): void {
         EventBus.off(EventNames.GAME_PAUSE, this.onPause, this)
+        
+        const button = this.node.getComponent(Button)
+        if (button && button.node) {
+            button.node.off(Button.EventType.CLICK, this.onAttack, this)
+        }
     }
 
     private onPause(pause: boolean) {
@@ -83,136 +98,44 @@ export class PlayerAttack extends BaseComponent {
         }
 
         this.playerAnim.playAttack()
-        this.spawnFireBalls(direction)
+        this.spawnFireBall(direction)
     }
 
     /**
-     * 发射多颗火球（支持任意数量）
-     * @param direction 基准发射方向
+     * 发射火球
      */
-    private spawnFireBalls(direction: Vec3) {
+    private spawnFireBall(direction: Vec3) {
         if (!this.fireBallPrefab) return
 
-        //  使用 getFireballCount() 获取火球数量
-        const count = this.playerController.getFireballCount()
         const attackValue = this.playerController.getAttack()
         const canvas = this.canvasNode
         const pool = ObjectPool.getInstance()
 
-        // 根据火球数量计算角度偏移和位置偏移
-        const angles = this.getAnglesForCount(count)
-        const positionOffsets = this.getPositionOffsetsForCount(count)
+        let fireball = pool.get('genericProjectile', canvas)
 
-        console.log(`[PlayerAttack] 发射火球: count=${count}`);
+        if (!fireball) {
+            fireball = instantiate(this.fireBallPrefab)
+            canvas?.addChild(fireball)
+        } else {
+            fireball.active = true
+        }
 
-        for (let i = 0; i < count; i++) {
-            let fireball = pool.get('fireball', canvas)
-
-            // 计算带偏移的方向
-            let fireDirection = direction.clone()
-            if (angles[i] !== 0) {
-                const rad = angles[i] * Math.PI / 180
-                const cos = Math.cos(rad)
-                const sin = Math.sin(rad)
-                const x = direction.x * cos - direction.y * sin
-                const y = direction.x * sin + direction.y * cos
-                fireDirection = new Vec3(x, y, 0).normalize()
-            }
-
-            if (!fireball) {
-                fireball = instantiate(this.fireBallPrefab)
-                canvas?.addChild(fireball)
-                const fireballScript = fireball.getComponent(FireBall)
-                if (fireballScript) {
-                    fireballScript.setFromPool(false)
-                    fireballScript.initWithDirection(fireDirection, attackValue)
-                }
-            } else {
-                const fireballScript = fireball.getComponent(FireBall)
-                if (fireballScript) {
-                    fireballScript.reset()
-                    fireballScript.setFromPool(true)
-                    fireballScript.initWithDirection(fireDirection, attackValue)
-                }
-            }
-
-            // 设置位置偏移
-            const offsetX = positionOffsets[i]
-            fireball.setWorldPosition(
-                this.player.worldPosition.x + offsetX,
-                this.player.worldPosition.y,
-                0
+        const fireballScript = fireball.getComponent(GenericProjectile)
+        if (fireballScript) {
+            const dir = { x: direction.x, y: direction.y }
+            fireballScript.init(
+                attackValue, 'fire', 'base_attack',
+                dir, 400, false, 0, 0, 0
             )
+            fireballScript.setFromPool(true)
         }
+
+        fireball.setWorldPosition(this.player.worldPosition)
     }
 
     /**
-     * 根据火球数量获取角度偏移数组（度）
+     * 查找最近的敌人
      */
-    private getAnglesForCount(count: number): number[] {
-        const angles: number[] = []
-
-        switch (count) {
-            case 1:
-                angles.push(0)
-                break
-            case 2:
-                angles.push(-5, 5)
-                break
-            case 3:
-                angles.push(-8, 0, 8)
-                break
-            case 4:
-                angles.push(-10, -3, 3, 10)
-                break
-            case 5:
-                angles.push(-12, -6, 0, 6, 12)
-                break
-            default:
-                for (let i = 0; i < count; i++) {
-                    const angle = -15 + (i * 30 / (count - 1))
-                    angles.push(angle)
-                }
-                break
-        }
-
-        return angles
-    }
-
-    /**
-     * 根据火球数量获取位置偏移数组（像素）
-     * 减小偏移量，提高命中率
-     */
-    private getPositionOffsetsForCount(count: number): number[] {
-        const offsets: number[] = []
-
-        switch (count) {
-            case 1:
-                offsets.push(0)
-                break
-            case 2:
-                offsets.push(-8, 8)
-                break
-            case 3:
-                offsets.push(-10, 0, 10)
-                break
-            case 4:
-                offsets.push(-12, -4, 4, 12)
-                break
-            case 5:
-                offsets.push(-15, -8, 0, 8, 15)
-                break
-            default:
-                for (let i = 0; i < count; i++) {
-                    const offset = -15 + (i * 30 / (count - 1))
-                    offsets.push(Math.round(offset))
-                }
-                break
-        }
-
-        return offsets
-    }
-
     private findNearestEnemy(): Node | null {
         if (!this.canvasNode) return null
 
@@ -222,22 +145,8 @@ export class PlayerAttack extends BaseComponent {
         const waveManager = this.canvasNode.getChildByName('WaveManager')
         if (waveManager) {
             for (const child of waveManager.children) {
-                const enemyScript = child.getComponent(Enemy)
-                if (child.isValid && enemyScript && !enemyScript.isDead) {
-                    const dist = Vec3.distance(this.player.worldPosition, child.worldPosition)
-                    if (dist < minDist) {
-                        minDist = dist
-                        nearest = child
-                    }
-                }
-            }
-        }
-
-        // 联机模式：查找网络敌人
-        for (const child of this.canvasNode.children) {
-            if (child.name.startsWith('NetworkEnemy_') && child.isValid) {
-                const networkEnemy = child.getComponent('NetworkEnemy') as any
-                if (networkEnemy && !networkEnemy.isDead) {
+                const enemy = child.getComponent(Enemy)
+                if (enemy && !enemy.isDead) {
                     const dist = Vec3.distance(this.player.worldPosition, child.worldPosition)
                     if (dist < minDist) {
                         minDist = dist

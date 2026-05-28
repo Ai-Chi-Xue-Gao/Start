@@ -83,10 +83,9 @@ export class WaveManager extends BaseComponent {
             }
         }
 
-        const stateMachine = this.getService<GameStateMachine>('stateMachine')
-        if (stateMachine && stateMachine.getState() === GameState.MENU) {
-            stateMachine.startGame()
-        }
+        // 不再缓存 stateMachine，每次使用时实时获取
+        // 删除：const stateMachine = this.getService<GameStateMachine>('stateMachine')
+        // 删除：if (stateMachine && stateMachine.getState() === GameState.MENU) { stateMachine.startGame() }
 
         this.affixSystem = AffixSystem.getInstance()
         this.affixSystem.loadAffixes(() => {
@@ -385,9 +384,8 @@ export class WaveManager extends BaseComponent {
     }
 
     update(deltaTime: number) {
-        const stateMachine = this.getService<GameStateMachine>('stateMachine')
-        if (stateMachine && stateMachine.isPaused()) {
-            return
+        if (!this.isGameRunning()) {
+            return;
         }
 
         if (this.waveState === 'active') {

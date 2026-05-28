@@ -1,50 +1,612 @@
 {
-  "fusion_fire_earth": {
-    "name": "熔岩火陨",
-    "description": "火球命中时爆炸，造成范围伤害",
+  "========== 火系中级合成 ==========": {},
+  "fire_mid_001": {
+    "name": "烈焰风暴",
+    "description": "召唤烈焰风暴，持续灼烧范围内敌人",
     "requires": [
-      { "skillId": "fireball_size", "minLevel": 3 },
-      { "skillId": "thorn_return", "minLevel": 3 }
+      { "skillId": "fire_001", "minLevel": 3 },
+      { "skillId": "fire_002", "minLevel": 3 },
+      { "skillId": "fire_005", "minLevel": 3 }
     ],
     "consumes": true,
-    "replace": ["fireball_size", "thorn_return"],
+    "replace": ["fire_001", "fire_002", "fire_005"],
     "effect": {
-      "type": "modifyProjectile",
-      "stat": "onHitExplosion",
-      "value": true,
-      "damagePercent": 0.5
+      "type": "area",
+      "damagePercent": 1.2,
+      "duration": 4.0,
+      "cooldown": 8.0,
+      "element": "fire",
+      "icon": "icon_fire_storm"
     }
   },
-  "fusion_ice_gold": {
-    "name": "冰锋雷刺",
-    "description": "减速敌人时暴击率翻倍",
+  "fire_mid_002": {
+    "name": "火龙吐息",
+    "description": "召唤火龙向前方喷吐火焰，穿透敌人",
     "requires": [
-      { "skillId": "ice_nova", "minLevel": 3 },
-      { "skillId": "crit_up", "minLevel": 3 }
+      { "skillId": "fire_003", "minLevel": 3 },
+      { "skillId": "fire_004", "minLevel": 3 },
+      { "skillId": "fire_006", "minLevel": 3 }
     ],
     "consumes": true,
-    "replace": ["ice_nova", "crit_up"],
+    "replace": ["fire_003", "fire_004", "fire_006"],
     "effect": {
-      "type": "modifyStat",
-      "stat": "critChance",
-      "condition": "onTargetSlowed",
-      "multiplier": 2
+      "type": "projectile",
+      "damagePercent": 1.5,
+      "projectileCount": 1,
+      "pierce": true,
+      "cooldown": 6.0,
+      "element": "fire",
+      "icon": "icon_fire_dragon_breath"
     }
   },
-  "fusion_vamp_root": {
-    "name": "血木共生",
-    "description": "吸血量的50%转化为每秒回血",
+  "fire_mid_003": {
+    "name": "炎之守护",
+    "description": "获得火焰护盾，反弹伤害并灼烧攻击者",
     "requires": [
-      { "skillId": "vampire", "minLevel": 3 },
-      { "skillId": "wood_regen", "minLevel": 3 }
+      { "skillId": "fire_007", "minLevel": 3 },
+      { "skillId": "fire_008", "minLevel": 3 },
+      { "skillId": "fire_009", "minLevel": 3 }
     ],
     "consumes": true,
-    "replace": ["vampire", "wood_regen"],
+    "replace": ["fire_007", "fire_008", "fire_009"],
     "effect": {
-      "type": "convertStat",
-      "from": "vampirePercent",
-      "to": "hpRegenPercent",
-      "ratio": 0.5
+      "type": "buff",
+      "damageReduction": 0.2,
+      "reflectPercent": 0.5,
+      "duration": 8.0,
+      "cooldown": 15.0,
+      "element": "fire",
+      "icon": "icon_fire_guardian"
+    }
+  },
+
+  "========== 水系中级合成 ==========": {},
+  "water_mid_001": {
+    "name": "海啸",
+    "description": "召唤海啸冲击，击退并伤害敌人",
+    "requires": [
+      { "skillId": "water_001", "minLevel": 3 },
+      { "skillId": "water_003", "minLevel": 3 },
+      { "skillId": "water_005", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["water_001", "water_003", "water_005"],
+    "effect": {
+      "type": "projectile",
+      "damagePercent": 1.3,
+      "knockback": true,
+      "cooldown": 7.0,
+      "element": "water",
+      "icon": "icon_tsunami"
+    }
+  },
+  "water_mid_002": {
+    "name": "生命之泉",
+    "description": "召唤生命之泉，持续治疗范围内友军",
+    "requires": [
+      { "skillId": "water_004", "minLevel": 3 },
+      { "skillId": "water_006", "minLevel": 3 },
+      { "skillId": "water_009", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["water_004", "water_006", "water_009"],
+    "effect": {
+      "type": "area",
+      "healPercent": 0.08,
+      "duration": 5.0,
+      "cooldown": 12.0,
+      "element": "water",
+      "icon": "icon_healing_spring"
+    }
+  },
+  "water_mid_003": {
+    "name": "绝对零度",
+    "description": "释放极寒冰环，冻结范围内所有敌人",
+    "requires": [
+      { "skillId": "water_002", "minLevel": 3 },
+      { "skillId": "water_007", "minLevel": 3 },
+      { "skillId": "water_008", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["water_002", "water_007", "water_008"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 0.8,
+      "freezeDuration": 3.0,
+      "cooldown": 12.0,
+      "element": "water",
+      "icon": "icon_absolute_zero"
+    }
+  },
+
+  "========== 木系中级合成 ==========": {},
+  "wood_mid_001": {
+    "name": "森林之怒",
+    "description": "召唤树根缠绕并伤害范围内敌人",
+    "requires": [
+      { "skillId": "wood_001", "minLevel": 3 },
+      { "skillId": "wood_002", "minLevel": 3 },
+      { "skillId": "wood_008", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["wood_001", "wood_002", "wood_008"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 1.0,
+      "rootDuration": 2.5,
+      "duration": 5.0,
+      "cooldown": 10.0,
+      "element": "wood",
+      "icon": "icon_forest_wrath"
+    }
+  },
+  "wood_mid_002": {
+    "name": "生命绽放",
+    "description": "绽放生命之花，瞬间回复大量生命",
+    "requires": [
+      { "skillId": "wood_004", "minLevel": 3 },
+      { "skillId": "wood_005", "minLevel": 3 },
+      { "skillId": "wood_006", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["wood_004", "wood_005", "wood_006"],
+    "effect": {
+      "type": "buff",
+      "healPercent": 0.25,
+      "regenPercent": 0.05,
+      "duration": 6.0,
+      "cooldown": 15.0,
+      "element": "wood",
+      "icon": "icon_life_bloom"
+    }
+  },
+  "wood_mid_003": {
+    "name": "毒沼",
+    "description": "制造毒沼，持续中毒并减速敌人",
+    "requires": [
+      { "skillId": "wood_003", "minLevel": 3 },
+      { "skillId": "wood_007", "minLevel": 3 },
+      { "skillId": "wood_009", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["wood_003", "wood_007", "wood_009"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 0.6,
+      "poisonPercent": 0.3,
+      "slowPercent": 0.4,
+      "duration": 6.0,
+      "cooldown": 12.0,
+      "element": "wood",
+      "icon": "icon_poison_swamp"
+    }
+  },
+
+  "========== 金系中级合成 ==========": {},
+  "metal_mid_001": {
+    "name": "万剑归宗",
+    "description": "召唤无数飞剑从天而降",
+    "requires": [
+      { "skillId": "metal_001", "minLevel": 3 },
+      { "skillId": "metal_002", "minLevel": 3 },
+      { "skillId": "metal_005", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["metal_001", "metal_002", "metal_005"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 1.0,
+      "projectileCount": 15,
+      "cooldown": 12.0,
+      "element": "metal",
+      "icon": "icon_thousand_swords"
+    }
+  },
+  "metal_mid_002": {
+    "name": "不灭金身",
+    "description": "进入金身状态，免疫伤害并反弹",
+    "requires": [
+      { "skillId": "metal_003", "minLevel": 3 },
+      { "skillId": "metal_004", "minLevel": 3 },
+      { "skillId": "metal_006", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["metal_003", "metal_004", "metal_006"],
+    "effect": {
+      "type": "buff",
+      "invincible": true,
+      "reflectPercent": 1.0,
+      "duration": 4.0,
+      "cooldown": 20.0,
+      "element": "metal",
+      "icon": "icon_golden_body"
+    }
+  },
+  "metal_mid_003": {
+    "name": "金灵召唤",
+    "description": "召唤金灵，提升周围友军暴击率",
+    "requires": [
+      { "skillId": "metal_007", "minLevel": 3 },
+      { "skillId": "metal_008", "minLevel": 3 },
+      { "skillId": "metal_009", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["metal_007", "metal_008", "metal_009"],
+    "effect": {
+      "type": "summon",
+      "critBonus": 0.3,
+      "critDamageBonus": 0.5,
+      "duration": 20.0,
+      "cooldown": 30.0,
+      "element": "metal",
+      "icon": "icon_gold_spirit"
+    }
+  },
+
+  "========== 土系中级合成 ==========": {},
+  "earth_mid_001": {
+    "name": "地裂山崩",
+    "description": "引发地震，造成大范围伤害并眩晕",
+    "requires": [
+      { "skillId": "earth_001", "minLevel": 3 },
+      { "skillId": "earth_002", "minLevel": 3 },
+      { "skillId": "earth_004", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["earth_001", "earth_002", "earth_004"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 1.3,
+      "stunDuration": 1.5,
+      "cooldown": 10.0,
+      "element": "earth",
+      "icon": "icon_earthquake"
+    }
+  },
+  "earth_mid_002": {
+    "name": "大地之盾",
+    "description": "获得大地护盾，大幅提升防御",
+    "requires": [
+      { "skillId": "earth_003", "minLevel": 3 },
+      { "skillId": "earth_005", "minLevel": 3 },
+      { "skillId": "earth_008", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["earth_003", "earth_005", "earth_008"],
+    "effect": {
+      "type": "buff",
+      "damageReduction": 0.4,
+      "shieldAmount": 200,
+      "duration": 8.0,
+      "cooldown": 18.0,
+      "element": "earth",
+      "icon": "icon_earth_shield"
+    }
+  },
+  "earth_mid_003": {
+    "name": "山岭巨人",
+    "description": "召唤山岭巨人，坦克型召唤物嘲讽敌人",
+    "requires": [
+      { "skillId": "earth_006", "minLevel": 3 },
+      { "skillId": "earth_007", "minLevel": 3 },
+      { "skillId": "earth_009", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["earth_006", "earth_007", "earth_009"],
+    "effect": {
+      "type": "summon",
+      "health": 500,
+      "damage": 50,
+      "taunt": true,
+      "duration": 25.0,
+      "cooldown": 35.0,
+      "element": "earth",
+      "icon": "icon_mountain_giant"
+    }
+  },
+
+  "========== 跨属性中级合成 ==========": {},
+  "cross_fire_metal_001": {
+    "name": "熔岩剑",
+    "description": "召唤熔岩飞剑，穿透敌人并造成灼烧效果",
+    "requires": [
+      { "skillId": "fire_003", "minLevel": 3 },
+      { "skillId": "metal_002", "minLevel": 3 },
+      { "skillId": "metal_005", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["fire_003", "metal_002", "metal_005"],
+    "effect": {
+      "type": "projectile",
+      "damagePercent": 1.4,
+      "pierce": true,
+      "burnPercent": 0.3,
+      "cooldown": 7.0,
+      "element": "fire_metal",
+      "icon": "icon_lava_sword"
+    }
+  },
+  "cross_water_wood_001": {
+    "name": "生命缠绕",
+    "description": "治疗周围友军并缠绕范围内敌人",
+    "requires": [
+      { "skillId": "water_004", "minLevel": 3 },
+      { "skillId": "wood_002", "minLevel": 3 },
+      { "skillId": "water_009", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["water_004", "wood_002", "water_009"],
+    "effect": {
+      "type": "area",
+      "healPercent": 0.15,
+      "rootDuration": 2.0,
+      "cooldown": 12.0,
+      "element": "water_wood",
+      "icon": "icon_life_vine"
+    }
+  },
+  "cross_metal_earth_001": {
+    "name": "金刚护体",
+    "description": "获得护盾并反弹所受伤害",
+    "requires": [
+      { "skillId": "metal_003", "minLevel": 3 },
+      { "skillId": "earth_005", "minLevel": 3 },
+      { "skillId": "metal_006", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["metal_003", "earth_005", "metal_006"],
+    "effect": {
+      "type": "buff",
+      "shieldAmount": 300,
+      "reflectPercent": 0.5,
+      "duration": 6.0,
+      "cooldown": 20.0,
+      "element": "metal_earth",
+      "icon": "icon_golden_armor"
+    }
+  },
+  "cross_fire_water_001": {
+    "name": "蒸汽爆炸",
+    "description": "产生蒸汽爆炸，造成范围伤害并致盲敌人",
+    "requires": [
+      { "skillId": "fire_002", "minLevel": 3 },
+      { "skillId": "water_005", "minLevel": 3 },
+      { "skillId": "fire_004", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["fire_002", "water_005", "fire_004"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 1.1,
+      "blindDuration": 2.0,
+      "cooldown": 10.0,
+      "element": "fire_water",
+      "icon": "icon_steam_explosion"
+    }
+  },
+  "cross_wood_fire_001": {
+    "name": "火焰藤蔓",
+    "description": "召唤火焰藤蔓，缠绕敌人并造成持续灼烧",
+    "requires": [
+      { "skillId": "wood_002", "minLevel": 3 },
+      { "skillId": "fire_001", "minLevel": 3 },
+      { "skillId": "wood_008", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["wood_002", "fire_001", "wood_008"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 0.9,
+      "rootDuration": 2.0,
+      "burnPercent": 0.3,
+      "duration": 4.0,
+      "cooldown": 11.0,
+      "element": "wood_fire",
+      "icon": "icon_fire_vine"
+    }
+  },
+  "cross_water_metal_001": {
+    "name": "冰晶剑阵",
+    "description": "召唤冰晶飞剑，冻结范围内的敌人",
+    "requires": [
+      { "skillId": "water_002", "minLevel": 3 },
+      { "skillId": "metal_001", "minLevel": 3 },
+      { "skillId": "metal_008", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["water_002", "metal_001", "metal_008"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 1.0,
+      "freezeDuration": 2.0,
+      "projectileCount": 8,
+      "cooldown": 11.0,
+      "element": "water_metal",
+      "icon": "icon_ice_swords"
+    }
+  },
+  "cross_earth_wood_001": {
+    "name": "荆棘护甲",
+    "description": "获得荆棘护甲，反弹伤害并回复生命",
+    "requires": [
+      { "skillId": "earth_005", "minLevel": 3 },
+      { "skillId": "wood_006", "minLevel": 3 },
+      { "skillId": "earth_008", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["earth_005", "wood_006", "earth_008"],
+    "effect": {
+      "type": "buff",
+      "reflectPercent": 0.4,
+      "regenPercent": 0.03,
+      "duration": 6.0,
+      "cooldown": 18.0,
+      "element": "earth_wood",
+      "icon": "icon_thorn_armor"
+    }
+  },
+  "cross_thunder_fire_001": {
+    "name": "雷火风暴",
+    "description": "召唤雷火风暴，造成范围雷火伤害",
+    "requires": [
+      { "skillId": "fire_004", "minLevel": 3 },
+      { "skillId": "neutral_004", "minLevel": 3 },
+      { "skillId": "fire_002", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["fire_004", "neutral_004", "fire_002"],
+    "effect": {
+      "type": "area",
+      "damagePercent": 1.2,
+      "duration": 4.0,
+      "cooldown": 12.0,
+      "element": "thunder_fire",
+      "icon": "icon_thunder_fire"
+    }
+  },
+
+  "========== 高级技能合成 ==========": {},
+  "fire_high_001": {
+    "name": "炎帝",
+    "description": "火系终极技能，召唤太阳真火焚尽一切",
+    "requires": [
+      { "skillId": "fire_mid_001", "minLevel": 3 },
+      { "skillId": "fire_mid_002", "minLevel": 3 },
+      { "skillId": "fire_mid_003", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["fire_mid_001", "fire_mid_002", "fire_mid_003"],
+    "effect": {
+      "type": "ultimate",
+      "damagePercent": 5.0,
+      "duration": 10.0,
+      "cooldown": 45.0,
+      "element": "fire",
+      "icon": "icon_fire_emperor"
+    }
+  },
+  "water_high_001": {
+    "name": "共工",
+    "description": "水系终极技能，召唤洪水淹没战场",
+    "requires": [
+      { "skillId": "water_mid_001", "minLevel": 3 },
+      { "skillId": "water_mid_002", "minLevel": 3 },
+      { "skillId": "water_mid_003", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["water_mid_001", "water_mid_002", "water_mid_003"],
+    "effect": {
+      "type": "ultimate",
+      "damagePercent": 4.0,
+      "healPercent": 0.5,
+      "freezeDuration": 4.0,
+      "duration": 12.0,
+      "cooldown": 45.0,
+      "element": "water",
+      "icon": "icon_water_god"
+    }
+  },
+  "wood_high_001": {
+    "name": "句芒",
+    "description": "木系终极技能，召唤生命之树复苏万物",
+    "requires": [
+      { "skillId": "wood_mid_001", "minLevel": 3 },
+      { "skillId": "wood_mid_002", "minLevel": 3 },
+      { "skillId": "wood_mid_003", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["wood_mid_001", "wood_mid_002", "wood_mid_003"],
+    "effect": {
+      "type": "ultimate",
+      "healPercent": 1.0,
+      "regenPercent": 0.1,
+      "damagePercent": 3.0,
+      "duration": 15.0,
+      "cooldown": 45.0,
+      "element": "wood",
+      "icon": "icon_wood_god"
+    }
+  },
+  "metal_high_001": {
+    "name": "蓐收",
+    "description": "金系终极技能，召唤万剑归宗斩灭一切",
+    "requires": [
+      { "skillId": "metal_mid_001", "minLevel": 3 },
+      { "skillId": "metal_mid_002", "minLevel": 3 },
+      { "skillId": "metal_mid_003", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["metal_mid_001", "metal_mid_002", "metal_mid_003"],
+    "effect": {
+      "type": "ultimate",
+      "damagePercent": 6.0,
+      "projectileCount": 50,
+      "critBonus": 1.0,
+      "cooldown": 45.0,
+      "element": "metal",
+      "icon": "icon_metal_god"
+    }
+  },
+  "earth_high_001": {
+    "name": "后土",
+    "description": "土系终极技能，不动如山坚不可摧",
+    "requires": [
+      { "skillId": "earth_mid_001", "minLevel": 3 },
+      { "skillId": "earth_mid_002", "minLevel": 3 },
+      { "skillId": "earth_mid_003", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["earth_mid_001", "earth_mid_002", "earth_mid_003"],
+    "effect": {
+      "type": "ultimate",
+      "damageReduction": 0.8,
+      "shieldAmount": 1000,
+      "damagePercent": 4.0,
+      "duration": 15.0,
+      "cooldown": 45.0,
+      "element": "earth",
+      "icon": "icon_earth_god"
+    }
+  },
+
+  "========== 终极跨属性合成 ==========": {},
+  "ultimate_cross_001": {
+    "name": "混沌之源",
+    "description": "融合五行之力，召唤混沌能量摧毁一切",
+    "requires": [
+      { "skillId": "fire_high_001", "minLevel": 3 },
+      { "skillId": "water_high_001", "minLevel": 3 },
+      { "skillId": "wood_high_001", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["fire_high_001", "water_high_001", "wood_high_001"],
+    "effect": {
+      "type": "ultimate",
+      "damagePercent": 8.0,
+      "duration": 8.0,
+      "cooldown": 50.0,
+      "element": "chaos",
+      "icon": "icon_chaos"
+    }
+  },
+  "ultimate_cross_002": {
+    "name": "天地同寿",
+    "description": "融合金土之力，获得无敌护盾并反击所有敌人",
+    "requires": [
+      { "skillId": "metal_high_001", "minLevel": 3 },
+      { "skillId": "earth_high_001", "minLevel": 3 },
+      { "skillId": "five_elements_awaken", "minLevel": 3 }
+    ],
+    "consumes": true,
+    "replace": ["metal_high_001", "earth_high_001", "five_elements_awaken"],
+    "effect": {
+      "type": "ultimate",
+      "invincible": true,
+      "reflectPercent": 2.0,
+      "duration": 6.0,
+      "cooldown": 60.0,
+      "element": "metal_earth",
+      "icon": "icon_universe"
     }
   }
 }
