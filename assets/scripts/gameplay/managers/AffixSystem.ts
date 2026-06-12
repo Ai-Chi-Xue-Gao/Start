@@ -3,10 +3,12 @@
 import { resources, JsonAsset, Vec3, Node, Label, Color } from 'cc'
 import { Enemy } from '../enemy/Enemy'
 import { EnemyAffixData } from './AffixData'
-import { AffixConfig, AffixRarity, DEFAULT_AFFIXES, getAffixConfig } from '../../configs/AffixConfig'
+import { AffixConfig, AffixRarity, DEFAULT_AFFIXES } from '../../configs/AffixConfig'
 import { EventBus } from '../../core/EventBus'
 import { EventNames } from '../../utils/EventNames'
 import { AffixWeightConfig } from '../../configs/GameConfig'
+import { IAffixTarget } from '../../interfaces/IAffixTarget'
+import { AffixStrategyFactory } from './AffixStrategyFactory'
 
 /**
  * 词条系统管理器
@@ -20,9 +22,12 @@ export class AffixSystem {
     private isReady: boolean = false
 
     // 记录已应用词条的敌人（防止重复应用）
-    private appliedEnemies: WeakSet<Enemy> = new WeakSet()
+    private appliedEnemies: WeakSet<IAffixTarget> = new WeakSet()
 
-    private constructor() { }
+    private constructor() { 
+        // 注册词条策略
+        AffixStrategyFactory.initialize()
+    }
 
     static getInstance(): AffixSystem {
         if (!AffixSystem.instance) {
@@ -56,7 +61,6 @@ export class AffixSystem {
             } else {
                 const data = jsonAsset.json as any
                 this.affixes = data.affixes || []
-                console.log(`[词条系统] 加载成功，共 ${this.affixes.length} 个词条`)
             }
 
             this.isReady = true
@@ -74,29 +78,23 @@ export class AffixSystem {
      */
     private loadDefaultAffixes(): void {
         this.affixes = [...DEFAULT_AFFIXES]
-        console.log(`[词条系统] 使用 TypeScript 默认词条，共 ${this.affixes.length} 个`)
     }
 
     /**
      * 根据波次获取可用词条池
      */
     private getAffixPoolByWave(wave: number): AffixConfig[] {
-        // 优先使用 JSON 加载的数据
         if (this.affixes.length > 0) {
             return this.affixes.filter(affix => affix.minWave <= wave)
         }
-        // 备用：从 TypeScript 配置获取
         return DEFAULT_AFFIXES.filter(affix => affix.minWave <= wave)
     }
 
     /**
-    * 根据波次获取词条数量（无上限）
+    * 根据波次获取词条数量
     */
     private getWaveAffixConfig(wave: number): { count: number, maxRarity: AffixRarity } {
-        // 词条数量 = 波次 / 10 + 1
         let count = Math.floor(wave / 10) + 1
-
-        // 固定最高稀有度
         return { count: count, maxRarity: 'legendary' }
     }
 
@@ -121,10 +119,8 @@ export class AffixSystem {
 
     /**
      * 为敌人随机分配词条
-     * 添加防重复检查
      */
     public applyRandomAffixes(enemy: Enemy, wave: number): AffixConfig[] {
-        // 防止重复应用词条
         if (this.appliedEnemies.has(enemy)) {
             console.warn('[词条系统] 敌人已应用过词条，跳过');
             return [];
@@ -136,47 +132,45 @@ export class AffixSystem {
         const pool = this.getAffixPoolByWave(wave)
         if (pool.length === 0) return []
 
-        // 按稀有度权重筛选
         const weightedPool = pool.filter(affix => {
             return this.getRarityWeight(affix.rarity, maxRarity) > 0
         })
 
         if (weightedPool.length === 0) return []
 
-        // 随机选择不重复的词条
         const shuffled = [...weightedPool]
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
-                ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+            ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
         }
 
         const selected = shuffled.slice(0, Math.min(count, shuffled.length))
 
-        // 初始化敌人词条数据
         const enemyData = this.getEnemyAffixData(enemy)
         enemyData.affixes = selected
         enemyData.originalSpeed = enemy.speed
         enemyData.originalDamage = enemy.damage
 
-        // 应用词条效果
         for (const affix of selected) {
             this.applyAffixToEnemy(enemy, affix, enemyData)
+            // 调用策略的 onApply 方法（如果有）
+            const strategy = AffixStrategyFactory.get(affix.id)
+            if (strategy?.onApply) {
+                strategy.onApply(enemy, affix, enemyData)
+            }
         }
 
         this.showAffixesOnEnemy(enemy, selected)
-
-        // 标记已应用
         this.appliedEnemies.add(enemy)
 
         return selected
     }
 
     /**
-     * 重置敌人词条记录（敌人从对象池取出时调用）
+     * 重置敌人词条记录
      */
     public resetEnemyAffixRecord(enemy: Enemy): void {
         this.appliedEnemies.delete(enemy);
-        // 清除词条数据
         if ((enemy as any).__affixData) {
             (enemy as any).__affixData = null;
         }
@@ -188,17 +182,14 @@ export class AffixSystem {
     private showAffixesOnEnemy(enemy: Enemy, affixes: AffixConfig[]) {
         if (affixes.length === 0) return
 
-        // 创建显示词条的节点
         const labelNode = new Node('AffixLabel')
-        labelNode.setPosition(0, 50, 0)  // 在敌人头顶上方50像素
+        labelNode.setPosition(0, 50, 0)
 
-        // 添加 Label 组件
         const label = labelNode.addComponent(Label)
         label.fontSize = 16
         label.lineHeight = 18
         label.color = Color.YELLOW
 
-        // 把所有词条名字拼在一起
         let text = ''
         for (let i = 0; i < affixes.length; i++) {
             if (i > 0) text += '\n'
@@ -206,7 +197,6 @@ export class AffixSystem {
         }
         label.string = text
 
-        // 添加到敌人节点下
         enemy.node.addChild(labelNode)
     }
 
@@ -233,22 +223,18 @@ export class AffixSystem {
 
     /**
      * 应用词条效果到敌人
-     *  添加血量取整，避免浮点精度问题
      */
     private applyAffixToEnemy(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData): void {
         const stats = affix.stats
-
         if (!stats) return
 
-        // 应用数值修改
         if (stats.speedMultiplier) {
             enemy.speed = enemyData.originalSpeed * stats.speedMultiplier
         }
 
         if (stats.healthMultiplier) {
-            //  血量取整
-            const newMaxHealth = Math.floor((enemy as any).maxHealth * stats.healthMultiplier);
-            (enemy as any).maxHealth = newMaxHealth;
+            const newMaxHealth = Math.floor(enemy.maxHealth * stats.healthMultiplier);
+            enemy.maxHealth = newMaxHealth;
             (enemy as any).currentHealth = newMaxHealth;
         }
 
@@ -257,7 +243,7 @@ export class AffixSystem {
         }
 
         if (stats.damageReduction) {
-            (enemy as any).damageReduction = stats.damageReduction
+            enemy.damageReduction = stats.damageReduction
         }
 
         if (stats.shieldAmount) {
@@ -274,7 +260,7 @@ export class AffixSystem {
     }
 
     /**
-     * 触发敌人更新回调（每帧调用）
+     * 触发敌人更新回调
      */
     public onEnemyUpdate(enemy: Enemy, deltaTime: number): void {
         const enemyData = this.getEnemyAffixData(enemy)
@@ -282,41 +268,42 @@ export class AffixSystem {
 
         for (const affix of enemyData.affixes) {
             if (!affix.hasCallback || affix.callbackType !== 'onUpdate') continue
-            this.handleUpdateCallback(enemy, affix, enemyData, deltaTime)
+            
+            // ✅ 优先使用策略
+            const strategy = AffixStrategyFactory.get(affix.id)
+            if (strategy?.onUpdate) {
+                strategy.onUpdate(enemy, affix, enemyData, deltaTime)
+            } else {
+                // 备用：保留原有 switch-case
+                this.handleUpdateCallbackLegacy(enemy, affix, enemyData, deltaTime)
+            }
         }
     }
 
     /**
-     * 处理更新回调
-     *  添加血量取整，避免浮点精度问题
+     * 备用：原有的更新回调逻辑
      */
-    private handleUpdateCallback(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, deltaTime: number): void {
+    private handleUpdateCallbackLegacy(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, deltaTime: number): void {
         const stats = affix.stats
+        if (!stats) return
 
         switch (affix.id) {
             case 'regenerate':
                 enemyData.regenerateTimer += deltaTime
                 if (enemyData.regenerateTimer >= 1.0) {
                     enemyData.regenerateTimer = 0
-                    //  回血取整
-                    const healAmount = Math.floor((enemy as any).maxHealth * stats.regeneratePercent);
-                    (enemy as any).currentHealth = Math.min(
-                        (enemy as any).maxHealth,
-                        (enemy as any).currentHealth + healAmount
-                    );
+                    const healAmount = Math.floor(enemy.maxHealth * stats.regeneratePercent);
+                    (enemy as any).currentHealth = Math.min(enemy.maxHealth, (enemy as any).currentHealth + healAmount);
                 }
                 break
-
             case 'berserk':
-                const healthPercent = (enemy as any).currentHealth / (enemy as any).maxHealth
+                const healthPercent = (enemy as any).currentHealth / enemy.maxHealth
                 if (healthPercent <= stats.berserkThreshold && !enemyData.isBerserk) {
                     enemyData.isBerserk = true
                     enemy.speed = enemyData.originalSpeed * stats.berserkSpeedMultiplier
                     enemy.damage = enemyData.originalDamage * stats.berserkAttackMultiplier
-                    console.log(`[词条] 敌人进入狂暴模式`)
                 }
                 break
-
             case 'minion_master':
                 enemyData.summonTimer += deltaTime
                 if (enemyData.summonTimer >= stats.summonInterval) {
@@ -327,13 +314,8 @@ export class AffixSystem {
         }
     }
 
-    /**
-     * 召唤小怪
-     */
     private spawnMinions(enemy: Enemy, count: number): void {
         const position = enemy.node.worldPosition
-        console.log(`[词条] 召唤师召唤 ${count} 个小怪 at (${position.x}, ${position.y})`)
-        // 触发召唤事件，由WaveManager处理
         EventBus.emit(EventNames.ENEMY_SUMMON, { position, count, parentEnemy: enemy })
     }
 
@@ -346,19 +328,25 @@ export class AffixSystem {
 
         for (const affix of enemyData.affixes) {
             if (!affix.hasCallback || affix.callbackType !== 'onDeath') continue
-
-            const shouldPreventDeath = this.handleDeathCallback(enemy, affix, enemyData, position)
-            if (shouldPreventDeath) return true
+            
+            // ✅ 优先使用策略
+            const strategy = AffixStrategyFactory.get(affix.id)
+            if (strategy?.onDeath) {
+                const shouldPreventDeath = strategy.onDeath(enemy, affix, enemyData, position)
+                if (shouldPreventDeath) return true
+            } else {
+                // 备用：保留原有 switch-case
+                const shouldPreventDeath = this.handleDeathCallbackLegacy(enemy, affix, enemyData, position)
+                if (shouldPreventDeath) return true
+            }
         }
         return false
     }
 
     /**
-     * 处理死亡回调
-     * @returns true 表示阻止死亡（复活），false 表示正常死亡
-     *  添加血量取整，避免浮点精度问题
+     * 备用：原有的死亡回调逻辑
      */
-    private handleDeathCallback(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, position: Vec3): boolean {
+    private handleDeathCallbackLegacy(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, position: Vec3): boolean {
         const stats = affix.stats
 
         switch (affix.id) {
@@ -366,25 +354,19 @@ export class AffixSystem {
                 const explosionRadius = stats?.explosionRadius || 100
                 const explosionDamagePercent = stats?.explosionDamagePercent || 0.5
                 const explosionDamage = enemy.damage * explosionDamagePercent
-                console.log(`[词条] 自爆！半径: ${explosionRadius}, 伤害: ${explosionDamage}`)
                 EventBus.emit(EventNames.ENEMY_EXPLOSION, { position, radius: explosionRadius, damage: explosionDamage })
                 return false
-
             case 'split':
                 const splitCount = stats?.splitCount || 2
                 const splitHealthPercent = stats?.splitHealthPercent || 0.5
-                console.log(`[词条] 分裂成 ${splitCount} 个小怪`)
                 EventBus.emit(EventNames.ENEMY_SPLIT, { position, count: splitCount, healthPercent: splitHealthPercent })
                 return false
-
             case 'immortal':
                 if (enemyData.reviveLeft > 0) {
                     enemyData.reviveLeft = 0
-                    //  复活血量取整
-                    const reviveHealth = Math.floor((enemy as any).maxHealth * (stats?.reviveHealthPercent || 0.5));
+                    const reviveHealth = Math.floor(enemy.maxHealth * (stats?.reviveHealthPercent || 0.5));
                     (enemy as any).currentHealth = reviveHealth;
                     (enemy as any).isDead = false;
-                    console.log(`[词条] 不朽复活！生命值 ${reviveHealth}`)
                     return true
                 }
                 return false
@@ -406,35 +388,41 @@ export class AffixSystem {
             const absorbed = Math.min(enemyData.shield, modifiedDamage)
             enemyData.shield -= absorbed
             modifiedDamage -= absorbed
-            console.log(`[词条] 护盾吸收了 ${absorbed} 伤害，剩余护盾: ${enemyData.shield}`)
         }
 
         // 伤害减免
-        if ((enemy as any).damageReduction) {
-            modifiedDamage *= (1 - (enemy as any).damageReduction)
+        if (enemy.damageReduction > 0) {
+            modifiedDamage *= (1 - enemy.damageReduction)
         }
 
         // 适应机制
         if (damageType && enemyData.adaptiveResistance > 0) {
             if (enemyData.lastDamageType === damageType) {
                 modifiedDamage *= (1 - enemyData.adaptiveResistance)
-                console.log(`[词条] 适应减伤 ${enemyData.adaptiveResistance * 100}%`)
             }
             enemyData.lastDamageType = damageType
         }
 
         for (const affix of enemyData.affixes) {
             if (!affix.hasCallback || affix.callbackType !== 'onHit') continue
-            modifiedDamage = this.handleHitCallback(enemy, affix, enemyData, modifiedDamage)
+            
+            // ✅ 优先使用策略
+            const strategy = AffixStrategyFactory.get(affix.id)
+            if (strategy?.onHit) {
+                modifiedDamage = strategy.onHit(enemy, affix, enemyData, modifiedDamage)
+            } else {
+                // 备用：保留原有逻辑
+                modifiedDamage = this.handleHitCallbackLegacy(enemy, affix, enemyData, modifiedDamage)
+            }
         }
 
         return Math.max(0, modifiedDamage)
     }
 
     /**
-     * 处理受伤回调
+     * 备用：原有的受伤回调逻辑
      */
-    private handleHitCallback(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, damage: number): number {
+    private handleHitCallbackLegacy(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, damage: number): number {
         const stats = affix.stats
 
         switch (affix.id) {
@@ -444,20 +432,16 @@ export class AffixSystem {
                     const randomX = (Math.random() - 0.5) * radius * 2
                     const randomY = (Math.random() - 0.5) * radius * 2
                     enemy.node.setPosition(randomX, randomY, 0)
-                    console.log(`[词条] 瞬移到 (${randomX}, ${randomY})`)
                 }
                 break
-
             case 'mirror':
                 const reflectPercent = stats?.reflectPercent || 0.5
                 const reflectDamage = damage * reflectPercent
                 if (reflectDamage > 0) {
-                    console.log(`[词条] 反弹 ${reflectDamage} 伤害`)
                     EventBus.emit('enemy_reflect', { enemy, damage: reflectDamage })
                 }
                 break
         }
-
         return damage
     }
 
@@ -472,25 +456,14 @@ export class AffixSystem {
 
         for (const affix of enemyData.affixes) {
             if (!affix.hasCallback || affix.callbackType !== 'onHitPlayer') continue
-
-            switch (affix.id) {
-                case 'vampire':
-                    const healAmount = damage * 0.5
-                    //  吸血治疗取整
-                    const healInt = Math.floor(healAmount);
-                    (enemy as any).currentHealth = Math.min(
-                        (enemy as any).maxHealth,
-                        (enemy as any).currentHealth + healInt
-                    )
-                    console.log(`[词条] 吸血回复 ${healInt}`)
-                    break
-
-                case 'frost':
-                    const slowPercent = affix.stats?.slowPercent || 0.3
-                    const slowDuration = affix.stats?.slowDuration || 1.5
-                    console.log(`[词条] 寒霜：减速玩家 ${slowPercent * 100}%，持续 ${slowDuration}秒`)
-                    EventBus.emit(EventNames.PLAYER_SLOW, { percent: slowPercent, duration: slowDuration })
-                    break
+            
+            // ✅ 优先使用策略
+            const strategy = AffixStrategyFactory.get(affix.id)
+            if (strategy?.onHitPlayer) {
+                modifiedDamage = strategy.onHitPlayer(enemy, affix, enemyData, modifiedDamage)
+            } else {
+                // 备用：保留原有逻辑
+                this.handleHitPlayerLegacy(enemy, affix, enemyData, modifiedDamage)
             }
         }
 
@@ -498,23 +471,35 @@ export class AffixSystem {
     }
 
     /**
-     * 获取敌人的词条列表（用于UI显示）
+     * 备用：原有的击中玩家回调逻辑
+     */
+    private handleHitPlayerLegacy(enemy: Enemy, affix: AffixConfig, enemyData: EnemyAffixData, damage: number): void {
+        switch (affix.id) {
+            case 'vampire':
+                const healAmount = damage * 0.5
+                const healInt = Math.floor(healAmount);
+                (enemy as any).currentHealth = Math.min(enemy.maxHealth, (enemy as any).currentHealth + healInt)
+                break
+            case 'frost':
+                const slowPercent = affix.stats?.slowPercent || 0.3
+                const slowDuration = affix.stats?.slowDuration || 1.5
+                EventBus.emit(EventNames.PLAYER_SLOW, { percent: slowPercent, duration: slowDuration })
+                break
+        }
+    }
+
+    /**
+     * 获取敌人的词条列表
      */
     public getEnemyAffixes(enemy: Enemy): AffixConfig[] {
         const enemyData = this.getEnemyAffixData(enemy)
         return enemyData.affixes || []
     }
 
-    /**
-     * 检查是否已加载
-     */
     public isLoaded(): boolean {
         return this.isReady
     }
 
-    /**
-     * 获取所有词条（用于调试）
-     */
     public getAllAffixes(): AffixConfig[] {
         if (this.affixes.length > 0) {
             return [...this.affixes]

@@ -8,9 +8,11 @@ import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
 import { INetworkService } from '../interfaces/INetworkService';
 import { ServiceLocator } from '../core/ServiceLocator';
-import { GameService } from '../services/GameService';
+import { GameContext } from '../core/GameContext';
 
 const { ccclass, property } = _decorator;
+
+// ========== 类型定义 ==========
 
 /**
  * 玩家数据结构（网络传输用）
@@ -30,7 +32,7 @@ interface PlayerData {
 /**
  * 敌人类型
  */
-type EnemyType = 'normal' | 'elite' | 'boss'
+type EnemyType = 'normal' | 'elite' | 'boss';
 
 /**
  * 敌人数据结构（网络传输用）
@@ -46,326 +48,483 @@ interface EnemyData {
 }
 
 /**
+ * 回调函数类型定义
+ */
+type InitCallback = (players: PlayerData[], myId: string) => void;
+type PlayerJoinedCallback = (player: PlayerData) => void;
+type PlayerLeftCallback = (playerId: string) => void;
+type PlayerMovedCallback = (playerId: string, x: number, y: number) => void;
+type PlayerHurtCallback = (playerId: string, damage: number, currentHp: number, maxHp: number) => void;
+type PlayerLevelUpCallback = (playerId: string, level: number) => void;
+type PlayerExpUpdateCallback = (playerId: string, exp: number, expToNextLevel: number, level: number) => void;
+type EnemySpawnCallback = (enemy: EnemyData) => void;
+type EnemyDeadCallback = (enemyId: string) => void;
+
+/**
  * 网络管理器
  * 负责 WebSocket 连接、消息收发、玩家/敌人同步
  */
 @ccclass('NetworkManager')
 export class NetworkManager extends BaseComponent implements INetworkService {
     @property(Prefab)
-    playerPrefab: Prefab = null
+    playerPrefab: Prefab = null;
 
     @property(Prefab)
-    enemyPrefab: Prefab = null
+    enemyPrefab: Prefab = null;
 
-    private ws: WebSocket | null = null
-    private connected: boolean = false
-    private myId: string | null = null
-    private networkPlayers: Map<string, Node> = new Map()
-    private networkEnemies: Map<string, Node> = new Map()
+    // ========== 连接状态 ==========
+    private ws: WebSocket | null = null;
+    private connected: boolean = false;
+    private myId: string | null = null;
 
-    private onInitCallback: ((players: PlayerData[], myId: string) => void) | null = null
-    private onPlayerJoinedCallback: ((player: PlayerData) => void) | null = null
-    private onPlayerLeftCallback: ((playerId: string) => void) | null = null
-    private onPlayerMovedCallback: ((playerId: string, x: number, y: number) => void) | null = null
-    private onEnemySpawnCallback: ((enemy: EnemyData) => void) | null = null
-    private onEnemyDeadCallback: ((enemyId: string) => void) | null = null
-    private onPlayerHurtCallback: ((playerId: string, damage: number, currentHp: number, maxHp: number) => void) | null = null
-    private onPlayerLevelUpCallback: ((playerId: string, level: number) => void) | null = null
-    private onPlayerExpUpdateCallback: ((playerId: string, exp: number, expToNextLevel: number, level: number) => void) | null = null
+    // ========== 对象映射 ==========
+    private networkPlayers: Map<string, Node> = new Map();
+    private networkEnemies: Map<string, Node> = new Map();
+
+    // ========== 多回调支持 ==========
+    private initCallbacks: InitCallback[] = [];
+    private playerJoinedCallbacks: PlayerJoinedCallback[] = [];
+    private playerLeftCallbacks: PlayerLeftCallback[] = [];
+    private playerMovedCallbacks: PlayerMovedCallback[] = [];
+    private playerHurtCallbacks: PlayerHurtCallback[] = [];
+    private playerLevelUpCallbacks: PlayerLevelUpCallback[] = [];
+    private playerExpUpdateCallbacks: PlayerExpUpdateCallback[] = [];
+    private enemySpawnCallbacks: EnemySpawnCallback[] = [];
+    private enemyDeadCallbacks: EnemyDeadCallback[] = [];
+
+    // ========== 重连配置 ==========
+    private reconnectAttempts: number = 0;
+    private maxReconnectAttempts: number = 3;
+    private reconnectDelay: number = 2;
+    private reconnectTimer: any = null;
+
+    // ========== 生命周期 ==========
 
     start() {
-        ServiceLocator.getInstance().register('INetworkService', this)
-        
-        // 获取游戏服务判断是否联机模式
-        const gameService = ServiceLocator.getInstance().get<GameService>('gameService');
-        
-        if (!gameService || !gameService.isMultiMode()) {
-            console.log('[NetworkManager] 单机模式，网络管理器不启动');
+        ServiceLocator.getInstance().register('networkService', this);
+
+        const gameContext = GameContext.getInstance();
+
+        if (!gameContext.isMultiMode()) {
             this.enabled = false;
             return;
         }
-        
-        console.log('[NetworkManager] 联机模式，等待连接...');
     }
 
-    private createNetworkPlayer(playerData: PlayerData) {
-        if (!this.playerPrefab) return
-        const canvas = this.node.scene.getChildByName('Canvas')
-        if (!canvas) return
-        const playerNode = instantiate(this.playerPrefab)
-        playerNode.setPosition(playerData.x, playerData.y, 0)
-        playerNode.name = `NetworkPlayer_${playerData.id}`
-        const networkPlayer = playerNode.getComponent(NetworkPlayer)
-        if (networkPlayer) {
-            networkPlayer.init(playerData.id, playerData.name, undefined, playerData.hp, playerData.maxHp, playerData.level, playerData.exp, playerData.expToNextLevel)
-        }
-        canvas.addChild(playerNode)
-        this.networkPlayers.set(playerData.id, playerNode)
+    protected onDestroy() {
+        this.disconnect();
+        this.clearCallbacks();
     }
 
-    private createNetworkEnemy(enemyData: EnemyData) {
-        if (!this.enemyPrefab) {
-            console.warn('enemyPrefab 未设置')
-            return
-        }
-        const canvas = this.node.scene.getChildByName('Canvas')
-        if (!canvas) return
-        const enemyNode = instantiate(this.enemyPrefab)
-        enemyNode.name = `NetworkEnemy_${enemyData.id}`
-        const networkEnemy = enemyNode.getComponent(NetworkEnemy)
-        if (networkEnemy) {
-            networkEnemy.init(enemyData.id, enemyData.x, enemyData.y, enemyData.type)
-        }
-        canvas.addChild(enemyNode)
-        this.networkEnemies.set(enemyData.id, enemyNode)
-    }
+    // ========== 连接管理 ==========
 
-    public connect(serverUrl: string = 'ws://localhost:8080') {
-        const gameService = ServiceLocator.getInstance().get<GameService>('gameService');
-        if (!gameService || !gameService.isMultiMode()) {
+    /**
+     * 连接到服务器
+     * @param serverUrl 服务器地址
+     */
+    public connect(serverUrl: string = 'ws://localhost:8080'): void {
+        const gameContext = GameContext.getInstance();
+        if (!gameContext.isMultiMode()) {
             console.warn('[NetworkManager] 单机模式下无法连接服务器');
-            return
+            return;
         }
-        
-        this.ws = new WebSocket(serverUrl)
+
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            console.warn('[NetworkManager] 已连接，无需重复连接');
+            return;
+        }
+
+        this.ws = new WebSocket(serverUrl);
+        this.bindWebSocketEvents();
+    }
+
+    /**
+     * 绑定 WebSocket 事件
+     */
+    private bindWebSocketEvents(): void {
+        if (!this.ws) return;
+
         this.ws.onopen = () => {
-            console.log('WebSocket 连接成功')
-            this.connected = true
-        }
+            this.connected = true;
+            this.reconnectAttempts = 0;
+        };
+
         this.ws.onmessage = (event) => {
-            try {
-                const msg = JSON.parse(event.data)
-                this.handleMessage(msg)
-            } catch (error) {
-                console.error('解析服务器消息失败:', error)
-            }
-        }
+            this.handleMessage(event);
+        };
+
         this.ws.onclose = () => {
-            console.log('WebSocket断开连接')
-            this.connected = false
-        }
+            this.connected = false;
+            this.handleDisconnect();
+        };
+
         this.ws.onerror = (error) => {
-            console.error('WebSocket错误:', error)
+            console.error('[NetworkManager] WebSocket 错误:', error);
+        };
+    }
+
+    /**
+     * 处理断开连接
+     */
+    private handleDisconnect(): void {
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.scheduleReconnect();
         }
     }
 
-    private handleMessage(msg: any) {
-        switch (msg.type) {
-            case 'init': {
-                for (const player of msg.data.players) {
-                    if (player.id !== msg.data.yourId) {
-                        this.createNetworkPlayer(player)
-                    }
-                }
-                if (msg.data.enemies) {
-                    for (const enemy of msg.data.enemies) {
-                        this.createNetworkEnemy(enemy)
-                    }
-                }
-                this.myId = msg.data.yourId
-                if (this.onInitCallback) {
-                    this.onInitCallback(msg.data.players, msg.data.yourId)
-                }
-                break
-            }
-            case 'player_joined': {
-                this.createNetworkPlayer(msg.data)
-                if (this.onPlayerJoinedCallback) {
-                    this.onPlayerJoinedCallback(msg.data)
-                }
-                break
-            }
-            case 'player_left': {
-                const playerNode = this.networkPlayers.get(msg.data.id)
-                if (playerNode) {
-                    playerNode.destroy()
-                    this.networkPlayers.delete(msg.data.id)
-                }
-                if (this.onPlayerLeftCallback) {
-                    this.onPlayerLeftCallback(msg.data.id)
-                }
-                break
-            }
-            case 'player_moved': {
-                if (msg.data.id === this.myId) return
-                const playerNode = this.networkPlayers.get(msg.data.id)
-                if (playerNode) {
-                    const networkPlayer = playerNode.getComponent(NetworkPlayer)
-                    if (networkPlayer) {
-                        networkPlayer.updatePosition(msg.data.x, msg.data.y)
-                    }
-                }
-                if (this.onPlayerMovedCallback) {
-                    this.onPlayerMovedCallback(msg.data.id, msg.data.x, msg.data.y)
-                }
-                break
-            }
-            case 'player_hurt': {
-                if (this.onPlayerHurtCallback) {
-                    this.onPlayerHurtCallback(msg.data.playerId, msg.data.damage, msg.data.currentHp, msg.data.maxHp)
-                }
-                break
-            }
-            case 'player_level_up': {
-                if (this.onPlayerLevelUpCallback) {
-                    this.onPlayerLevelUpCallback(msg.data.playerId, msg.data.level)
-                }
-                break
-            }
-            case 'player_exp_update': {
-                if (this.onPlayerExpUpdateCallback) {
-                    this.onPlayerExpUpdateCallback(msg.data.playerId, msg.data.exp, msg.data.expToNextLevel, msg.data.level)
-                }
-                break
-            }
-            case 'enemy_spawn': {
-                this.createNetworkEnemy(msg.data)
-                if (this.onEnemySpawnCallback) {
-                    this.onEnemySpawnCallback(msg.data)
-                }
-                break
-            }
-            case 'enemies_update': {
-                if (!msg.data.enemies || msg.data.enemies.length === 0) break
-                for (const enemyData of msg.data.enemies) {
-                    const enemyNode = this.networkEnemies.get(enemyData.id)
-                    if (enemyNode) {
-                        const networkEnemy = enemyNode.getComponent(NetworkEnemy)
-                        if (networkEnemy) {
-                            networkEnemy.updatePosition(enemyData.x, enemyData.y)
-                        }
-                    }
-                }
-                break
-            }
-            case 'enemy_dead': {
-                const enemyNode = this.networkEnemies.get(msg.data.id)
-                if (enemyNode) {
-                    const networkEnemy = enemyNode.getComponent(NetworkEnemy)
-                    if (networkEnemy) {
-                        networkEnemy.die()
-                    } else {
-                        enemyNode.destroy()
-                    }
-                    this.networkEnemies.delete(msg.data.id)
-                }
-                if (this.onEnemyDeadCallback) {
-                    this.onEnemyDeadCallback(msg.data.id)
-                }
-                break
-            }
-            case 'enemy_exp': {
-                console.log(`获得${msg.data.exp}经验`)
-                EventBus.emit(EventNames.GAIN_EXP, msg.data.exp)
-                break
-            }
-            default: {
-                console.log('未处理的消息类型:', msg.type)
-            }
+    /**
+     * 计划重连
+     */
+    private scheduleReconnect(): void {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
         }
+
+        this.reconnectAttempts++;
+
+        this.reconnectTimer = setTimeout(() => {
+            this.connect();
+        }, this.reconnectDelay * 1000);
     }
 
-    public setMove(x: number, y: number) {
-        if (!this.connected || !this.ws) return
-        this.ws.send(JSON.stringify({
-            type: 'move',
-            data: { x, y }
-        }))
-    }
+    /**
+     * 断开连接
+     */
+    public disconnect(): void {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
 
-    public sendAttack(enemyId: string, damage: number) {
-        if (!this.connected || !this.ws) return
-        this.ws.send(JSON.stringify({
-            type: 'attack',
-            data: { enemyId, damage }
-        }))
-    }
-
-    public setOnInit(cb: (players: PlayerData[], myId: string) => void) {
-        this.onInitCallback = cb
-    }
-
-    public setOnPlayerJoined(cb: (player: PlayerData) => void) {
-        this.onPlayerJoinedCallback = cb
-    }
-
-    public setOnPlayerLeft(cb: (playerId: string) => void) {
-        this.onPlayerLeftCallback = cb
-    }
-
-    public setOnPlayerMoved(cb: (playerId: string, x: number, y: number) => void) {
-        this.onPlayerMovedCallback = cb
-    }
-
-    public setOnPlayerHurt(cb: (playerId: string, damage: number, currentHp: number, maxHp: number) => void) {
-        this.onPlayerHurtCallback = cb
-    }
-
-    public setOnPlayerLevelUp(cb: (playerId: string, level: number) => void) {
-        this.onPlayerLevelUpCallback = cb
-    }
-
-    public setOnPlayerExpUpdate(cb: (playerId: string, exp: number, expToNextLevel: number, level: number) => void) {
-        this.onPlayerExpUpdateCallback = cb
-    }
-
-    public disconnect() {
         if (this.ws) {
-            this.ws.close()
-            this.ws = null
+            this.ws.close();
+            this.ws = null;
         }
-        this.connected = false
-        this.myId = null
+
+        this.connected = false;
+        this.myId = null;
     }
 
-    public getMyId(): string | null {
-        return this.myId
+    // ========== 消息处理 ==========
+
+    /**
+     * 处理接收到的消息
+     */
+    private handleMessage(event: MessageEvent): void {
+        try {
+            const msg = JSON.parse(event.data);
+            this.dispatchMessage(msg);
+        } catch (error) {
+            console.error('[NetworkManager] 解析服务器消息失败:', error);
+        }
     }
 
-    public isConnected(): boolean {
-        return this.connected
+    /**
+     * 分发消息到对应处理器
+     */
+    private dispatchMessage(msg: any): void {
+        switch (msg.type) {
+            case 'init':
+                this.handleInit(msg.data);
+                break;
+            case 'player_joined':
+                this.handlePlayerJoined(msg.data);
+                break;
+            case 'player_left':
+                this.handlePlayerLeft(msg.data);
+                break;
+            case 'player_moved':
+                this.handlePlayerMoved(msg.data);
+                break;
+            case 'player_hurt':
+                this.handlePlayerHurt(msg.data);
+                break;
+            case 'player_level_up':
+                this.handlePlayerLevelUp(msg.data);
+                break;
+            case 'player_exp_update':
+                this.handlePlayerExpUpdate(msg.data);
+                break;
+            case 'enemy_spawn':
+                this.handleEnemySpawn(msg.data);
+                break;
+            case 'enemies_update':
+                this.handleEnemiesUpdate(msg.data);
+                break;
+            case 'enemy_dead':
+                this.handleEnemyDead(msg.data);
+                break;
+            case 'enemy_exp':
+                this.handleEnemyExp(msg.data);
+                break;
+            default:
+                console.log('[NetworkManager] 未处理的消息类型:', msg.type);
+        }
     }
 
-    public sendHurt(damage: number, currentHp: number, maxHp: number) {
-        if (!this.connected || !this.ws) return
+    // ========== 消息处理器 ==========
+
+    private handleInit(data: any): void {
+        // 创建其他玩家
+        for (const player of data.players) {
+            if (player.id !== data.yourId) {
+                this.createNetworkPlayer(player);
+            }
+        }
+
+        // 创建敌人
+        if (data.enemies) {
+            for (const enemy of data.enemies) {
+                this.createNetworkEnemy(enemy);
+            }
+        }
+
+        this.myId = data.yourId;
+
+        // 触发所有初始化回调
+        this.initCallbacks.forEach(cb => cb(data.players, data.yourId));
+    }
+
+    private handlePlayerJoined(data: PlayerData): void {
+        this.createNetworkPlayer(data);
+        this.playerJoinedCallbacks.forEach(cb => cb(data));
+    }
+
+    private handlePlayerLeft(data: { id: string }): void {
+        const playerNode = this.networkPlayers.get(data.id);
+        if (playerNode) {
+            playerNode.destroy();
+            this.networkPlayers.delete(data.id);
+        }
+        this.playerLeftCallbacks.forEach(cb => cb(data.id));
+    }
+
+    private handlePlayerMoved(data: { id: string; x: number; y: number }): void {
+        if (data.id === this.myId) return;
+
+        const playerNode = this.networkPlayers.get(data.id);
+        if (playerNode) {
+            const networkPlayer = playerNode.getComponent(NetworkPlayer);
+            networkPlayer?.updatePosition(data.x, data.y);
+        }
+        this.playerMovedCallbacks.forEach(cb => cb(data.id, data.x, data.y));
+    }
+
+    private handlePlayerHurt(data: { playerId: string; damage: number; currentHp: number; maxHp: number }): void {
+        this.playerHurtCallbacks.forEach(cb => cb(data.playerId, data.damage, data.currentHp, data.maxHp));
+    }
+
+    private handlePlayerLevelUp(data: { playerId: string; level: number }): void {
+        this.playerLevelUpCallbacks.forEach(cb => cb(data.playerId, data.level));
+    }
+
+    private handlePlayerExpUpdate(data: { playerId: string; exp: number; expToNextLevel: number; level: number }): void {
+        this.playerExpUpdateCallbacks.forEach(cb => cb(data.playerId, data.exp, data.expToNextLevel, data.level));
+    }
+
+    private handleEnemySpawn(data: EnemyData): void {
+        this.createNetworkEnemy(data);
+        this.enemySpawnCallbacks.forEach(cb => cb(data));
+    }
+
+    private handleEnemiesUpdate(data: { enemies: EnemyData[] }): void {
+        if (!data.enemies || data.enemies.length === 0) return;
+
+        for (const enemyData of data.enemies) {
+            const enemyNode = this.networkEnemies.get(enemyData.id);
+            if (enemyNode) {
+                const networkEnemy = enemyNode.getComponent(NetworkEnemy);
+                networkEnemy?.updatePosition(enemyData.x, enemyData.y);
+            }
+        }
+    }
+
+    private handleEnemyDead(data: { id: string }): void {
+        const enemyNode = this.networkEnemies.get(data.id);
+        if (enemyNode) {
+            const networkEnemy = enemyNode.getComponent(NetworkEnemy);
+            if (networkEnemy) {
+                networkEnemy.die();
+            } else {
+                enemyNode.destroy();
+            }
+            this.networkEnemies.delete(data.id);
+        }
+        this.enemyDeadCallbacks.forEach(cb => cb(data.id));
+    }
+
+    private handleEnemyExp(data: { exp: number }): void {
+        EventBus.emit(EventNames.GAIN_EXP, data.exp);
+    }
+
+    // ========== 对象创建 ==========
+
+    private createNetworkPlayer(playerData: PlayerData): void {
+        if (!this.playerPrefab) return;
+
+        const canvas = this.node.scene?.getChildByName('Canvas');
+        if (!canvas) return;
+
+        const playerNode = instantiate(this.playerPrefab);
+        playerNode.setPosition(playerData.x, playerData.y, 0);
+        playerNode.name = `NetworkPlayer_${playerData.id}`;
+
+        const networkPlayer = playerNode.getComponent(NetworkPlayer);
+        if (networkPlayer) {
+            networkPlayer.init(
+                playerData.id, playerData.name, undefined,
+                playerData.hp, playerData.maxHp,
+                playerData.level, playerData.exp, playerData.expToNextLevel
+            );
+        }
+
+        canvas.addChild(playerNode);
+        this.networkPlayers.set(playerData.id, playerNode);
+    }
+
+    private createNetworkEnemy(enemyData: EnemyData): void {
+        if (!this.enemyPrefab) {
+            console.warn('[NetworkManager] enemyPrefab 未设置');
+            return;
+        }
+
+        const canvas = this.node.scene?.getChildByName('Canvas');
+        if (!canvas) return;
+
+        const enemyNode = instantiate(this.enemyPrefab);
+        enemyNode.name = `NetworkEnemy_${enemyData.id}`;
+
+        const networkEnemy = enemyNode.getComponent(NetworkEnemy);
+        if (networkEnemy) {
+            networkEnemy.init(enemyData.id, enemyData.x, enemyData.y, enemyData.type);
+        }
+
+        canvas.addChild(enemyNode);
+        this.networkEnemies.set(enemyData.id, enemyNode);
+    }
+
+    // ========== 发送消息 ==========
+
+    public setMove(x: number, y: number): void {
+        if (!this.connected || !this.ws) return;
+        this.ws.send(JSON.stringify({ type: 'move', data: { x, y } }));
+    }
+
+    public sendAttack(enemyId: string, damage: number): void {
+        if (!this.connected || !this.ws) return;
+        this.ws.send(JSON.stringify({ type: 'attack', data: { enemyId, damage } }));
+    }
+
+    public sendHurt(damage: number, currentHp: number, maxHp: number): void {
+        if (!this.connected || !this.ws) return;
         if (!this.myId) {
-            console.warn('[sendHurt] myId未设置，跳过发送受伤消息')
-            return
+            console.warn('[NetworkManager] myId未设置，跳过发送受伤消息');
+            return;
         }
         this.ws.send(JSON.stringify({
             type: 'hurt',
-            data: {
-                playerId: this.myId,
-                damage: damage,
-                currentHp: currentHp,
-                maxHp: maxHp,
-            }
-        }))
+            data: { playerId: this.myId, damage, currentHp, maxHp }
+        }));
     }
 
-    public sendLevelUp(level: number) {
-        if (!this.connected || !this.ws) return
-        if (!this.myId) return
+    public sendLevelUp(level: number): void {
+        if (!this.connected || !this.ws) return;
+        if (!this.myId) return;
         this.ws.send(JSON.stringify({
             type: 'level_up',
-            data: {
-                playerId: this.myId,
-                level: level,
-            }
-        }))
+            data: { playerId: this.myId, level }
+        }));
     }
 
-    public sendExpUpdate(exp: number, expToNextLevel: number, level: number) {
-        if (!this.connected || !this.ws) return
-        if (!this.myId) return
+    public sendExpUpdate(exp: number, expToNextLevel: number, level: number): void {
+        if (!this.connected || !this.ws) return;
+        if (!this.myId) return;
         this.ws.send(JSON.stringify({
             type: 'player_exp_update',
-            data: {
-                playerId: this.myId,
-                exp: exp,
-                expToNextLevel: expToNextLevel,
-                level: level,
-            }
-        }))
+            data: { playerId: this.myId, exp, expToNextLevel, level }
+        }));
+    }
+
+    // ========== 回调注册（多回调支持） ==========
+
+    public addOnInit(cb: InitCallback): void {
+        this.initCallbacks.push(cb);
+    }
+
+    public addOnPlayerJoined(cb: PlayerJoinedCallback): void {
+        this.playerJoinedCallbacks.push(cb);
+    }
+
+    public addOnPlayerLeft(cb: PlayerLeftCallback): void {
+        this.playerLeftCallbacks.push(cb);
+    }
+
+    public addOnPlayerMoved(cb: PlayerMovedCallback): void {
+        this.playerMovedCallbacks.push(cb);
+    }
+
+    public addOnPlayerHurt(cb: PlayerHurtCallback): void {
+        this.playerHurtCallbacks.push(cb);
+    }
+
+    public addOnPlayerLevelUp(cb: PlayerLevelUpCallback): void {
+        this.playerLevelUpCallbacks.push(cb);
+    }
+
+    public addOnPlayerExpUpdate(cb: PlayerExpUpdateCallback): void {
+        this.playerExpUpdateCallbacks.push(cb);
+    }
+
+    public addOnEnemySpawn(cb: EnemySpawnCallback): void {
+        this.enemySpawnCallbacks.push(cb);
+    }
+
+    public addOnEnemyDead(cb: EnemyDeadCallback): void {
+        this.enemyDeadCallbacks.push(cb);
+    }
+
+    // ========== 移除回调 ==========
+
+    public removeOnInit(cb: InitCallback): void {
+        this.removeCallback(this.initCallbacks, cb);
+    }
+
+    public removeOnPlayerJoined(cb: PlayerJoinedCallback): void {
+        this.removeCallback(this.playerJoinedCallbacks, cb);
+    }
+
+    public removeOnPlayerLeft(cb: PlayerLeftCallback): void {
+        this.removeCallback(this.playerLeftCallbacks, cb);
+    }
+
+    private removeCallback<T>(callbacks: T[], cb: T): void {
+        const index = callbacks.indexOf(cb);
+        if (index !== -1) {
+            callbacks.splice(index, 1);
+        }
+    }
+
+    // ========== 清空回调 ==========
+
+    private clearCallbacks(): void {
+        this.initCallbacks = [];
+        this.playerJoinedCallbacks = [];
+        this.playerLeftCallbacks = [];
+        this.playerMovedCallbacks = [];
+        this.playerHurtCallbacks = [];
+        this.playerLevelUpCallbacks = [];
+        this.playerExpUpdateCallbacks = [];
+        this.enemySpawnCallbacks = [];
+        this.enemyDeadCallbacks = [];
+    }
+
+    // ========== 查询方法 ==========
+
+    public getMyId(): string | null {
+        return this.myId;
+    }
+
+    public isConnected(): boolean {
+        return this.connected;
     }
 }

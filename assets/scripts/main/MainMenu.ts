@@ -7,6 +7,7 @@ import { SettingsPanelEvents } from '../ui/SettingsPanel';
 import { BestiaryPanelEvents } from '../bestiary/BestiaryPanel';
 import { EventBus } from '../core/EventBus';
 import { BestiaryConfigLoader } from '../bestiary/BestiaryConfigLoader';
+import { GameContext, GameMode } from '../core/GameContext';
 
 const { ccclass, property } = _decorator;
 
@@ -60,12 +61,9 @@ export class MainMenu extends BaseComponent {
 
     start() {
         SettingsManager.getInstance();
-        console.log('[MainMenu] SettingsManager 已初始化');
 
         // 预加载图鉴配置
-        BestiaryConfigLoader.getInstance().loadAll(() => {
-            console.log('[MainMenu] 图鉴配置预加载完成');
-        });
+        BestiaryConfigLoader.getInstance().loadAll(() => {});
 
         this.hideAllPanels();
         this.bindEvents();
@@ -73,8 +71,6 @@ export class MainMenu extends BaseComponent {
 
         // 预加载分包（静默加载，不阻塞UI）
         this.preloadBundles();
-
-        console.log('[MainMenu] 初始化完成');
     }
 
     /**
@@ -84,7 +80,6 @@ export class MainMenu extends BaseComponent {
         if (this.bundlesLoaded || this.bundlesLoading) return;
 
         this.bundlesLoading = true;
-        console.log('[MainMenu] 开始预加载分包...');
 
         let loadedCount = 0;
         const totalBundles = 3; // gameplay, ui, network
@@ -94,37 +89,21 @@ export class MainMenu extends BaseComponent {
             if (loadedCount >= totalBundles) {
                 this.bundlesLoading = false;
                 this.bundlesLoaded = true;
-                console.log('[MainMenu] 所有分包预加载完成');
             }
         };
 
         // 加载 gameplay 分包
         assetManager.loadBundle('gameplay', (err, bundle) => {
-            if (err) {
-                console.error('[MainMenu] 加载 gameplay 分包失败:', err);
-            } else {
-                console.log('[MainMenu] gameplay 分包加载成功');
-            }
             onLoadComplete();
         });
 
         // 加载 ui 分包
         assetManager.loadBundle('ui', (err, bundle) => {
-            if (err) {
-                console.error('[MainMenu] 加载 ui 分包失败:', err);
-            } else {
-                console.log('[MainMenu] ui 分包加载成功');
-            }
             onLoadComplete();
         });
 
         // 加载 network 分包
         assetManager.loadBundle('network', (err, bundle) => {
-            if (err) {
-                console.error('[MainMenu] 加载 network 分包失败:', err);
-            } else {
-                console.log('[MainMenu] network 分包加载成功');
-            }
             onLoadComplete();
         });
     }
@@ -149,7 +128,6 @@ export class MainMenu extends BaseComponent {
         if (this.settingButton) {
             this.boundOnSetting = this.onSetting.bind(this);
             this.settingButton.on(Button.EventType.CLICK, this.boundOnSetting, this)
-            console.log('[MainMenu] 设置按钮事件已绑定');
         }
         if (this.singleButton) {
             this.singleButton.node.on(Button.EventType.CLICK, this.onSinglePlayer, this)
@@ -220,7 +198,6 @@ export class MainMenu extends BaseComponent {
 
     // ========== 设置面板 ==========
     private onSetting() {
-        console.log('[MainMenu] 切换设置面板');
         if (this.settingsPanel && this.settingsPanel.active) {
             this.closeSettingsPanel();
         } else {
@@ -233,20 +210,17 @@ export class MainMenu extends BaseComponent {
         this.closeBestiaryPanel();
         if (this.settingsPanel) {
             this.settingsPanel.active = true;
-            console.log('[MainMenu] 打开设置面板');
         }
     }
 
     public closeSettingsPanel() {
         if (this.settingsPanel) {
             this.settingsPanel.active = false;
-            console.log('[MainMenu] 关闭设置面板');
         }
     }
 
     // ========== 图鉴面板 ==========
     private onBestiary() {
-        console.log('[MainMenu] 切换图鉴面板');
         if (this.bestiaryPanel && this.bestiaryPanel.active) {
             this.closeBestiaryPanel();
         } else {
@@ -259,20 +233,18 @@ export class MainMenu extends BaseComponent {
         this.closeSettingsPanel();
         if (this.bestiaryPanel) {
             this.bestiaryPanel.active = true;
-            console.log('[MainMenu] 打开图鉴面板');
         }
     }
 
     public closeBestiaryPanel() {
         if (this.bestiaryPanel) {
             this.bestiaryPanel.active = false;
-            console.log('[MainMenu] 关闭图鉴面板');
         }
     }
 
     // ========== 成就 ==========
     private onAchievement() {
-        console.log('[MainMenu] 成就功能待开发');
+        // 成就功能待开发
     }
 
     // ========== 等待分包加载完成 ==========
@@ -294,71 +266,48 @@ export class MainMenu extends BaseComponent {
 
     // ========== 单机/联机 ==========
     private async onSinglePlayer() {
-        if (this.isSwitchingScene) {
-            console.log('[MainMenu] 正在切换场景中，忽略重复点击');
-            return;
-        }
+        if (this.isSwitchingScene) return;
 
-        console.log('选择单机模式');
         this.closeModeSelect();
 
         // 确保分包已加载
         if (!this.bundlesLoaded) {
-            console.log('[MainMenu] 分包尚未加载完成，等待加载...');
             if (!this.bundlesLoading) {
                 this.preloadBundles();
             }
             await this.waitForBundlesLoaded();
         }
 
-        console.log('分包加载完成，进入游戏');
-        (window as any).gameMode = 'single';
+        GameContext.getInstance().setGameMode(GameMode.SINGLE);
 
         this.isSwitchingScene = true;
 
         this.scheduleOnce(() => {
             director.loadScene('Game', (err) => {
-                if (err) {
-                    console.error('[MainMenu] 加载 Game 场景失败:', err);
-                } else {
-                    console.log('[MainMenu] Game 场景加载成功');
-                }
-                // 重置标志（场景切换后此脚本会被销毁，这行可能不会执行）
                 this.isSwitchingScene = false;
             });
         }, 0.05);
     }
 
     private async onMultiPlayer() {
-        if (this.isSwitchingScene) {
-            console.log('[MainMenu] 正在切换场景中，忽略重复点击');
-            return;
-        }
+        if (this.isSwitchingScene) return;
 
-        console.log('选择联机模式');
         this.closeModeSelect();
 
         // 确保分包已加载
         if (!this.bundlesLoaded) {
-            console.log('[MainMenu] 分包尚未加载完成，等待加载...');
             if (!this.bundlesLoading) {
                 this.preloadBundles();
             }
             await this.waitForBundlesLoaded();
         }
 
-        console.log('分包加载完成，进入联机模式');
-        (window as any).gameMode = 'multi';
+        GameContext.getInstance().setGameMode(GameMode.MULTI);
 
         this.isSwitchingScene = true;
 
         this.scheduleOnce(() => {
             director.loadScene('Game', (err) => {
-                if (err) {
-                    console.error('[MainMenu] 加载 Game 场景失败:', err);
-                } else {
-                    console.log('[MainMenu] Game 场景加载成功');
-                }
                 this.isSwitchingScene = false;
             });
         }, 0.05);

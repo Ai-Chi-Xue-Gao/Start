@@ -47,6 +47,14 @@ export class GenericArea extends BaseComponent {
         
         this.playAnimation();
         this.scheduleDestroy();
+        this.startRotation();
+    }
+
+    private startRotation(){
+        tween(this.node)
+            .by(1, {eulerAngles: new Vec3(0, 0, 360)})
+            .repeatForever()
+            .start();
     }
 
     /**
@@ -100,8 +108,6 @@ export class GenericArea extends BaseComponent {
 
         this.applyElementStyle();
         this.scaleToRadius();
-        
-        console.log(`[GenericArea] 初始化: ${skillId}, 持续时间 ${this.duration}秒, 半径 ${this.radius}`);
     }
 
     private applyElementStyle() {
@@ -176,8 +182,6 @@ export class GenericArea extends BaseComponent {
     private destroyArea() {
         if (this.isRecycling) return;
         this.isRecycling = true;
-        
-        console.log(`[GenericArea] 销毁范围特效: ${this.skillId}, isFromPool=${this.isFromPool}`);
         
         if (this.isFromPool) {
             const pool = ObjectPool.getInstance();

@@ -86,13 +86,12 @@ export class AttributePanel extends BaseComponent {
     }
 
     start() {
-        console.log('[AttributePanel] start() 被调用');
 
         // 获取服务
-        this.playerService = ServiceLocator.getInstance().get<IPlayer>('IPlayer');
-        this.playerController = ServiceLocator.getInstance().get<PlayerController>('playerController');
+        this.playerService = ServiceLocator.getInstance().get<IPlayer>('player');
+        this.playerController = ServiceLocator.getInstance().get<PlayerController>('player');
         this.skillManager = SkillManager.getInstance();
-
+        
         // 绑定关闭按钮 - 发送事件通知 OpenAttributeButton
         if (this.closeButton) {
             this.closeButton.node.on(Button.EventType.CLICK, this.onCloseButtonClick, this);
@@ -121,7 +120,6 @@ export class AttributePanel extends BaseComponent {
 
     // ========== 关闭按钮回调 - 发送事件 ==========
     private onCloseButtonClick() {
-        console.log('[AttributePanel] 关闭按钮被点击，发送关闭事件');
         EventBus.emit(AttributePanelEvents.CLOSE);
     }
 
@@ -138,7 +136,6 @@ export class AttributePanel extends BaseComponent {
     // ========== 数据刷新 ==========
     public refreshData() {
         if (!this.playerService || !this.playerController) {
-            console.log('[AttributePanel] 服务未就绪，跳过数据刷新');
             return;
         }
         this.updateAttributes();
@@ -176,7 +173,8 @@ export class AttributePanel extends BaseComponent {
         const damageReduction = this.playerController.getHealth?.()?.getDamageReduction?.() || 0;
         const thornDamage = this.playerController.getHealth?.()?.getThornDamage?.() || 0;
         const shield = this.playerController.getShield?.() || 0;
-        const regen = (this.playerController.getHealth?.() as any)?.regenPercent || 0;
+        const healthComp = this.playerController.getHealth?.();
+        const regen = healthComp?.getRegenPercent?.() || 0;
         const level = this.playerService.getLevel();
 
         if (this.attackLabel) this.attackLabel.string = `${attack}`;

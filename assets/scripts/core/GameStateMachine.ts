@@ -1,11 +1,9 @@
 // assets/scripts/core/GameStateMachine.ts
 
-import { _decorator, Component, director } from 'cc';
+import { director } from 'cc';
 import { EventBus } from './EventBus';
 import { EventNames } from '../utils/EventNames';
 import { ServiceLocator } from './ServiceLocator';
-
-const { ccclass } = _decorator;
 
 /**
  * 游戏状态枚举
@@ -28,23 +26,21 @@ export interface StateChangeEvent {
 }
 
 /**
- * 游戏状态机
+ * 游戏状态机（纯单例）
  * 职责：
  * - 管理游戏状态流转
  * - 自动处理 Time.timeScale（暂停相关状态）
  * - 触发状态变更事件，供其他模块监听
  * - 统一发射 GAME_PAUSE 事件，通知所有组件
  */
-@ccclass('GameStateMachine')
-export class GameStateMachine extends Component {
+export class GameStateMachine {
     private static instance: GameStateMachine;
+
     private currentState: GameState = GameState.MENU;
     private listeners: Map<GameState, Array<(event: StateChangeEvent) => void>> = new Map();
     private pausedStates: Set<GameState>;
 
-    constructor() {
-        super();
-        // ✅ 在构造函数中初始化，避免为 null
+    private constructor() {
         this.pausedStates = new Set([
             GameState.LEVEL_UP,
             GameState.PAUSED,
@@ -52,29 +48,27 @@ export class GameStateMachine extends Component {
         ]);
     }
 
-    protected onLoad() {
-        GameStateMachine.instance = this;
-        
-        // ✅ 注册到 ServiceLocator，确保其他组件可以获取
-        ServiceLocator.getInstance().register('stateMachine', this, true);
-    }
-
-    protected onDestroy() {
-        // ✅ 场景销毁时清理静态实例
-        if (GameStateMachine.instance === this) {
-            GameStateMachine.instance = null;
-        }
-        
-        // ✅ 从 ServiceLocator 中移除
-        ServiceLocator.getInstance().unregister('stateMachine');
-    }
-
-    protected start() {
-        this.transitionTo(GameState.MENU);
-    }
-
     static getInstance(): GameStateMachine {
+        if (!GameStateMachine.instance) {
+            GameStateMachine.instance = new GameStateMachine();
+        }
         return GameStateMachine.instance;
+    }
+
+    /**
+     * 初始化（注册到 ServiceLocator）
+     * 在游戏启动时调用一次
+     */
+    public init(): void {
+        ServiceLocator.getInstance().register('stateMachine', this);
+    }
+
+    /**
+     * 重置状态机（新游戏时调用）
+     */
+    public reset(): void {
+        this.currentState = GameState.MENU;
+        this.updateTimeScale();
     }
 
     /**
@@ -88,11 +82,6 @@ export class GameStateMachine extends Component {
      * 判断当前是否处于暂停状态（游戏逻辑不应更新）
      */
     isPaused(): boolean {
-        // ✅ 添加空值保护
-        if (!this.pausedStates) {
-            console.warn('[GameStateMachine] pausedStates 未初始化');
-            return false;
-        }
         return this.pausedStates.has(this.currentState);
     }
 
@@ -130,22 +119,20 @@ export class GameStateMachine extends Component {
         // 触发事件通知
         this.notifyListeners(event);
 
-        console.log(`[StateMachine] 状态切换: ${GameState[oldState]} -> ${GameState[newState]}`);
-
         return true;
     }
 
     /**
      * 便捷方法：切换运行中
      */
-    startGame() {
+    startGame(): void {
         this.transitionTo(GameState.RUNNING);
     }
 
     /**
      * 便捷方法：暂停游戏
      */
-    pause() {
+    pause(): void {
         if (this.currentState === GameState.RUNNING) {
             this.transitionTo(GameState.PAUSED);
         }
@@ -154,7 +141,7 @@ export class GameStateMachine extends Component {
     /**
      * 便捷方法：恢复游戏
      */
-    resume() {
+    resume(): void {
         if (this.currentState === GameState.PAUSED) {
             this.transitionTo(GameState.RUNNING);
         }
@@ -163,7 +150,7 @@ export class GameStateMachine extends Component {
     /**
      * 便捷方法：进入升级选技能状态
      */
-    enterLevelUp() {
+    enterLevelUp(): void {
         if (this.currentState === GameState.RUNNING) {
             this.transitionTo(GameState.LEVEL_UP);
         }
@@ -172,7 +159,7 @@ export class GameStateMachine extends Component {
     /**
      * 便捷方法：退出升级状态
      */
-    exitLevelUp() {
+    exitLevelUp(): void {
         if (this.currentState === GameState.LEVEL_UP) {
             this.transitionTo(GameState.RUNNING);
         }
@@ -181,14 +168,14 @@ export class GameStateMachine extends Component {
     /**
      * 便捷方法：游戏结束
      */
-    gameOver() {
+    gameOver(): void {
         this.transitionTo(GameState.GAME_OVER);
     }
 
     /**
      * 监听状态变更
      */
-    onStateChange(state: GameState, callback: (event: StateChangeEvent) => void) {
+    onStateChange(state: GameState, callback: (event: StateChangeEvent) => void): void {
         if (!this.listeners.has(state)) {
             this.listeners.set(state, []);
         }
@@ -198,7 +185,7 @@ export class GameStateMachine extends Component {
     /**
      * 移除监听
      */
-    offStateChange(state: GameState, callback: (event: StateChangeEvent) => void) {
+    offStateChange(state: GameState, callback: (event: StateChangeEvent) => void): void {
         const callbacks = this.listeners.get(state);
         if (callbacks) {
             const index = callbacks.indexOf(callback);
@@ -208,11 +195,12 @@ export class GameStateMachine extends Component {
         }
     }
 
+    // ========== 私有方法 ==========
+
     /**
      * 检查状态转换合法性
      */
     private isValidTransition(from: GameState, to: GameState): boolean {
-        // 定义合法转换表
         const validTransitions: Record<GameState, GameState[]> = {
             [GameState.MENU]: [GameState.WAITING_ROOM, GameState.RUNNING],
             [GameState.WAITING_ROOM]: [GameState.RUNNING, GameState.MENU],
@@ -229,41 +217,24 @@ export class GameStateMachine extends Component {
     /**
      * 状态退出时的处理
      */
-    private onExitState(state: GameState, nextState: GameState) {
-        switch (state) {
-            case GameState.LEVEL_UP:
-                break;
-            case GameState.PAUSED:
-                break;
-        }
+    private onExitState(state: GameState, nextState: GameState): void {
+        // 预留扩展点
     }
 
     /**
      * 状态进入时的处理
      */
-    private onEnterState(state: GameState, prevState: GameState) {
-        switch (state) {
-            case GameState.LEVEL_UP:
-                break;
-            case GameState.GAME_OVER:
-                break;
-            case GameState.MENU:
-                break;
-        }
+    private onEnterState(state: GameState, prevState: GameState): void {
+        // 预留扩展点
     }
 
     /**
      * 根据状态更新时间缩放，并发射暂停事件
      */
-    private updateTimeScale() {
-        // ✅ 添加空值保护
-        if (!this.pausedStates) {
-            return;
-        }
-        
+    private updateTimeScale(): void {
         const shouldPause = this.pausedStates.has(this.currentState);
         
-        // 添加空值检查，防止场景销毁时 director.getScheduler() 返回 null
+        // 更新 Cocos 时间缩放
         const scheduler = director.getScheduler();
         if (scheduler) {
             scheduler.setTimeScale(shouldPause ? 0 : 1);
@@ -276,7 +247,7 @@ export class GameStateMachine extends Component {
     /**
      * 通知所有监听器
      */
-    private notifyListeners(event: StateChangeEvent) {
+    private notifyListeners(event: StateChangeEvent): void {
         const callbacks = this.listeners.get(event.to);
         if (callbacks) {
             callbacks.forEach(cb => cb(event));

@@ -1,7 +1,5 @@
 // assets/scripts/utils/EventNames.ts
 
-import { _decorator, Node } from 'cc';
-
 /**
  * 事件名称常量
  * 集中管理所有 EventBus 事件名，避免拼写错误和重复

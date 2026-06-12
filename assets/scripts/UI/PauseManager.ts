@@ -65,7 +65,6 @@ export class PauseManager extends BaseComponent {
         const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine) {
             stateMachine.pause()
-            console.log('[PauseManager] 游戏暂停')
         }
     }
 
@@ -80,7 +79,6 @@ export class PauseManager extends BaseComponent {
         const stateMachine = this.getService<GameStateMachine>('stateMachine')
         if (stateMachine) {
             stateMachine.resume()
-            console.log('[PauseManager] 游戏恢复')
         }
     }
 

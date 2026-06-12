@@ -1,4 +1,4 @@
-// assets/scripts/ui/GameOverPanel.ts
+// assets/scripts/ui/panels/GameOverPanel.ts
 
 import { _decorator, Button, director, Label, Node } from 'cc';
 import { BaseComponent } from '../../core/BaseComponent';
@@ -12,6 +12,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('GameOverPanel')
 export class GameOverPanel extends BaseComponent {
+    // ========== UI 节点 ==========
     @property(Node)
     panelNode: Node = null
 
@@ -21,124 +22,151 @@ export class GameOverPanel extends BaseComponent {
     @property(Button)
     restartButton: Button = null
 
+    // ========== 统计数据 ==========
     private killCount: number = 0
-    private startTime: number = 0
+    private elapsedTime: number = 0
     private finalTime: number = 0
-    private playerService: IPlayer | null = null
-    private isGameOver: boolean = false
 
-    private onEnemyDied = () => {
-        this.killCount++
-        console.log(`[GameOverPanel] 击杀数增加: ${this.killCount}`)
+    // ========== 状态标志 ==========
+    private isPanelShowing: boolean = false  // ✅ 重命名，避免与基类 isGameOver() 混淆
+    private playerService: IPlayer | null = null
+
+    // ========== 事件绑定引用 ==========
+    private boundOnEnemyDied: () => void = null
+    private boundOnPlayerDied: () => void = null
+    private boundOnRestart: () => void = null
+
+    // ========== 常量配置 ==========
+    private readonly TIME_FORMAT_MINUTES = 60
+    private readonly DEFAULT_LEVEL = 1
+
+    // ========== 生命周期 ==========
+
+    start() {
+        this.initPanel()
+        this.resetStats()
+        this.bindEvents()
     }
 
-    private onPlayerDied = () => {
-        console.log('[GameOverPanel] 收到 PLAYER_DIED 事件！')
+    protected onDestroy() {
+        this.unbindEvents()
+    }
+
+    // ========== 初始化 ==========
+
+    private initPanel(): void {
+        if (this.panelNode) {
+            this.panelNode.active = false
+        }
+    }
+
+    private resetStats(): void {
+        this.isPanelShowing = false
+        this.killCount = 0
+        this.elapsedTime = 0
+        this.finalTime = 0
+    }
+
+    // ========== 事件绑定 ==========
+
+    private bindEvents(): void {
+        this.boundOnEnemyDied = this.onEnemyDied.bind(this)
+        this.boundOnPlayerDied = this.onPlayerDied.bind(this)
+        this.boundOnRestart = this.restartGame.bind(this)
+
+        EventBus.on(EventNames.ENEMY_DIED, this.boundOnEnemyDied)
+        EventBus.on(EventNames.PLAYER_DIED, this.boundOnPlayerDied)
+
+        if (this.restartButton && this.restartButton.node) {
+            this.restartButton.node.on(Button.EventType.CLICK, this.boundOnRestart, this)
+        }
+    }
+
+    private unbindEvents(): void {
+        if (this.boundOnEnemyDied) {
+            EventBus.off(EventNames.ENEMY_DIED, this.boundOnEnemyDied)
+        }
+        if (this.boundOnPlayerDied) {
+            EventBus.off(EventNames.PLAYER_DIED, this.boundOnPlayerDied)
+        }
+        if (this.restartButton && this.restartButton.node && this.boundOnRestart) {
+            this.restartButton.node.off(Button.EventType.CLICK, this.boundOnRestart, this)
+        }
+    }
+
+    // ========== 事件回调 ==========
+
+    private onEnemyDied(): void {
+        this.killCount++
+    }
+
+    private onPlayerDied(): void {
         this.showGameOver()
     }
 
-    start() {
-        console.log('[GameOverPanel] start() 被调用')
+    // ========== 游戏结束逻辑 ==========
 
-        // 初始隐藏面板
-        if (this.panelNode) {
-            this.panelNode.active = false
-            console.log('[GameOverPanel] 面板初始隐藏')
-        } else {
-            console.warn('[GameOverPanel] panelNode 未设置！')
+    private showGameOver(): void {
+        // ✅ 使用 isPanelShowing 避免重复显示
+        if (this.isPanelShowing) return
+        this.isPanelShowing = true
+
+        this.finalTime = Math.floor(this.elapsedTime)
+        const level = this.getPlayerLevel()
+        this.updateStatsDisplay(level)
+        this.showPanel()
+        this.pauseGame()
+    }
+
+    private getPlayerLevel(): number {
+        this.playerService = this.getService<IPlayer>('player')
+        return this.playerService?.getLevel() ?? this.DEFAULT_LEVEL
+    }
+
+    private updateStatsDisplay(level: number): void {
+        if (!this.statsLabel) return
+
+        const timeString = this.formatTime(this.finalTime)
+        this.statsLabel.string = `击杀数: ${this.killCount}\n生存时间: ${timeString}\n等级: ${level}`
+    }
+
+    private formatTime(seconds: number): string {
+        const minutes = Math.floor(seconds / this.TIME_FORMAT_MINUTES)
+        const remainingSeconds = seconds % this.TIME_FORMAT_MINUTES
+
+        if (minutes > 0) {
+            return `${minutes}m ${remainingSeconds}s`
         }
+        return `${remainingSeconds}s`
+    }
 
-        // 重置状态
-        this.isGameOver = false
-        this.killCount = 0
-        this.startTime = Date.now() / 1000
-        console.log(`[GameOverPanel] 开始时间: ${this.startTime}`)
-
-        // 监听事件
-        EventBus.on(EventNames.ENEMY_DIED, this.onEnemyDied)
-        EventBus.on(EventNames.PLAYER_DIED, this.onPlayerDied)
-        console.log('[GameOverPanel] 已监听 ENEMY_DIED 和 PLAYER_DIED 事件')
-
-        // 绑定按钮事件
-        if (this.restartButton) {
-            this.restartButton.node.on(Button.EventType.CLICK, this.restartGame, this)
-            console.log('[GameOverPanel] 重启按钮事件已绑定')
-        } else {
-            console.warn('[GameOverPanel] restartButton 未设置！')
+    private showPanel(): void {
+        if (this.panelNode) {
+            this.panelNode.active = true
         }
     }
 
-    private showGameOver() {
-        console.log('[GameOverPanel] showGameOver() 被调用')
-
-        // 防止重复显示
-        if (this.isGameOver) {
-            console.warn('[GameOverPanel] 游戏结束面板已显示，跳过')
-            return
-        }
-        this.isGameOver = true
-
-        // 计算生存时间
-        this.finalTime = Math.floor(Date.now() / 1000 - this.startTime)
-        console.log(`[GameOverPanel] 生存时间: ${this.finalTime} 秒`)
-
-        // 获取玩家等级
-        this.playerService = this.getService<IPlayer>('IPlayer')
-        let level = 1
-        if (this.playerService) {
-            level = this.playerService.getLevel()
-            console.log(`[GameOverPanel] 玩家等级: ${level}`)
-        } else {
-            console.warn('[GameOverPanel] 无法获取 IPlayer 服务')
-        }
-
-        // 更新统计文本
-        if (this.statsLabel) {
-            this.statsLabel.string = `击杀数: ${this.killCount}\n生存时间: ${this.finalTime} 秒\n等级: ${level}`
-            console.log(`[GameOverPanel] 统计文本已更新: ${this.statsLabel.string}`)
-        } else {
-            console.warn('[GameOverPanel] statsLabel 未设置！')
-        }
-
-        // 显示面板
-        if (this.panelNode) {
-            this.panelNode.active = true
-            console.log('[GameOverPanel] 面板已显示')
-        } else {
-            console.warn('[GameOverPanel] panelNode 未设置，无法显示面板')
-        }
-
-        // 暂停游戏
+    private pauseGame(): void {
         const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine')
         if (stateMachine) {
             stateMachine.pause()
-            console.log('[GameOverPanel] 游戏已暂停（通过状态机）')
-        } else {
-            console.warn('[GameOverPanel] 无法获取状态机')
         }
-        
         EventBus.emit(EventNames.GAME_PAUSE, true)
-        console.log('[GameOverPanel] GAME_PAUSE 事件已发送')
     }
 
-    private restartGame() {
-        console.log('[GameOverPanel] restartGame() 被调用，重新加载 Game 场景')
-        
-        // 移除事件监听
-        EventBus.off(EventNames.ENEMY_DIED, this.onEnemyDied)
-        EventBus.off(EventNames.PLAYER_DIED, this.onPlayerDied)
-        
+    // ========== 游戏重启 ==========
+
+    private restartGame(): void {
+        this.unbindEvents()
         director.loadScene('Game')
     }
 
-    protected onDestroy(): void {
-        console.log('[GameOverPanel] onDestroy() 被调用')
-        
-        EventBus.off(EventNames.ENEMY_DIED, this.onEnemyDied)
-        EventBus.off(EventNames.PLAYER_DIED, this.onPlayerDied)
-        
-        if (this.restartButton && this.restartButton.node && this.restartButton.node.isValid) {
-            this.restartButton.node.off(Button.EventType.CLICK, this.restartGame, this)
+    // ========== 更新循环 ==========
+
+    update(deltaTime: number): void {
+        // ✅ 使用 isPanelShowing 判断面板是否已显示
+        if (!this.isPanelShowing && this.isGameRunning()) {
+            this.elapsedTime += deltaTime
         }
     }
 }

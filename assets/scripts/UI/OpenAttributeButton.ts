@@ -27,7 +27,6 @@ export class OpenAttributeButton extends Component {
         this.btn = this.getComponent(Button);
         if (this.btn && this.btn.node) {
             this.btn.node.on(Button.EventType.CLICK, this.onClick, this);
-            console.log('[OpenAttributeButton] 按钮事件已绑定');
         } else {
             console.warn('[OpenAttributeButton] Button 组件未找到');
         }
@@ -51,12 +50,10 @@ export class OpenAttributeButton extends Component {
     }
 
     private onClick() {
-        console.log('[OpenAttributeButton] 按钮被点击');
 
         // 检查游戏是否在运行中
         const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine');
         if (!stateMachine || stateMachine.getState() !== GameState.RUNNING) {
-            console.log('[OpenAttributeButton] 游戏未运行，忽略点击');
             return;
         }
 
@@ -79,7 +76,6 @@ export class OpenAttributeButton extends Component {
     }
 
     private openPanel() {
-        console.log('[OpenAttributeButton] 打开属性面板');
         
         // 刷新数据
         if (this.attributePanel) {
@@ -100,7 +96,6 @@ export class OpenAttributeButton extends Component {
     }
 
     private closePanel() {
-        console.log('[OpenAttributeButton] 关闭属性面板');
         
         // 隐藏面板
         if (this.panelNode) {
@@ -116,7 +111,6 @@ export class OpenAttributeButton extends Component {
     }
 
     private onPanelClose() {
-        console.log('[OpenAttributeButton] 收到面板关闭事件');
         
         // 更新状态
         if (this.panelNode) {

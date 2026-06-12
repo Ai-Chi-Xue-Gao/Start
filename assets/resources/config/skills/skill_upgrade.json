@@ -1,731 +1,279 @@
 {
-  "========== 火系基础技能升级节点 ==========": {},
-  "fire_001": [
+  "========== 五行环升级 ==========": {},
+  
+  "fire_ring": [
     {
-      "nodeId": "fire_001_burn",
+      "nodeId": "fire_ring_burn",
       "levelReq": 2,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "burnPercent", "value": 0.1 }
+      "effect": { "type": "modifyStat", "stat": "burnPercent", "value": 0.1 },
+      "description": "火环命中敌人造成灼烧，每秒10%持续伤害"
     },
     {
-      "nodeId": "fire_001_double",
+      "nodeId": "fire_ring_explode",
       "levelReq": 3,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "projectileCount", "value": 1 }
+      "effect": { "type": "modifyStat", "stat": "damagePercent", "value": 0.2 },
+      "description": "火环伤害提高20%"
     }
   ],
-  "fire_002": [
+  
+  "water_ring": [
     {
-      "nodeId": "fire_002_duration",
+      "nodeId": "water_ring_chill",
       "levelReq": 2,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "duration", "value": 1.0 }
+      "effect": { "type": "modifyStat", "stat": "slowPercent", "value": 0.1 },
+      "description": "水环减速效果提高10%"
     },
     {
-      "nodeId": "fire_002_spread",
+      "nodeId": "water_ring_freeze",
       "levelReq": 3,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 50 }
+      "effect": { "type": "modifyStat", "stat": "freezeDuration", "value": 0.5 },
+      "description": "水环有30%几率冻结敌人0.5秒"
     }
   ],
-  "fire_003": [
+  
+  "wood_ring": [
     {
-      "nodeId": "fire_003_explosion",
+      "nodeId": "wood_ring_regen",
       "levelReq": 2,
-      "trigger": "onProjectileHit",
+      "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 80 }
+      "effect": { "type": "modifyStat", "stat": "healPercent", "value": 0.02 },
+      "description": "木环治疗量提高2%"
     },
     {
-      "nodeId": "fire_003_trail",
+      "nodeId": "wood_ring_cleanse",
       "levelReq": 3,
-      "trigger": "onProjectileMove",
+      "trigger": "onHeal",
       "condition": {},
-      "effect": { "type": "spawnTrail", "damagePercent": 0.2, "duration": 2.0 }
+      "effect": { "type": "cleanse", "removeDebuff": true },
+      "description": "木环治疗时净化负面效果"
     }
   ],
-  "fire_004": [
+  
+  "metal_ring": [
     {
-      "nodeId": "fire_004_intensity",
+      "nodeId": "metal_ring_push",
       "levelReq": 2,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "damagePercent", "value": 0.1 }
+      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 },
+      "description": "金环击退距离增加100"
     },
     {
-      "nodeId": "fire_004_wider",
-      "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 50 }
-    }
-  ],
-  "fire_005": [
-    {
-      "nodeId": "fire_005_push",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "knockback", "force": 200 }
-    },
-    {
-      "nodeId": "fire_005_explosion",
+      "nodeId": "metal_ring_stun",
       "levelReq": 3,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 100 }
+      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.3 },
+      "description": "金环命中时有30%几率眩晕0.3秒"
     }
   ],
-  "fire_006": [
+  
+  "earth_ring": [
     {
-      "nodeId": "fire_006_spread",
+      "nodeId": "earth_ring_duration",
       "levelReq": 2,
       "trigger": "onSkillCast",
       "condition": {},
-      "effect": { "type": "modifyStat", "stat": "spreadAngle", "value": 15 }
+      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.5 },
+      "description": "土环眩晕时间延长0.5秒"
     },
     {
-      "nodeId": "fire_006_return",
+      "nodeId": "earth_ring_shield",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "createShield", "shieldPercent": 0.1 },
+      "description": "土环施放时获得10%最大生命值的护盾"
+    }
+  ],
+
+  "========== 指定区域瞬间范围升级 ==========": {},
+  
+  "explosion": [
+    {
+      "nodeId": "explosion_radius",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 50 },
+      "description": "爆炸范围扩大50"
+    },
+    {
+      "nodeId": "explosion_crit",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "critBonus", "value": 0.2 },
+      "description": "爆炸暴击率提高20%"
+    }
+  ],
+  
+  "ice_pillar": [
+    {
+      "nodeId": "ice_pillar_count",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "pillarCount", "value": 2 },
+      "description": "冰柱数量+2"
+    },
+    {
+      "nodeId": "ice_pillar_shatter",
+      "levelReq": 3,
+      "trigger": "onControlEnd",
+      "condition": {},
+      "effect": { "type": "damage", "damagePercent": 0.5 },
+      "description": "冰柱结束时造成50%额外伤害"
+    }
+  ],
+
+  "========== 指定区域持续范围升级（传奇技能）==========": {},
+  
+  "tornado": [
+    {
+      "nodeId": "tornado_pull",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "pullRadius", "value": 50 },
+      "description": "龙卷风吸附范围扩大50"
+    },
+    {
+      "nodeId": "tornado_duration",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "duration", "value": 2.0 },
+      "description": "龙卷风持续时间延长2秒"
+    }
+  ],
+  
+  "sandstorm": [
+    {
+      "nodeId": "sandstorm_slow",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "slowPercent", "value": 0.1 },
+      "description": "沙尘暴减速效果提高10%"
+    },
+    {
+      "nodeId": "sandstorm_blind",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "blindDuration", "value": 1.0 },
+      "description": "沙尘暴命中敌人有30%几率致盲1秒"
+    }
+  ],
+
+  "========== 敌人密集区域范围升级 ==========": {},
+  
+  "mana_explosion": [
+    {
+      "nodeId": "mana_explosion_radius",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 30 },
+      "description": "魔力爆发范围扩大30"
+    },
+    {
+      "nodeId": "mana_explosion_knockback",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "knockback", "force": 150 },
+      "description": "魔力爆发击退敌人"
+    }
+  ],
+  
+  "energy_ball": [
+    {
+      "nodeId": "energy_ball_radius",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "areaRadius", "value": 30 },
+      "description": "能量球爆炸范围扩大30"
+    },
+    {
+      "nodeId": "energy_ball_double",
+      "levelReq": 3,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "ballCount", "value": 1 },
+      "description": "能量球数量+1"
+    }
+  ],
+
+  "========== 随机单体升级 ==========": {},
+  
+  "light_beam": [
+    {
+      "nodeId": "light_beam_pierce",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "pierceCount", "value": 1 },
+      "description": "光束可穿透1个额外敌人"
+    },
+    {
+      "nodeId": "light_beam_bounce",
+      "levelReq": 3,
+      "trigger": "onHit",
+      "condition": {},
+      "effect": { "type": "chain", "chainCount": 2, "damagePercent": 0.5 },
+      "description": "光束命中后弹射2次，造成50%伤害"
+    }
+  ],
+  
+  "blue_lightning": [
+    {
+      "nodeId": "blue_lightning_chain",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "chainCount", "value": 2 },
+      "description": "蓝色闪电连锁次数+2"
+    },
+    {
+      "nodeId": "blue_lightning_stun",
+      "levelReq": 3,
+      "trigger": "onHit",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.3 },
+      "description": "蓝色闪电命中时有30%几率眩晕0.3秒"
+    }
+  ],
+
+  "========== 投射物升级 ==========": {},
+  
+  "blue_slash": [
+    {
+      "nodeId": "blue_slash_count",
+      "levelReq": 2,
+      "trigger": "onSkillCast",
+      "condition": {},
+      "effect": { "type": "modifyStat", "stat": "projectileCount", "value": 1 },
+      "description": "蓝色斩击数量+1"
+    },
+    {
+      "nodeId": "blue_slash_return",
       "levelReq": 3,
       "trigger": "onProjectileMiss",
       "condition": {},
-      "effect": { "type": "projectileReturn", "damagePercent": 0.5 }
-    }
-  ],
-  "fire_007": [
-    {
-      "nodeId": "fire_007_chain",
-      "levelReq": 2,
-      "trigger": "onDebuffTrigger",
-      "condition": {},
-      "effect": { "type": "chainExplosion", "chainCount": 2, "radius": 100 }
-    },
-    {
-      "nodeId": "fire_007_empower",
-      "levelReq": 3,
-      "trigger": "onDebuffTrigger",
-      "condition": { "targetHpPercent": "<0.2" },
-      "effect": { "type": "execute", "damageMultiplier": 2.0 }
-    }
-  ],
-  "fire_008": [
-    {
-      "nodeId": "fire_008_regen",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.02, "interval": 1.0 }
-    },
-    {
-      "nodeId": "fire_008_explosion",
-      "levelReq": 3,
-      "trigger": "onBuffEnd",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 1.0, "radius": 150 }
-    }
-  ],
-  "fire_009": [
-    {
-      "nodeId": "fire_009_aura",
-      "levelReq": 2,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "damagePercent": 0.2, "radius": 150 }
-    },
-    {
-      "nodeId": "fire_009_explosion",
-      "levelReq": 3,
-      "trigger": "onSummonDeath",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 2.0, "radius": 200 }
-    }
-  ],
-
-  "========== 水系基础技能升级节点 ==========": {},
-  "water_001": [
-    {
-      "nodeId": "water_001_slow",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "slowPercent", "value": 0.2 }
-    },
-    {
-      "nodeId": "water_001_splash",
-      "levelReq": 3,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 80 }
-    }
-  ],
-  "water_002": [
-    {
-      "nodeId": "water_002_damage",
-      "levelReq": 2,
-      "trigger": "onControlEnd",
-      "condition": {},
-      "effect": { "type": "damage", "damagePercent": 0.5 }
-    },
-    {
-      "nodeId": "water_002_spread",
-      "levelReq": 3,
-      "trigger": "onControlStart",
-      "condition": {},
-      "effect": { "type": "chainControl", "chainCount": 2, "radius": 150 }
-    }
-  ],
-  "water_003": [
-    {
-      "nodeId": "water_003_push",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 }
-    },
-    {
-      "nodeId": "water_003_splash",
-      "levelReq": 3,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 0.4, "radius": 100 }
-    }
-  ],
-  "water_004": [
-    {
-      "nodeId": "water_004_cleanse",
-      "levelReq": 2,
-      "trigger": "onHeal",
-      "condition": {},
-      "effect": { "type": "cleanse", "removeDebuff": true }
-    },
-    {
-      "nodeId": "water_004_overheal",
-      "levelReq": 3,
-      "trigger": "onHeal",
-      "condition": { "overheal": true },
-      "effect": { "type": "shield", "shieldPercent": 0.2 }
-    }
-  ],
-  "water_005": [
-    {
-      "nodeId": "water_005_freeze",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "freezeChance", "value": 0.3 }
-    },
-    {
-      "nodeId": "water_005_pulse",
-      "levelReq": 3,
-      "trigger": "onAreaTick",
-      "condition": {},
-      "effect": { "type": "damage", "damagePercent": 0.2 }
-    }
-  ],
-  "water_006": [
-    {
-      "nodeId": "water_006_lifesteal",
-      "levelReq": 2,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "lifesteal", "percent": 0.3 }
-    },
-    {
-      "nodeId": "water_006_ricochet",
-      "levelReq": 3,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "ricochet", "count": 2, "radius": 200 }
-    }
-  ],
-  "water_007": [
-    {
-      "nodeId": "water_007_reflect",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "reflectPercent", "value": 0.3 }
-    },
-    {
-      "nodeId": "water_007_counter",
-      "levelReq": 3,
-      "trigger": "onReflect",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.1 }
-    }
-  ],
-  "water_008": [
-    {
-      "nodeId": "water_008_regen",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.02, "interval": 1.0 }
-    },
-    {
-      "nodeId": "water_008_explosion",
-      "levelReq": 3,
-      "trigger": "onShieldBreak",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 1.0, "radius": 150 }
-    }
-  ],
-  "water_009": [
-    {
-      "nodeId": "water_009_aura",
-      "levelReq": 2,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "healPercent": 0.03, "radius": 150 }
-    },
-    {
-      "nodeId": "water_009_revive",
-      "levelReq": 3,
-      "trigger": "onSummonDeath",
-      "condition": {},
-      "effect": { "type": "revive", "healPercent": 0.5 }
-    }
-  ],
-
-  "========== 木系基础技能升级节点 ==========": {},
-  "wood_001": [
-    {
-      "nodeId": "wood_001_poison",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "poisonPercent", "value": 0.1 }
-    },
-    {
-      "nodeId": "wood_001_spread",
-      "levelReq": 3,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "chain", "chainCount": 2, "damagePercent": 0.4 }
-    }
-  ],
-  "wood_002": [
-    {
-      "nodeId": "wood_002_damage",
-      "levelReq": 2,
-      "trigger": "onControlEnd",
-      "condition": {},
-      "effect": { "type": "damage", "damagePercent": 0.5 }
-    },
-    {
-      "nodeId": "wood_002_spread",
-      "levelReq": 3,
-      "trigger": "onControlStart",
-      "condition": {},
-      "effect": { "type": "chainControl", "chainCount": 2, "radius": 150 }
-    }
-  ],
-  "wood_003": [
-    {
-      "nodeId": "wood_003_thorn",
-      "levelReq": 2,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "thornPercent": 0.3, "radius": 150 }
-    },
-    {
-      "nodeId": "wood_003_regen",
-      "levelReq": 3,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "regenPercent": 0.03, "radius": 150 }
-    }
-  ],
-  "wood_004": [
-    {
-      "nodeId": "wood_004_cleanse",
-      "levelReq": 2,
-      "trigger": "onHeal",
-      "condition": {},
-      "effect": { "type": "cleanse", "removeDebuff": true }
-    },
-    {
-      "nodeId": "wood_004_overheal",
-      "levelReq": 3,
-      "trigger": "onHeal",
-      "condition": { "overheal": true },
-      "effect": { "type": "shield", "shieldPercent": 0.2 }
-    }
-  ],
-  "wood_005": [
-    {
-      "nodeId": "wood_005_heal",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "healPercent", "value": 0.05 }
-    },
-    {
-      "nodeId": "wood_005_cleanse",
-      "levelReq": 3,
-      "trigger": "onAreaTick",
-      "condition": {},
-      "effect": { "type": "cleanse", "removeDebuff": true }
-    }
-  ],
-  "wood_006": [
-    {
-      "nodeId": "wood_006_thorn",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "thornPercent", "value": 0.2 }
-    },
-    {
-      "nodeId": "wood_006_explosion",
-      "levelReq": 3,
-      "trigger": "onBuffEnd",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.2 }
-    }
-  ],
-  "wood_007": [
-    {
-      "nodeId": "wood_007_spread",
-      "levelReq": 2,
-      "trigger": "onDebuffTrigger",
-      "condition": {},
-      "effect": { "type": "chainDebuff", "chainCount": 2, "radius": 150 }
-    },
-    {
-      "nodeId": "wood_007_execute",
-      "levelReq": 3,
-      "trigger": "onDebuffTrigger",
-      "condition": { "targetHpPercent": "<0.2" },
-      "effect": { "type": "execute", "damageMultiplier": 2.0 }
-    }
-  ],
-  "wood_008": [
-    {
-      "nodeId": "wood_008_intensity",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "poisonPercent", "value": 0.1 }
-    },
-    {
-      "nodeId": "wood_008_slow",
-      "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "slowPercent", "value": 0.2 }
-    }
-  ],
-  "wood_009": [
-    {
-      "nodeId": "wood_009_aura",
-      "levelReq": 2,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "attackSpeedBonus": 0.1, "radius": 150 }
-    },
-    {
-      "nodeId": "wood_009_regen",
-      "levelReq": 3,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "regenPercent": 0.03, "radius": 150 }
-    }
-  ],
-
-  "========== 金系基础技能升级节点 ==========": {},
-  "metal_001": [
-    {
-      "nodeId": "metal_001_pierce",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "pierce", "value": 1 }
-    },
-    {
-      "nodeId": "metal_001_crit",
-      "levelReq": 3,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "critBonus", "value": 0.2 }
-    }
-  ],
-  "metal_002": [
-    {
-      "nodeId": "metal_002_count",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "projectileCount", "value": 3 }
-    },
-    {
-      "nodeId": "metal_002_stun",
-      "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.5 }
-    }
-  ],
-  "metal_003": [
-    {
-      "nodeId": "metal_003_reflect",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "reflectPercent", "value": 0.5 }
-    },
-    {
-      "nodeId": "metal_003_heal",
-      "levelReq": 3,
-      "trigger": "onBuffEnd",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.3 }
-    }
-  ],
-  "metal_004": [
-    {
-      "nodeId": "metal_004_knockback",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 }
-    },
-    {
-      "nodeId": "metal_004_crit",
-      "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "critBonus", "value": 0.2 }
-    }
-  ],
-  "metal_005": [
-    {
-      "nodeId": "metal_005_poison",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "poisonPercent", "value": 0.1 }
-    },
-    {
-      "nodeId": "metal_005_homing",
-      "levelReq": 3,
-      "trigger": "onProjectileMove",
-      "condition": {},
-      "effect": { "type": "homing", "radius": 200 }
-    }
-  ],
-  "metal_006": [
-    {
-      "nodeId": "metal_006_heal",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.05, "interval": 1.0 }
-    },
-    {
-      "nodeId": "metal_006_explosion",
-      "levelReq": 3,
-      "trigger": "onBuffEnd",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 2.0, "radius": 200 }
-    }
-  ],
-  "metal_007": [
-    {
-      "nodeId": "metal_007_chain",
-      "levelReq": 2,
-      "trigger": "onDebuffTrigger",
-      "condition": {},
-      "effect": { "type": "chainExplosion", "chainCount": 2, "radius": 100 }
-    },
-    {
-      "nodeId": "metal_007_execute",
-      "levelReq": 3,
-      "trigger": "onDebuffTrigger",
-      "condition": { "targetHpPercent": "<0.2" },
-      "effect": { "type": "execute", "damageMultiplier": 2.5 }
-    }
-  ],
-  "metal_008": [
-    {
-      "nodeId": "metal_008_duration",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "duration", "value": 2.0 }
-    },
-    {
-      "nodeId": "metal_008_pull",
-      "levelReq": 3,
-      "trigger": "onAreaTick",
-      "condition": {},
-      "effect": { "type": "pull", "force": 100 }
-    }
-  ],
-  "metal_009": [
-    {
-      "nodeId": "metal_009_aura",
-      "levelReq": 2,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "critBonus": 0.1, "radius": 150 }
-    },
-    {
-      "nodeId": "metal_009_explosion",
-      "levelReq": 3,
-      "trigger": "onSummonDeath",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 1.5, "radius": 200 }
-    }
-  ],
-
-  "========== 土系基础技能升级节点 ==========": {},
-  "earth_001": [
-    {
-      "nodeId": "earth_001_stun",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "stunDuration", "value": 0.5 }
-    },
-    {
-      "nodeId": "earth_001_splash",
-      "levelReq": 3,
-      "trigger": "onProjectileHit",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 0.3, "radius": 80 }
-    }
-  ],
-  "earth_002": [
-    {
-      "nodeId": "earth_002_count",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "spikeCount", "value": 2 }
-    },
-    {
-      "nodeId": "earth_002_knockup",
-      "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "knockup", "force": 150 }
-    }
-  ],
-  "earth_003": [
-    {
-      "nodeId": "earth_003_thorn",
-      "levelReq": 2,
-      "trigger": "onControlActive",
-      "condition": {},
-      "effect": { "type": "damage", "damagePercent": 0.2, "interval": 1.0 }
-    },
-    {
-      "nodeId": "earth_003_explosion",
-      "levelReq": 3,
-      "trigger": "onControlEnd",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 1.0, "radius": 150 }
-    }
-  ],
-  "earth_004": [
-    {
-      "nodeId": "earth_004_intensity",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "damagePercent", "value": 0.1 }
-    },
-    {
-      "nodeId": "earth_004_aftershock",
-      "levelReq": 3,
-      "trigger": "onSkillEnd",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 0.5, "radius": 150 }
-    }
-  ],
-  "earth_005": [
-    {
-      "nodeId": "earth_005_thorn",
-      "levelReq": 2,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "thornPercent", "value": 0.2 }
-    },
-    {
-      "nodeId": "earth_005_regen",
-      "levelReq": 3,
-      "trigger": "onBuffActive",
-      "condition": {},
-      "effect": { "type": "heal", "healPercent": 0.02, "interval": 1.0 }
-    }
-  ],
-  "earth_006": [
-    {
-      "nodeId": "earth_006_push",
-      "levelReq": 2,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "knockbackForce", "value": 100 }
-    },
-    {
-      "nodeId": "earth_006_cd",
-      "levelReq": 3,
-      "trigger": "onSkillCast",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "cooldownReduction", "value": 2.0 }
-    }
-  ],
-  "earth_007": [
-    {
-      "nodeId": "earth_007_damage",
-      "levelReq": 2,
-      "trigger": "onControlEnd",
-      "condition": {},
-      "effect": { "type": "damage", "damagePercent": 0.5 }
-    },
-    {
-      "nodeId": "earth_007_spread",
-      "levelReq": 3,
-      "trigger": "onControlStart",
-      "condition": {},
-      "effect": { "type": "chainControl", "chainCount": 2, "radius": 150 }
-    }
-  ],
-  "earth_008": [
-    {
-      "nodeId": "earth_008_cd",
-      "levelReq": 2,
-      "trigger": "onShieldActive",
-      "condition": {},
-      "effect": { "type": "modifyStat", "stat": "cooldownReduction", "value": 2.0 }
-    },
-    {
-      "nodeId": "earth_008_explosion",
-      "levelReq": 3,
-      "trigger": "onShieldBreak",
-      "condition": {},
-      "effect": { "type": "areaDamage", "damagePercent": 1.5, "radius": 200 }
-    }
-  ],
-  "earth_009": [
-    {
-      "nodeId": "earth_009_aura",
-      "levelReq": 2,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "defenseBonus": 0.15, "radius": 150 }
-    },
-    {
-      "nodeId": "earth_009_thorn",
-      "levelReq": 3,
-      "trigger": "onSummonActive",
-      "condition": {},
-      "effect": { "type": "aura", "thornPercent": 0.2, "radius": 150 }
+      "effect": { "type": "projectileReturn", "damagePercent": 0.5 },
+      "description": "蓝色斩击未命中时返回，造成50%伤害"
     }
   ]
 }

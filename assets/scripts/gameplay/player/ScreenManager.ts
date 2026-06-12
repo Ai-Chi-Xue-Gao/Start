@@ -14,7 +14,6 @@ export class ScreenManager extends BaseComponent {
         view.setDesignResolutionSize(1280,720,ResolutionPolicy.SHOW_ALL)
 
         const framSize = screen.windowSize
-        console.log('已经切换横屏')
     }
 }
 

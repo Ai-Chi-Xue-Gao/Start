@@ -1,631 +1,171 @@
 {
-  "========== 基础技能 - 火系 ==========": {},
-  "fire_001": {
-    "name": "火球",
-    "description": "发射火球，造成50%伤害",
-    "rarity": "common",
-    "tags": ["weapon", "fire", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_fireball"
-  },
-  "fire_002": {
-    "name": "火墙",
-    "description": "释放火墙，持续3秒",
-    "rarity": "common",
-    "tags": ["weapon", "fire", "area"],
-    "maxLevel": 3,
-    "icon": "icon_firewall"
-  },
-  "fire_003": {
-    "name": "火龙",
-    "description": "召唤火龙冲刺，穿透敌人",
-    "rarity": "rare",
-    "tags": ["weapon", "fire", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_fire_dragon"
-  },
-  "fire_004": {
-    "name": "火雨",
-    "description": "降下火雨，持续2秒",
-    "rarity": "rare",
-    "tags": ["weapon", "fire", "area"],
-    "maxLevel": 3,
-    "icon": "icon_fire_rain"
-  },
-  "fire_005": {
+  "========== 五行环（玩家周围扩散）==========": {},
+  "fire_ring": {
     "name": "火环",
     "description": "扩散火环，造成60%伤害",
     "rarity": "common",
-    "tags": ["weapon", "fire", "area"],
+    "tags": [
+      "fire",
+      "area",
+      "player_centered"
+    ],
     "maxLevel": 3,
     "icon": "icon_fire_ring"
   },
-  "fire_006": {
-    "name": "火刃",
-    "description": "发射3把火刃",
-    "rarity": "rare",
-    "tags": ["weapon", "fire", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_fire_blade"
-  },
-  "fire_007": {
-    "name": "火种",
-    "description": "标记敌人，5秒后爆炸",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "debuff"],
-    "maxLevel": 3,
-    "icon": "icon_fire_seed"
-  },
-  "fire_008": {
-    "name": "火盾",
-    "description": "火焰护盾，反弹30%伤害",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_fire_shield"
-  },
-  "fire_009": {
-    "name": "火灵",
-    "description": "召唤火灵协助攻击",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_fire_spirit"
-  },
-
-  "========== 基础技能 - 水系 ==========": {},
-  "water_001": {
-    "name": "水球",
-    "description": "发射水球，造成45%伤害",
-    "rarity": "common",
-    "tags": ["weapon", "water", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_water_ball"
-  },
-  "water_002": {
-    "name": "水牢",
-    "description": "困住敌人2秒",
-    "rarity": "common",
-    "tags": ["weapon", "water", "control"],
-    "maxLevel": 3,
-    "icon": "icon_water_prison"
-  },
-  "water_003": {
-    "name": "水龙",
-    "description": "召唤水龙，击退敌人",
-    "rarity": "rare",
-    "tags": ["weapon", "water", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_water_dragon"
-  },
-  "water_004": {
-    "name": "治疗雨",
-    "description": "持续治疗友军",
-    "rarity": "rare",
-    "tags": ["weapon", "water", "heal"],
-    "maxLevel": 3,
-    "icon": "icon_heal_rain"
-  },
-  "water_005": {
+  "water_ring": {
     "name": "水环",
     "description": "扩散水环，减速30%",
     "rarity": "common",
-    "tags": ["weapon", "water", "area"],
+    "tags": [
+      "water",
+      "area",
+      "player_centered"
+    ],
     "maxLevel": 3,
     "icon": "icon_water_ring"
   },
-  "water_006": {
-    "name": "水刃",
-    "description": "发射3把水刃",
-    "rarity": "rare",
-    "tags": ["weapon", "water", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_water_blade"
-  },
-  "water_007": {
-    "name": "水镜",
-    "description": "反射一次远程攻击",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_water_mirror"
-  },
-  "water_008": {
-    "name": "水盾",
-    "description": "获得吸收100伤害的护盾",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_water_shield"
-  },
-  "water_009": {
-    "name": "水灵",
-    "description": "召唤水灵治疗友军",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_water_spirit"
-  },
-
-  "========== 基础技能 - 木系 ==========": {},
-  "wood_001": {
-    "name": "木刺",
-    "description": "发射木刺，造成40%伤害",
-    "rarity": "common",
-    "tags": ["weapon", "wood", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_wood_spike"
-  },
-  "wood_002": {
-    "name": "藤蔓",
-    "description": "缠绕敌人2秒",
-    "rarity": "common",
-    "tags": ["weapon", "wood", "control"],
-    "maxLevel": 3,
-    "icon": "icon_vine"
-  },
-  "wood_003": {
-    "name": "树精",
-    "description": "召唤树精战斗",
-    "rarity": "rare",
-    "tags": ["weapon", "wood", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_tree_ent"
-  },
-  "wood_004": {
-    "name": "生命绽放",
-    "description": "回复15%最大生命",
-    "rarity": "rare",
-    "tags": ["weapon", "wood", "heal"],
-    "maxLevel": 3,
-    "icon": "icon_life_bloom"
-  },
-  "wood_005": {
+  "wood_ring": {
     "name": "木环",
     "description": "扩散木环，治疗友军",
     "rarity": "common",
-    "tags": ["weapon", "wood", "area"],
+    "tags": [
+      "wood",
+      "area",
+      "player_centered"
+    ],
     "maxLevel": 3,
     "icon": "icon_wood_ring"
   },
-  "wood_006": {
-    "name": "木盾",
-    "description": "受伤时回复5%生命",
-    "rarity": "rare",
-    "tags": ["weapon", "wood", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_wood_shield"
-  },
-  "wood_007": {
-    "name": "种子",
-    "description": "种下种子，5秒后爆炸",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "debuff"],
-    "maxLevel": 3,
-    "icon": "icon_seed"
-  },
-  "wood_008": {
-    "name": "毒藤",
-    "description": "释放毒藤，持续中毒",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "area"],
-    "maxLevel": 3,
-    "icon": "icon_poison_vine"
-  },
-  "wood_009": {
-    "name": "木灵",
-    "description": "召唤木灵，增加攻速",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_wood_spirit"
-  },
-
-  "========== 基础技能 - 金系 ==========": {},
-  "metal_001": {
-    "name": "金箭",
-    "description": "发射金箭，造成55%伤害",
-    "rarity": "common",
-    "tags": ["weapon", "metal", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_gold_arrow"
-  },
-  "metal_002": {
-    "name": "金剑",
-    "description": "召唤金剑从天而降",
-    "rarity": "common",
-    "tags": ["weapon", "metal", "area"],
-    "maxLevel": 3,
-    "icon": "icon_gold_sword"
-  },
-  "metal_003": {
-    "name": "金盾",
-    "description": "免疫一次伤害",
-    "rarity": "rare",
-    "tags": ["weapon", "metal", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_gold_shield"
-  },
-  "metal_004": {
+  "metal_ring": {
     "name": "金环",
     "description": "扩散金环，击飞敌人",
     "rarity": "rare",
-    "tags": ["weapon", "metal", "area"],
+    "tags": [
+      "metal",
+      "area",
+      "player_centered"
+    ],
     "maxLevel": 3,
-    "icon": "icon_gold_ring"
+    "icon": "icon_metal_ring"
   },
-  "metal_005": {
-    "name": "金针",
-    "description": "发射3根金针",
-    "rarity": "common",
-    "tags": ["weapon", "metal", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_gold_needle"
-  },
-  "metal_006": {
-    "name": "金身",
-    "description": "3秒无敌，无法攻击",
-    "rarity": "rare",
-    "tags": ["weapon", "metal", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_gold_body"
-  },
-  "metal_007": {
-    "name": "金爆",
-    "description": "引爆目标，造成100%伤害",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "debuff"],
-    "maxLevel": 3,
-    "icon": "icon_gold_explosion"
-  },
-  "metal_008": {
-    "name": "金刃",
-    "description": "旋转金刃，持续伤害",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "area"],
-    "maxLevel": 3,
-    "icon": "icon_gold_blade"
-  },
-  "metal_009": {
-    "name": "金灵",
-    "description": "召唤金灵，增加暴击",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_gold_spirit"
-  },
-
-  "========== 基础技能 - 土系 ==========": {},
-  "earth_001": {
-    "name": "土弹",
-    "description": "发射土弹，造成50%伤害",
-    "rarity": "common",
-    "tags": ["weapon", "earth", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_earth_ball"
-  },
-  "earth_002": {
-    "name": "地刺",
-    "description": "地刺穿刺，造成60%伤害",
-    "rarity": "common",
-    "tags": ["weapon", "earth", "area"],
-    "maxLevel": 3,
-    "icon": "icon_earth_spike"
-  },
-  "earth_003": {
-    "name": "土墙",
-    "description": "召唤土墙阻挡敌人",
-    "rarity": "rare",
-    "tags": ["weapon", "earth", "control"],
-    "maxLevel": 3,
-    "icon": "icon_earth_wall"
-  },
-  "earth_004": {
-    "name": "地震",
-    "description": "地震持续3秒",
-    "rarity": "rare",
-    "tags": ["weapon", "earth", "area"],
-    "maxLevel": 3,
-    "icon": "icon_earthquake"
-  },
-  "earth_005": {
-    "name": "土甲",
-    "description": "减少30%所受伤害",
-    "rarity": "common",
-    "tags": ["weapon", "earth", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_earth_armor"
-  },
-  "earth_006": {
+  "earth_ring": {
     "name": "土环",
     "description": "扩散土环，眩晕1秒",
     "rarity": "rare",
-    "tags": ["weapon", "earth", "area"],
+    "tags": [
+      "earth",
+      "area",
+      "player_centered"
+    ],
     "maxLevel": 3,
     "icon": "icon_earth_ring"
   },
-  "earth_007": {
-    "name": "土牢",
-    "description": "困住敌人3秒",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "control"],
+  "========== 指定区域瞬间范围 ==========": {},
+  "explosion": {
+    "name": "爆炸",
+    "description": "引发爆炸，造成大范围伤害",
+    "rarity": "rare",
+    "tags": [
+      "area",
+      "instant"
+    ],
     "maxLevel": 3,
-    "icon": "icon_earth_prison"
+    "icon": "icon_explosion"
   },
-  "earth_008": {
-    "name": "土盾",
-    "description": "每10秒抵挡一次伤害",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "buff"],
+  "ice_pillar": {
+    "name": "冰柱",
+    "description": "从地面升起冰柱，冻结敌人",
+    "rarity": "rare",
+    "tags": [
+      "ice",
+      "area",
+      "instant"
+    ],
     "maxLevel": 3,
-    "icon": "icon_earth_shield"
+    "icon": "icon_ice_pillar"
   },
-  "earth_009": {
-    "name": "土灵",
-    "description": "召唤土灵，增加防御",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_earth_spirit"
-  },
-
-  "========== 单系中级技能 ==========": {},
-  "fire_mid_001": {
-    "name": "烈焰风暴",
-    "description": "召唤烈焰风暴，持续灼烧范围内敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "area"],
-    "maxLevel": 3,
-    "icon": "icon_fire_storm"
-  },
-  "fire_mid_002": {
-    "name": "火龙吐息",
-    "description": "召唤火龙向前方喷吐火焰，穿透敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_fire_dragon_breath"
-  },
-  "fire_mid_003": {
-    "name": "炎之守护",
-    "description": "获得火焰护盾，反弹伤害并灼烧攻击者",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_fire_guardian"
-  },
-
-  "water_mid_001": {
-    "name": "海啸",
-    "description": "召唤海啸冲击，击退并伤害敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_tsunami"
-  },
-  "water_mid_002": {
-    "name": "生命之泉",
-    "description": "召唤生命之泉，持续治疗范围内友军",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "heal"],
-    "maxLevel": 3,
-    "icon": "icon_healing_spring"
-  },
-  "water_mid_003": {
-    "name": "绝对零度",
-    "description": "释放极寒冰环，冻结范围内所有敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "control"],
-    "maxLevel": 3,
-    "icon": "icon_absolute_zero"
-  },
-
-  "wood_mid_001": {
-    "name": "森林之怒",
-    "description": "召唤树根缠绕并伤害范围内敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "control"],
-    "maxLevel": 3,
-    "icon": "icon_forest_wrath"
-  },
-  "wood_mid_002": {
-    "name": "生命绽放",
-    "description": "绽放生命之花，瞬间回复大量生命",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "heal"],
-    "maxLevel": 3,
-    "icon": "icon_life_bloom"
-  },
-  "wood_mid_003": {
-    "name": "毒沼",
-    "description": "制造毒沼，持续中毒并减速敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "debuff"],
-    "maxLevel": 3,
-    "icon": "icon_poison_swamp"
-  },
-
-  "metal_mid_001": {
-    "name": "万剑归宗",
-    "description": "召唤无数飞剑从天而降",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "area"],
-    "maxLevel": 3,
-    "icon": "icon_thousand_swords"
-  },
-  "metal_mid_002": {
-    "name": "不灭金身",
-    "description": "进入金身状态，免疫伤害并反弹",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_golden_body"
-  },
-  "metal_mid_003": {
-    "name": "金灵召唤",
-    "description": "召唤金灵，提升周围友军暴击率",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_gold_spirit"
-  },
-
-  "earth_mid_001": {
-    "name": "地裂山崩",
-    "description": "引发地震，造成大范围伤害并眩晕",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "area"],
-    "maxLevel": 3,
-    "icon": "icon_earthquake"
-  },
-  "earth_mid_002": {
-    "name": "大地之盾",
-    "description": "获得大地护盾，大幅提升防御",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_earth_shield"
-  },
-  "earth_mid_003": {
-    "name": "山岭巨人",
-    "description": "召唤山岭巨人，坦克型召唤物嘲讽敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "summon"],
-    "maxLevel": 3,
-    "icon": "icon_mountain_giant"
-  },
-
-  "========== 跨属性中级技能 ==========": {},
-  "cross_fire_metal_001": {
-    "name": "熔岩剑",
-    "description": "召唤熔岩飞剑，穿透敌人并造成灼烧效果",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "metal", "projectile"],
-    "maxLevel": 3,
-    "icon": "icon_lava_sword"
-  },
-  "cross_water_wood_001": {
-    "name": "生命缠绕",
-    "description": "治疗周围友军并缠绕范围内敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "wood", "area"],
-    "maxLevel": 3,
-    "icon": "icon_life_vine"
-  },
-  "cross_metal_earth_001": {
-    "name": "金刚护体",
-    "description": "获得护盾并反弹所受伤害",
-    "rarity": "epic",
-    "tags": ["weapon", "metal", "earth", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_golden_armor"
-  },
-  "cross_fire_water_001": {
-    "name": "蒸汽爆炸",
-    "description": "产生蒸汽爆炸，造成范围伤害并致盲敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "fire", "water", "area"],
-    "maxLevel": 3,
-    "icon": "icon_steam_explosion"
-  },
-  "cross_wood_fire_001": {
-    "name": "火焰藤蔓",
-    "description": "召唤火焰藤蔓，缠绕敌人并造成持续灼烧",
-    "rarity": "epic",
-    "tags": ["weapon", "wood", "fire", "area"],
-    "maxLevel": 3,
-    "icon": "icon_fire_vine"
-  },
-  "cross_water_metal_001": {
-    "name": "冰晶剑阵",
-    "description": "召唤冰晶飞剑，冻结范围内的敌人",
-    "rarity": "epic",
-    "tags": ["weapon", "water", "metal", "area"],
-    "maxLevel": 3,
-    "icon": "icon_ice_swords"
-  },
-  "cross_earth_wood_001": {
-    "name": "荆棘护甲",
-    "description": "获得荆棘护甲，反弹伤害并回复生命",
-    "rarity": "epic",
-    "tags": ["weapon", "earth", "wood", "buff"],
-    "maxLevel": 3,
-    "icon": "icon_thorn_armor"
-  },
-  "cross_thunder_fire_001": {
-    "name": "雷火风暴",
-    "description": "召唤雷火风暴，造成范围雷火伤害",
-    "rarity": "epic",
-    "tags": ["weapon", "thunder", "fire", "area"],
-    "maxLevel": 3,
-    "icon": "icon_thunder_fire"
-  },
-
-  "========== 高级技能 ==========": {},
-  "fire_high_001": {
-    "name": "炎帝",
-    "description": "火系终极技能，召唤太阳真火焚尽一切",
+  "========== 指定区域持续范围 ==========": {},
+  "tornado": {
+    "name": "龙卷风",
+    "description": "召唤龙卷风，吸附并持续伤害敌人",
     "rarity": "legendary",
-    "tags": ["weapon", "fire", "ultimate"],
+    "tags": [
+      "wind",
+      "area",
+      "duration"
+    ],
     "maxLevel": 3,
-    "icon": "icon_fire_emperor"
+    "icon": "icon_tornado"
   },
-  "water_high_001": {
-    "name": "共工",
-    "description": "水系终极技能，召唤洪水淹没战场",
+  "sandstorm": {
+    "name": "沙尘暴",
+    "description": "召唤沙尘暴，持续伤害并减速敌人",
     "rarity": "legendary",
-    "tags": ["weapon", "water", "ultimate"],
+    "tags": [
+      "earth",
+      "area",
+      "duration"
+    ],
     "maxLevel": 3,
-    "icon": "icon_water_god"
-  },
-  "wood_high_001": {
-    "name": "句芒",
-    "description": "木系终极技能，召唤生命之树复苏万物",
-    "rarity": "legendary",
-    "tags": ["weapon", "wood", "ultimate"],
-    "maxLevel": 3,
-    "icon": "icon_wood_god"
-  },
-  "metal_high_001": {
-    "name": "蓐收",
-    "description": "金系终极技能，召唤万剑归宗斩灭一切",
-    "rarity": "legendary",
-    "tags": ["weapon", "metal", "ultimate"],
-    "maxLevel": 3,
-    "icon": "icon_metal_god"
-  },
-  "earth_high_001": {
-    "name": "后土",
-    "description": "土系终极技能，不动如山坚不可摧",
-    "rarity": "legendary",
-    "tags": ["weapon", "earth", "ultimate"],
-    "maxLevel": 3,
-    "icon": "icon_earth_god"
+    "icon": "icon_sandstorm"
   },
 
-  "========== 终极技能 ==========": {},
-  "five_elements_awaken": {
-    "name": "五行归元",
-    "description": "五行归一，获得所有元素之力，轮转五行增益",
-    "rarity": "mythic",
-    "tags": ["weapon", "all", "ultimate"],
-    "maxLevel": 5,
-    "icon": "icon_five_elements"
-  },
-  "ultimate_cross_001": {
-    "name": "混沌之源",
-    "description": "融合五行之力，召唤混沌能量摧毁一切",
-    "rarity": "mythic",
-    "tags": ["weapon", "chaos", "ultimate"],
+  "========== 敌人密集区域范围 ==========": {},
+  "mana_explosion": {
+    "name": "魔力爆发",
+    "description": "在敌人密集区域爆发魔力，造成范围伤害",
+    "rarity": "epic",
+    "tags": [
+      "area",
+      "enemy_cluster"
+    ],
     "maxLevel": 3,
-    "icon": "icon_chaos"
+    "icon": "icon_mana_explosion"
   },
-  "ultimate_cross_002": {
-    "name": "天地同寿",
-    "description": "融合金土之力，获得无敌护盾并反击所有敌人",
-    "rarity": "mythic",
-    "tags": ["weapon", "metal", "earth", "ultimate"],
+  "energy_ball": {
+    "name": "能量球",
+    "description": "在敌人密集区域生成能量球并爆炸，造成范围伤害",
+    "rarity": "rare",
+    "tags": [
+      "area",
+      "enemy_cluster"
+    ],
     "maxLevel": 3,
-    "icon": "icon_universe"
+    "icon": "icon_energy_ball"
+  },
+  "========== 随机单体 ==========": {},
+  "light_beam": {
+    "name": "光束",
+    "description": "光束直接落在随机敌人身上，造成伤害",
+    "rarity": "rare",
+    "tags": [
+      "single",
+      "random_enemy"
+    ],
+    "maxLevel": 3,
+    "icon": "icon_light_beam"
+  },
+  "blue_lightning": {
+    "name": "蓝色闪电",
+    "description": "闪电直接劈向随机敌人，造成伤害",
+    "rarity": "rare",
+    "tags": [
+      "single",
+      "random_enemy"
+    ],
+    "maxLevel": 3,
+    "icon": "icon_blue_lightning"
+  },
+  "========== 投射物 ==========": {},
+  "blue_slash": {
+    "name": "蓝色斩击",
+    "description": "发出剑气，斩击前方敌人",
+    "rarity": "rare",
+    "tags": [
+      "projectile",
+      "slash"
+    ],
+    "maxLevel": 3,
+    "icon": "icon_blue_slash"
   }
 }

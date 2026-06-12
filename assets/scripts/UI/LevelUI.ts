@@ -5,6 +5,8 @@ import { BaseComponent } from '../core/BaseComponent';
 import { EventBus } from '../core/EventBus';
 import { EventNames } from '../utils/EventNames';
 import { IPlayer } from '../interfaces/IPlayer';
+import { ServiceLocator } from '../core/ServiceLocator';
+import { GameStateMachine } from '../core/GameStateMachine';
 
 const { ccclass, property } = _decorator;
 
@@ -20,14 +22,14 @@ export class LevelUI extends BaseComponent {
     private currentLevel: number = 1
 
     start() {
-        this.playerService = this.getService<IPlayer>('IPlayer')
+        this.playerService = this.getService<IPlayer>('player')
 
         if (this.playerService) {
             this.currentLevel = this.playerService.getLevel()
         }
 
         EventBus.on(EventNames.PLAYER_LEVEL_UP, this.onLevelUp, this)
-        
+
         this.updateLevelDisplay()
     }
 

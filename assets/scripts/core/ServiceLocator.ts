@@ -32,36 +32,27 @@ export class ServiceLocator {
      * 注册服务实例（单例模式）
      * @param key 服务唯一标识
      * @param instance 服务实例
-     * @param force 是否强制覆盖（默认 false，已存在时警告但不覆盖）
+     * @param force 是否强制覆盖（默认 true，已存在时覆盖）
      */
     register<T>(key: string, instance: T, force: boolean = true): boolean {
-        if (this.services.has(key)) {
-            if (force) {
-                console.log(`[ServiceLocator] 服务 ${key} 已存在，强制覆盖`);
-                this.services.set(key, instance);
-                return true;
-            } else {
-                console.log(`[ServiceLocator] 服务 ${key} 已存在，跳过注册`);
-                return false;
-            }
+        if (this.services.has(key) && !force) {
+            return false;
         }
         this.services.set(key, instance);
         return true;
     }
 
     /**
-     *  安全注册（仅在不存在时注册）
+     * 安全注册（仅在不存在时注册）
      * @param key 服务唯一标识
      * @param instance 服务实例
      * @returns 是否注册成功
      */
     registerIfNotExist<T>(key: string, instance: T): boolean {
         if (this.services.has(key)) {
-            console.log(`[ServiceLocator] 服务 ${key} 已存在，跳过注册`);
             return false;
         }
         this.services.set(key, instance);
-        console.log(`[ServiceLocator] 服务 ${key} 注册成功`);
         return true;
     }
 

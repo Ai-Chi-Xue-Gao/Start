@@ -28,6 +28,7 @@ export interface UpgradeNode {
     trigger: string
     condition: Record<string, any>
     effect: Record<string, any>
+    description?: string
 }
 
 export interface FusionRule {
@@ -42,6 +43,7 @@ export interface FusionRule {
 export interface ElementTag {
     element: string
     phase: string
+    isRing?: boolean
 }
 
 export interface PlayerSkillData {
@@ -49,6 +51,36 @@ export interface PlayerSkillData {
     currentLevel: number
     unlockedUpgrades: string[]
 }
+
+// ========== 常量定义 ==========
+
+const CONFIG_PATHS = {
+    SKILL_DEF: 'config/skills/skill_def',
+    SKILL_STAT: 'config/skills/skill_stat',
+    SKILL_UPGRADE: 'config/skills/skill_upgrade',
+    ELEMENT_TAG: 'config/skills/element_tag'
+} as const
+
+const SKILL_RELATED_STATS: readonly string[] = [
+    'damagePercent', 'cooldown', 'areaRadius', 'duration',
+    'projectileCount', 'pierce', 'stunDuration', 'freezeDuration',
+    'rootDuration', 'slowPercent', 'burnPercent', 'poisonPercent',
+    'blindDuration', 'knockback', 'knockbackForce', 'reflectPercent',
+    'damageReduction', 'shieldAmount', 'regenPercent', 'critBonus',
+    'critDamageBonus', 'attackSpeedBonus', 'defenseBonus', 'invincible',
+    'projectileSpeed', 'health', 'damage', 'taunt', 'delay',
+    'pullRadius', 'chainCount', 'pillarCount', 'slowDuration'
+]
+
+const RARITY_WEIGHTS: Record<string, number> = {
+    'common': AffixWeightConfig.COMMON,
+    'rare': AffixWeightConfig.RARE,
+    'epic': AffixWeightConfig.EPIC,
+    'legendary': AffixWeightConfig.LEGENDARY,
+    'mythic': 0
+}
+
+const DEFAULT_RARITY_WEIGHT = 5
 
 // ========== SkillManager 类 ==========
 
@@ -78,32 +110,23 @@ export class SkillManager {
 
     // ========== 初始化 ==========
 
-    public init(player: IPlayer) {
+    public init(player: IPlayer): void {
         this.player = player
-        console.log('[SkillManager] 初始化完成')
     }
 
-    public loadAll(callback?: () => void) {
+    public loadAll(callback?: () => void): void {
         if (this.isLoaded) {
             callback?.()
             return
         }
 
-        let remaining = 5
+        let remaining = 4  // skill_def, skill_stat, skill_upgrade, element_tag
         const onLoadComplete = () => {
             remaining--
             if (remaining === 0) {
                 this.isLoaded = true
-                console.log('[SkillManager] 所有技能配置加载完成')
-                console.log(`  - 技能定义: ${this.skillDefs.size} 个`)
-                console.log(`  - 技能数值: ${this.skillStats.size} 个`)
-                console.log(`  - 升级节点: ${this.skillUpgrades.size} 个`)
-                console.log(`  - 合成规则: ${this.fusionRules.size} 个`)
-                console.log(`  - 五行归属: ${this.elementTags.size} 个`)
                 callback?.()
-                for (const cb of this.loadCallbacks) {
-                    cb()
-                }
+                this.loadCallbacks.forEach(cb => cb())
                 this.loadCallbacks = []
             }
         }
@@ -111,102 +134,91 @@ export class SkillManager {
         this.loadSkillDefs(onLoadComplete)
         this.loadSkillStats(onLoadComplete)
         this.loadSkillUpgrades(onLoadComplete)
-        this.loadFusionRules(onLoadComplete)
         this.loadElementTags(onLoadComplete)
     }
 
-    private loadSkillDefs(callback: () => void) {
-        resources.load('config/skills/skill_def', JsonAsset, (err, asset) => {
+    public isReady(): boolean {
+        return this.isLoaded
+    }
+
+    // ========== 配置加载 ==========
+
+    private loadSkillDefs(callback: () => void): void {
+        resources.load(CONFIG_PATHS.SKILL_DEF, JsonAsset, (err, asset) => {
             if (err) {
                 console.error('[SkillManager] 加载 skill_def 失败', err)
-                this.loadDefaultSkillDefs()
-            } else {
-                const data = asset.json as Record<string, SkillDef>
-                for (const [id, def] of Object.entries(data)) {
-                    // 跳过注释行（以 ========== 开头的键）
-                    if (id.startsWith('==========')) continue
-                    this.skillDefs.set(id, def)
-                }
+            } else if (asset?.json) {
+                this.parseSkillDefs(asset.json)
             }
             callback()
         })
     }
 
-    private loadSkillStats(callback: () => void) {
-        resources.load('config/skills/skill_stat', JsonAsset, (err, asset) => {
+    private loadSkillStats(callback: () => void): void {
+        resources.load(CONFIG_PATHS.SKILL_STAT, JsonAsset, (err, asset) => {
             if (err) {
                 console.error('[SkillManager] 加载 skill_stat 失败', err)
-                this.loadDefaultSkillStats()
-            } else {
-                const data = asset.json as Record<string, SkillStat>
-                for (const [id, stat] of Object.entries(data)) {
-                    // 跳过注释行（以 ========== 开头的键）
-                    if (id.startsWith('==========')) continue
-                    this.skillStats.set(id, stat)
-                }
+            } else if (asset?.json) {
+                this.parseSkillStats(asset.json)
             }
             callback()
         })
     }
 
-    private loadSkillUpgrades(callback: () => void) {
-        resources.load('config/skills/skill_upgrade', JsonAsset, (err, asset) => {
+    private loadSkillUpgrades(callback: () => void): void {
+        resources.load(CONFIG_PATHS.SKILL_UPGRADE, JsonAsset, (err, asset) => {
             if (err) {
                 console.error('[SkillManager] 加载 skill_upgrade 失败', err)
-            } else {
-                const data = asset.json as Record<string, UpgradeNode[]>
-                for (const [id, upgrades] of Object.entries(data)) {
-                    // 跳过注释行（以 ========== 开头的键）
-                    if (id.startsWith('==========')) continue
-                    this.skillUpgrades.set(id, upgrades)
-                }
+            } else if (asset?.json) {
+                this.parseSkillUpgrades(asset.json)
             }
             callback()
         })
     }
 
-    private loadFusionRules(callback: () => void) {
-        resources.load('config/skills/fusion_rule', JsonAsset, (err, asset) => {
-            if (err) {
-                console.error('[SkillManager] 加载 fusion_rule 失败', err)
-            } else {
-                const data = asset.json as Record<string, FusionRule>
-                for (const [id, rule] of Object.entries(data)) {
-                    // 跳过注释行（以 ========== 开头的键）
-                    if (id.startsWith('==========')) continue
-                    this.fusionRules.set(id, rule)
-                }
-            }
-            callback()
-        })
-    }
-
-    private loadElementTags(callback: () => void) {
-        resources.load('config/skills/element_tag', JsonAsset, (err, asset) => {
+    private loadElementTags(callback: () => void): void {
+        resources.load(CONFIG_PATHS.ELEMENT_TAG, JsonAsset, (err, asset) => {
             if (err) {
                 console.error('[SkillManager] 加载 element_tag 失败', err)
-            } else {
-                const data = asset.json as Record<string, ElementTag>
-                for (const [id, tag] of Object.entries(data)) {
-                    // 跳过注释行（以 ========== 开头的键）
-                    if (id.startsWith('==========')) continue
-                    this.elementTags.set(id, tag)
-                }
+            } else if (asset?.json) {
+                this.parseElementTags(asset.json)
             }
             callback()
         })
     }
 
-    // ========== 默认配置（空实现，依赖 JSON 配置） ==========
+    // ========== 配置解析 ==========
 
-    private loadDefaultSkillDefs() {
-        console.warn('[SkillManager] JSON 技能定义加载失败，请检查配置文件')
-        // 不再使用 TypeScript 默认配置，完全依赖 JSON
+    private parseSkillDefs(data: any): void {
+        for (const [id, def] of Object.entries(data)) {
+            if (this.isCommentKey(id)) continue
+            this.skillDefs.set(id, def as SkillDef)
+        }
     }
 
-    private loadDefaultSkillStats() {
-        console.warn('[SkillManager] JSON 技能数值加载失败，请检查配置文件')
-        // 不再使用 TypeScript 默认配置，完全依赖 JSON
+    private parseSkillStats(data: any): void {
+        for (const [id, stat] of Object.entries(data)) {
+            if (this.isCommentKey(id)) continue
+            this.skillStats.set(id, stat as SkillStat)
+        }
+    }
+
+    private parseSkillUpgrades(data: any): void {
+        for (const [id, upgrades] of Object.entries(data)) {
+            if (this.isCommentKey(id)) continue
+            this.skillUpgrades.set(id, upgrades as UpgradeNode[])
+        }
+    }
+
+    private parseElementTags(data: any): void {
+        for (const [id, tag] of Object.entries(data)) {
+            if (this.isCommentKey(id)) continue
+            this.elementTags.set(id, tag as ElementTag)
+        }
+    }
+
+    private isCommentKey(key: string): boolean {
+        return key.startsWith('==========') || key.startsWith('_comment')
     }
 
     // ========== 技能查询接口 ==========
@@ -216,7 +228,7 @@ export class SkillManager {
     }
 
     public getSkillDef(skillId: string): SkillDef | null {
-        return this.skillDefs.get(skillId) || null
+        return this.skillDefs.get(skillId) ?? null
     }
 
     public getSkillStat(skillId: string, level: number): Record<string, any> | null {
@@ -228,16 +240,16 @@ export class SkillManager {
     }
 
     public getSkillUpgrades(skillId: string): UpgradeNode[] {
-        return this.skillUpgrades.get(skillId) || []
+        return this.skillUpgrades.get(skillId) ?? []
     }
 
     public getUpgradesAtLevel(skillId: string, level: number): UpgradeNode[] {
-        const upgrades = this.skillUpgrades.get(skillId) || []
+        const upgrades = this.skillUpgrades.get(skillId) ?? []
         return upgrades.filter(u => u.levelReq === level)
     }
 
     public getFusionRule(fusionId: string): FusionRule | null {
-        return this.fusionRules.get(fusionId) || null
+        return this.fusionRules.get(fusionId) ?? null
     }
 
     public getAllFusionRules(): Map<string, FusionRule> {
@@ -245,7 +257,7 @@ export class SkillManager {
     }
 
     public getElementTag(skillId: string): ElementTag | null {
-        return this.elementTags.get(skillId) || null
+        return this.elementTags.get(skillId) ?? null
     }
 
     // ========== 玩家技能管理 ==========
@@ -255,7 +267,7 @@ export class SkillManager {
     }
 
     public getPlayerSkill(skillId: string): PlayerSkillData | null {
-        return this.playerSkills.get(skillId) || null
+        return this.playerSkills.get(skillId) ?? null
     }
 
     public hasSkill(skillId: string): boolean {
@@ -263,13 +275,11 @@ export class SkillManager {
     }
 
     public getSkillLevel(skillId: string): number {
-        return this.playerSkills.get(skillId)?.currentLevel || 0
+        return this.playerSkills.get(skillId)?.currentLevel ?? 0
     }
 
     public getSkillMaxLevel(skillId: string): number {
-        const def = this.skillDefs.get(skillId)
-        if (def) return def.maxLevel
-        return 1
+        return this.skillDefs.get(skillId)?.maxLevel ?? 1
     }
 
     public canUpgradeSkill(skillId: string): boolean {
@@ -278,6 +288,8 @@ export class SkillManager {
         return currentLevel < maxLevel
     }
 
+    // ========== 技能学习 ==========
+
     public learnSkill(skillId: string): boolean {
         const def = this.getSkillDef(skillId)
         if (!def) {
@@ -285,35 +297,40 @@ export class SkillManager {
             return false
         }
 
-        let skillData = this.playerSkills.get(skillId)
-        let newLevel = 1
+        const skillData = this.getOrCreateSkillData(skillId)
 
-        if (skillData) {
-            if (skillData.currentLevel >= def.maxLevel) {
-                console.warn(`[SkillManager] 技能已达最大等级: ${skillId}`)
-                return false
-            }
-            newLevel = skillData.currentLevel + 1
-            skillData.currentLevel = newLevel
-        } else {
-            skillData = {
-                skillId: skillId,
-                currentLevel: 1,
-                unlockedUpgrades: []
-            }
-            this.playerSkills.set(skillId, skillData)
+        if (skillData.currentLevel >= def.maxLevel) {
+            console.warn(`[SkillManager] 技能已达最大等级: ${skillId}`)
+            return false
         }
+
+        const newLevel = skillData.currentLevel + 1
+        skillData.currentLevel = newLevel
 
         this.applySkillStats(skillId, newLevel)
         this.unlockUpgrades(skillId, newLevel)
 
         EventBus.emit(EventNames.SKILL_SELECTED, { skillId, level: newLevel })
 
-        console.log(`[SkillManager] 学习技能: ${def.name} Lv.${newLevel}`)
         return true
     }
 
-    private applySkillStats(skillId: string, level: number) {
+    private getOrCreateSkillData(skillId: string): PlayerSkillData {
+        let skillData = this.playerSkills.get(skillId)
+        if (!skillData) {
+            skillData = {
+                skillId: skillId,
+                currentLevel: 0,
+                unlockedUpgrades: []
+            }
+            this.playerSkills.set(skillId, skillData)
+        }
+        return skillData
+    }
+
+    // ========== 技能数值应用 ==========
+
+    private applySkillStats(skillId: string, level: number): void {
         if (!this.player) return
 
         const stats = this.getSkillStat(skillId, level)
@@ -324,103 +341,52 @@ export class SkillManager {
         }
     }
 
-    /**
-     * 将数值应用到玩家
-     */
-    private applyStatToPlayer(statName: string, value: any) {
+    private applyStatToPlayer(statName: string, value: any): void {
         if (!this.player) return
 
-        switch (statName) {
-            case 'healthBonus':
-                const newMaxHp = this.player.getMaxHealth() + value
-                this.player.setMaxHealth?.(newMaxHp)
-                break
-            case 'attackMultiplier':
-                this.player.addAttackMultiplier?.(value)
-                break
-            case 'speedMultiplier':
-                this.player.addSpeedMultiplier?.(value)
-                break
-            case 'expBonus':
-                this.player.addExpBonus?.(value)
-                break
-            case 'cooldownReduction':
-                this.player.addCooldownReduction?.(value)
-                break
-            case 'magnetBonus':
-                this.player.addMagnetBonus?.(value)
-                break
-            case 'vampirePercent':
-                this.player.addVampirePercent?.(value)
-                break
-            case 'damageReduction':
-                this.player.addDamageReduction?.(value)
-                break
-            case 'critChance':
-                this.player.addCritChance?.(value)
-                break
-            case 'critDamage':
-                this.player.addCritDamage?.(value)
-                break
-            case 'armorPen':
-                this.player.addArmorPen?.(value)
-                break
-            case 'thornDamage':
-                this.player.addThornDamage?.(value)
-                break
-            case 'fireballCount':
-                this.player.setFireballCount?.(value)
-                break
-            case 'pierceCount':
-                this.player.setPierceCount?.((this.player.getPierceCount?.() || 0) + value)
-                break
-            case 'fireballSpeedMultiplier':
-                this.player.addFireballSpeedMultiplier?.(value)
-                break
-            case 'sizeMultiplier':
-                this.player.setFireballSizeMultiplier?.(value)
-                break
-            case 'damageBonus':
-                this.player.addFireballDamageBonus?.(value)
-                break
-            case 'attackBonus':
-                this.player.addPermanentAttack?.(value)
-                break
-            case 'speedBonusPercent':
-                this.player.addPermanentSpeed?.(value)
-                break
-            case 'cooldownBonus':
-                this.player.addPermanentCooldown?.(value)
-                break
-            case 'expBonusPercent':
-                this.player.addPermanentExp?.(value)
-                break
-            case 'healAmount':
-                // 杀怪回血在 KillSystem 中处理
-                break
-            case 'shieldAmount':
-                this.player.addKillShield?.(value)
-                break
-            case 'rageDuration':
-            case 'rageDamageBonus':
-                this.player.addRageStats?.({ [statName]: value })
-                break
-            case 'dropBonusPercent':
-                this.player.addLuckyBonus?.(value)
-                break
-            case 'killRequired':
-                this.player.setRebirthKillRequired?.(value)
-                break
-            case 'orbCount':
-                console.log(`[SkillManager] 水灵法球数量: ${value}（由 WaterOrbManager 处理）`);
-                break
-                
-            default:
-                console.log(`[SkillManager] 未处理的数值: ${statName} = ${value}`)
+        if (SKILL_RELATED_STATS.includes(statName)) {
+            return
+        }
+
+        const statHandlers: Record<string, (val: any) => void> = {
+            'healthBonus': (v) => this.applyHealthBonus(v),
+            'attackMultiplier': (v) => this.player!.addAttackMultiplier?.(v),
+            'speedMultiplier': (v) => this.player!.addSpeedMultiplier?.(v),
+            'expBonus': (v) => this.player!.addExpBonus?.(v),
+            'cooldownReduction': (v) => this.player!.addCooldownReduction?.(v),
+            'magnetBonus': (v) => this.player!.addMagnetBonus?.(v),
+            'vampirePercent': (v) => this.player!.addVampirePercent?.(v),
+            'damageReduction': (v) => this.player!.addDamageReduction?.(v),
+            'critChance': (v) => this.player!.addCritChance?.(v),
+            'critDamage': (v) => this.player!.addCritDamage?.(v),
+            'armorPen': (v) => this.player!.addArmorPen?.(v),
+            'thornDamage': (v) => this.player!.addThornDamage?.(v),
+            'attackBonus': (v) => this.player!.addPermanentAttack?.(v),
+            'speedBonusPercent': (v) => this.player!.addPermanentSpeed?.(v),
+            'cooldownBonus': (v) => this.player!.addPermanentCooldown?.(v),
+            'expBonusPercent': (v) => this.player!.addPermanentExp?.(v),
+            'shieldAmount': (v) => this.player!.addKillShield?.(v),
+            'dropBonusPercent': (v) => this.player!.addLuckyBonus?.(v),
+            'killRequired': (v) => this.player!.setRebirthKillRequired?.(v),
+            'rageDuration': (v) => this.player!.addRageStats?.({ rageDuration: v }),
+            'rageDamageBonus': (v) => this.player!.addRageStats?.({ rageDamageBonus: v })
+        }
+
+        const handler = statHandlers[statName]
+        if (handler) {
+            handler(value)
         }
     }
 
-    private unlockUpgrades(skillId: string, level: number) {
+    private applyHealthBonus(value: number): void {
+        if (!this.player) return
+        const newMaxHp = this.player.getMaxHealth() + value
+        this.player.setMaxHealth?.(newMaxHp)
+    }
+
+    // ========== 升级节点 ==========
+
+    private unlockUpgrades(skillId: string, level: number): void {
         const upgrades = this.getUpgradesAtLevel(skillId, level)
         const skillData = this.playerSkills.get(skillId)
         if (!skillData) return
@@ -428,15 +394,14 @@ export class SkillManager {
         for (const upgrade of upgrades) {
             if (!skillData.unlockedUpgrades.includes(upgrade.nodeId)) {
                 skillData.unlockedUpgrades.push(upgrade.nodeId)
-                this.registerUpgradeTrigger(skillId, upgrade)
-                console.log(`[SkillManager] 解锁升级节点: ${upgrade.nodeId}`)
+                this.registerUpgradeTrigger(upgrade)
             }
         }
     }
 
-    private registerUpgradeTrigger(skillId: string, upgrade: UpgradeNode) {
+    private registerUpgradeTrigger(upgrade: UpgradeNode): void {
         const triggerSystem = ServiceLocator.getInstance().get<any>('triggerSystem')
-        if (triggerSystem && triggerSystem.registerTrigger) {
+        if (triggerSystem?.registerTrigger) {
             triggerSystem.registerTrigger(
                 upgrade.trigger,
                 upgrade.nodeId,
@@ -451,63 +416,60 @@ export class SkillManager {
     // ========== 技能池 ==========
 
     public getRandomSkills(count: number, excludeIds: string[] = []): string[] {
-        const availableSkills: string[] = []
-        const fusionIds = Array.from(this.fusionRules.keys())
-
-        for (const [skillId, def] of this.skillDefs) {
-            // 跳过融合技能（融合技能单独处理）
-            if (fusionIds.includes(skillId)) continue
-
-            // 跳过排除列表中的技能
-            if (excludeIds.includes(skillId)) continue
-
-            // 检查技能是否已达最大等级
-            const currentLevel = this.getSkillLevel(skillId)
-            if (currentLevel >= def.maxLevel) {
-                continue
-            }
-
-            availableSkills.push(skillId)
-        }
+        const availableSkills = this.getAvailableSkills(excludeIds)
 
         if (availableSkills.length === 0) return []
 
-        // 根据稀有度计算权重
-        const getWeight = (rarity: string): number => {
-            switch (rarity) {
-                case 'common': return AffixWeightConfig.COMMON
-                case 'rare': return AffixWeightConfig.RARE
-                case 'epic': return AffixWeightConfig.EPIC
-                case 'legendary': return AffixWeightConfig.LEGENDARY
-                case 'mythic': return 0
-                default: return 5
-            }
+        const weighted = this.buildWeightedSkillList(availableSkills)
+        const shuffled = this.shuffleArray([...weighted])
+
+        return this.getUniqueItems(shuffled, count)
+    }
+
+    private getAvailableSkills(excludeIds: string[]): string[] {
+        const available: string[] = []
+
+        for (const [skillId, def] of this.skillDefs) {
+            if (excludeIds.includes(skillId)) continue
+
+            const currentLevel = this.getSkillLevel(skillId)
+            if (currentLevel >= def.maxLevel) continue
+
+            available.push(skillId)
         }
 
-        // 构建权重数组
+        return available
+    }
+
+    private buildWeightedSkillList(skillIds: string[]): string[] {
         const weighted: string[] = []
-        for (const skillId of availableSkills) {
+        for (const skillId of skillIds) {
             const def = this.skillDefs.get(skillId)!
-            const weight = getWeight(def.rarity)
+            const weight = RARITY_WEIGHTS[def.rarity] ?? DEFAULT_RARITY_WEIGHT
             for (let i = 0; i < weight; i++) {
                 weighted.push(skillId)
             }
         }
+        return weighted
+    }
 
-        // 随机打乱
-        for (let i = weighted.length - 1; i > 0; i--) {
+    private shuffleArray<T>(array: T[]): T[] {
+        for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
-            ;[weighted[i], weighted[j]] = [weighted[j], weighted[i]]
+                ;[array[i], array[j]] = [array[j], array[i]]
         }
+        return array
+    }
 
-        // 去重取前 count 个
-        const result: string[] = []
-        const seen = new Set<string>()
-        for (const skillId of weighted) {
+    private getUniqueItems<T>(array: T[], count: number): T[] {
+        const result: T[] = []
+        const seen = new Set<T>()
+
+        for (const item of array) {
             if (result.length >= count) break
-            if (!seen.has(skillId)) {
-                seen.add(skillId)
-                result.push(skillId)
+            if (!seen.has(item)) {
+                seen.add(item)
+                result.push(item)
             }
         }
 
@@ -515,62 +477,16 @@ export class SkillManager {
     }
 
     public getAvailableFusions(): { fusionId: string, rule: FusionRule }[] {
-        const result: { fusionId: string, rule: FusionRule }[] = []
-
-        for (const [fusionId, rule] of this.fusionRules) {
-            if (this.playerSkills.has(fusionId)) {
-                continue
-            }
-
-            let canFusion = true
-            for (const req of rule.requires) {
-                const skillData = this.playerSkills.get(req.skillId)
-                if (!skillData || skillData.currentLevel < req.minLevel) {
-                    canFusion = false
-                    break
-                }
-            }
-            if (canFusion) {
-                result.push({ fusionId, rule })
-            }
-        }
-
-        return result
-    }
-
-    public fuseSkill(fusionId: string): boolean {
-        const rule = this.fusionRules.get(fusionId)
-        if (!rule) return false
-
-        for (const req of rule.requires) {
-            const skillData = this.playerSkills.get(req.skillId)
-            if (!skillData || skillData.currentLevel < req.minLevel) {
-                console.warn(`[SkillManager] 合成条件不足: 需要 ${req.skillId} Lv.${req.minLevel}`)
-                return false
-            }
-        }
-
-        if (rule.consumes && rule.replace) {
-            for (const replaceId of rule.replace) {
-                this.playerSkills.delete(replaceId)
-            }
-        }
-
-        return this.learnSkill(fusionId)
+        return []
     }
 
     // ========== 工具方法 ==========
-
-    public isReady(): boolean {
-        return this.isLoaded
-    }
 
     public getPlayer(): IPlayer | null {
         return this.player
     }
 
-    public reset() {
+    public reset(): void {
         this.playerSkills.clear()
-        console.log('[SkillManager] 技能数据已重置')
     }
 }

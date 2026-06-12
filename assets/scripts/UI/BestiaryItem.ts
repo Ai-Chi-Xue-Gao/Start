@@ -48,7 +48,7 @@ export class BestiaryItem extends BaseComponent {
     private currentEntry: BestiaryEntry | null = null;
 
     start() {
-        // 🆕 确保 configLoader 正确初始化
+        // 确保 configLoader 正确初始化
         this.configLoader = BestiaryConfigLoader.getInstance();
         if (!this.configLoader) {
             console.error('[BestiaryItem] BestiaryConfigLoader 获取失败');
@@ -125,7 +125,7 @@ export class BestiaryItem extends BaseComponent {
 
     private loadIcon(iconPath: string) {
         resources.load(iconPath, SpriteFrame, (err, spriteFrame) => {
-            // 🆕 检查节点是否仍然有效（避免 Warning 1220）
+            // 检查节点是否仍然有效（避免 Warning 1220）
             if (!this.icon || !this.icon.node || !this.icon.node.isValid) {
                 console.warn('[BestiaryItem] 节点已销毁，跳过图标加载');
                 return;
@@ -138,7 +138,7 @@ export class BestiaryItem extends BaseComponent {
     }
 
     private updateAffixDisplay(entry: BestiaryEntry) {
-        // 🆕 检查 configLoader 是否可用
+        // 检查 configLoader 是否可用
         if (!this.configLoader) {
             console.warn('[BestiaryItem] configLoader 不可用，跳过词条显示');
             return;
@@ -207,7 +207,7 @@ export class BestiaryItem extends BaseComponent {
     }
 
     /**
-     * 🆕 创建简单词条标签（无预制体时使用）
+     * 创建简单词条标签（无预制体时使用）
      */
     private createSimpleAffixTag(container: Node, affix: any, isUnlocked: boolean) {
         const tagNode = new Node('AffixTag');

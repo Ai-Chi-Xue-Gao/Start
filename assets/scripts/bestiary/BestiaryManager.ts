@@ -44,7 +44,6 @@ export class BestiaryManager {
             this.loadProgress();
             this.buildEntries();
             this.isInitialized = true;
-            console.log('[BestiaryManager] 初始化完成');
             callback?.();
         });
     }
@@ -57,8 +56,6 @@ export class BestiaryManager {
             const json = localStorage.getItem(BESTIARY_STORAGE_KEY);
             if (json) {
                 const saved = JSON.parse(json);
-                // 进度数据会与 enemy 配置合并
-                console.log('[BestiaryManager] 加载进度数据成功');
             }
         } catch (e) {
             console.error('[BestiaryManager] 加载进度数据失败:', e);
@@ -82,8 +79,6 @@ export class BestiaryManager {
                 forcedAffix: race?.forcedAffix || null
             });
         }
-        
-        console.log(`[BestiaryManager] 构建图鉴条目: ${this.entries.size} 个`);
     }
 
     /**
@@ -153,7 +148,6 @@ export class BestiaryManager {
         if (!wasUnlocked) {
             entry.progress.isUnlocked = true;
             entry.progress.firstKillWave = currentWave;
-            console.log(`[BestiaryManager] 解锁图鉴: ${entry.name}`);
         }
         
         // 记录遇到的词条
@@ -176,7 +170,6 @@ export class BestiaryManager {
         if (!entry.progress.encounteredAffixes.includes(affixId)) {
             entry.progress.encounteredAffixes.push(affixId);
             const affix = this.configLoader.getAffix(affixId);
-            console.log(`[BestiaryManager] 解锁词条: ${affix?.name || affixId} for ${entry.name}`);
         }
     }
 
@@ -275,7 +268,6 @@ export class BestiaryManager {
             };
         }
         this.saveAllProgress();
-        console.log('[BestiaryManager] 图鉴已重置');
     }
 
     /**

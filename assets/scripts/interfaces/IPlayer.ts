@@ -1,17 +1,15 @@
 // assets/scripts/interfaces/IPlayer.ts
 
-/**
- * 玩家服务接口
- * 定义 UI 和其他模块需要访问的玩家能力
- * 放置在主包中，供各分包通过 ServiceLocator 调用
- */
+import { Node } from 'cc';
+import { PlayerHealth } from '../gameplay/player/PlayerHealth';
+
 export interface IPlayer {
     // ========== 血量相关 ==========
     getCurrentHealth(): number
     getMaxHealth(): number
-    takeDamage?(damage: number): boolean  // 添加受伤方法
-    heal?(amount: number): void           // 治疗
-    revive?(hpPercent: number): void      // 复活
+    takeDamage?(damage: number): boolean
+    heal?(amount: number): void
+    revive?(hpPercent: number): void
     
     // ========== 经验/等级相关 ==========
     getExp(): number
@@ -22,23 +20,29 @@ export interface IPlayer {
     // ========== 战斗相关 ==========
     getAttack(): number
     getAttackCooldownReduction(): number
-    getSpeed(): number                    // 添加速度获取
-    
-    // ========== 火球技能相关 ==========
-    /** @deprecated 请使用 getFireballCount() >= 2 */
-    getHasDoubleFireball(): boolean
-    getHasPierceFireball(): boolean
-    getFireballSpeedMultiplier(): number
-    getPierceCount(): number
-    getFireballCount(): number            // 获取火球数量
-    getFireballSizeMultiplier(): number
-    getFireballDamageBonus(): number
+    getSpeed(): number
     
     // ========== 其他属性 ==========
     getMagnetRangeMultiplier(): number
     getVampirePercent(): number
     
-    // ========== 属性修改方法（技能系统使用）==========
+    // ========== 组件访问 ==========
+    /** 获取血量组件 */
+    getHealth(): PlayerHealth
+    
+    /** 获取玩家节点 */
+    getNode(): Node
+    
+    /** 获取护盾值 */
+    getShield(): number
+    
+    /** 添加临时攻击加成 */
+    addTemporaryAttackBonus(bonus: number, duration: number): void
+    
+    /** 攻击命中回调（用于吸血等效果） */
+    onAttackHit(damage: number, target?: any): void
+    
+    // ========== 属性修改方法 ==========
     // 攻击相关
     addAttackMultiplier(value: number): void
     addPermanentAttack(bonus: number): void
@@ -65,16 +69,6 @@ export interface IPlayer {
     // 磁力相关
     addMagnetBonus(value: number): void
     setMagnetRangeMultiplier(mult: number): void
-    
-    // 火球相关
-    setDoubleFireball(active: boolean): void
-    setPierceFireball(active: boolean): void
-    setPierceCount(value: number): void
-    setFireballCount(value: number): void
-    setFireballSizeMultiplier(value: number): void
-    setFireballSpeedMultiplier(mult: number): void
-    addFireballSpeedMultiplier(mult: number): void
-    addFireballDamageBonus(bonus: number): void
     
     // 吸血相关
     addVampirePercent(value: number): void

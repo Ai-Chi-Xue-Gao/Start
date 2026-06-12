@@ -23,7 +23,7 @@ export class ExpBar extends BaseComponent {
     private originalWidth: number = 0
 
     start() {
-        this.playerService = this.getService<IPlayer>('IPlayer')
+        this.playerService = this.getService<IPlayer>('player')
 
         if (this.fillSprite) {
             const uiTransform = this.fillSprite.node.getComponent(UITransform)

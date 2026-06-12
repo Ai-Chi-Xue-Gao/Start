@@ -1,4 +1,4 @@
-// assets/scripts/managers/PoolManager.ts
+// assets/scripts/utils/PoolManager.ts
 
 import { _decorator, Prefab } from 'cc';
 import { BaseComponent } from '../core/BaseComponent';
@@ -6,14 +6,17 @@ import { ObjectPool } from '../utils/ObjectPool';
 
 const { ccclass, property } = _decorator;
 
+/**
+ * 对象池管理器
+ * 负责注册和管理所有对象池
+ */
 @ccclass('PoolManager')
 export class PoolManager extends BaseComponent {
-    // ========== 仍在使用的预制体 ==========
+    private static instance: PoolManager;
+
+    // ========== 预制体引用 ==========
     @property(Prefab)
     expBallPrefab: Prefab = null;           // 经验球
-
-    @property(Prefab)
-    explosionPrefab: Prefab = null;         // 爆炸特效
 
     @property(Prefab)
     skillItemPrefab: Prefab = null;         // 技能面板项
@@ -21,78 +24,80 @@ export class PoolManager extends BaseComponent {
     @property(Prefab)
     enemyPrefab: Prefab = null;             // 敌人
 
-    // ========== 通用技能预制体 ==========
     @property(Prefab)
-    genericProjectilePrefab: Prefab = null; // 通用投射物（火球）
+    elementRingPrefab: Prefab = null;       // 五行环
 
-    @property(Prefab)
-    genericAreaPrefab: Prefab = null;       // 通用范围特效
+    // ========== 池配置 ==========
+    private readonly POOL_CONFIGS = {
+        expBall: { key: 'expBall', maxSize: 200 },
+        skillItem: { key: 'skillItem', maxSize: 30 },
+        enemy: { key: 'enemy', maxSize: 200 },
+        enemyMinion: { key: 'enemy_minion', maxSize: 100 },
+        elementRing: { key: 'elementRing', maxSize: 50 }
+    } as const;
 
-    @property(Prefab)
-    genericSummonPrefab: Prefab = null;     // 通用召唤物
-
-    private static instance: PoolManager
+    // ========== 生命周期 ==========
 
     start() {
-        PoolManager.instance = this
-        this.registerAllPools()
+        PoolManager.instance = this;
+        this.registerAllPools();
     }
 
-    private registerAllPools() {
-        const pool = ObjectPool.getInstance()
+    // ========== 池注册 ==========
 
-        // 经验球
+    private registerAllPools(): void {
+        const pool = ObjectPool.getInstance();
+
+        this.registerExpBallPool(pool);
+        this.registerSkillItemPool(pool);
+        this.registerEnemyPools(pool);
+        this.registerElementRingPool(pool);
+
+        console.log('[PoolManager] 所有对象池注册完成');
+    }
+
+    private registerExpBallPool(pool: ObjectPool): void {
         if (this.expBallPrefab) {
-            pool.register('expBall', this.expBallPrefab, 200)
+            pool.register(this.POOL_CONFIGS.expBall.key, this.expBallPrefab, this.POOL_CONFIGS.expBall.maxSize);
         }
+    }
 
-        // 爆炸特效
-        if (this.explosionPrefab) {
-            pool.register('explosion', this.explosionPrefab, 50)
-        }
-
-        // 技能面板项
+    private registerSkillItemPool(pool: ObjectPool): void {
         if (this.skillItemPrefab) {
-            pool.register('skillItem', this.skillItemPrefab, 30)
+            pool.register(this.POOL_CONFIGS.skillItem.key, this.skillItemPrefab, this.POOL_CONFIGS.skillItem.maxSize);
         }
+    }
 
-        // 敌人
+    private registerEnemyPools(pool: ObjectPool): void {
         if (this.enemyPrefab) {
-            pool.register('enemy', this.enemyPrefab, 200)
-            pool.register('enemy_minion', this.enemyPrefab, 100)
+            pool.register(this.POOL_CONFIGS.enemy.key, this.enemyPrefab, this.POOL_CONFIGS.enemy.maxSize);
+            pool.register(this.POOL_CONFIGS.enemyMinion.key, this.enemyPrefab, this.POOL_CONFIGS.enemyMinion.maxSize);
         }
-
-        // ========== 通用技能对象池注册 ==========
-        if (this.genericProjectilePrefab) {
-            pool.register('genericProjectile', this.genericProjectilePrefab, 100)
-            console.log('[PoolManager] 通用投射物池已注册')
-        }
-        if (this.genericAreaPrefab) {
-            pool.register('genericArea', this.genericAreaPrefab, 50)
-            console.log('[PoolManager] 通用范围特效池已注册')
-        }
-        if (this.genericSummonPrefab) {
-            pool.register('genericSummon', this.genericSummonPrefab, 30)
-            console.log('[PoolManager] 通用召唤物池已注册')
-        }
-
-        console.log('[PoolManager] 所有对象池注册完成')
     }
 
-    // ========== 获取预制体（供 SkillFactory 使用）==========
-    public getGenericProjectilePrefab(): Prefab | null {
-        return this.genericProjectilePrefab
+    private registerElementRingPool(pool: ObjectPool): void {
+        if (this.elementRingPrefab) {
+            pool.register(this.POOL_CONFIGS.elementRing.key, this.elementRingPrefab, this.POOL_CONFIGS.elementRing.maxSize);
+        }
     }
 
-    public getGenericAreaPrefab(): Prefab | null {
-        return this.genericAreaPrefab
+    // ========== 获取方法 ==========
+
+    public getElementRingPrefab(): Prefab | null {
+        return this.elementRingPrefab;
     }
 
-    public getGenericSummonPrefab(): Prefab | null {
-        return this.genericSummonPrefab
+    public getEnemyPrefab(): Prefab | null {
+        return this.enemyPrefab;
     }
+
+    public getExpBallPrefab(): Prefab | null {
+        return this.expBallPrefab;
+    }
+
+    // ========== 静态方法 ==========
 
     static getInstance(): PoolManager {
-        return PoolManager.instance
+        return PoolManager.instance;
     }
 }

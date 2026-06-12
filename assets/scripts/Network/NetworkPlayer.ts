@@ -151,7 +151,6 @@ export class NetworkPlayer extends BaseComponent {
         if (this.levelLabel) {
             this.levelLabel.string = `Lv.${level}`
         }
-        console.log(`[NetworkPlayer]${this.playerId}等级:${level}`)
     }
 
     public updateExp(exp: number, expToNextLevel: number, level: number) {

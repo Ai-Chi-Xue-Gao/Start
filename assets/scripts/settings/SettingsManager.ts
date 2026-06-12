@@ -58,6 +58,5 @@ export class SettingsManager {
 
     private save(): void {
         SettingsStorage.save(this.settings);
-        console.log('[Settings] 已保存');
     }
 }

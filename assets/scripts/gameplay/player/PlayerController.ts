@@ -9,13 +9,14 @@ import { PlayerExperience } from './PlayerExperience';
 import { PlayerSkill } from './PlayerSkill';
 import { EventBus } from '../../core/EventBus';
 import { SkillManager } from '../../Managers/SkillManager';
+import { SkillFactory } from '../managers/SkillFactory';
+import { TriggerSystem } from '../../Managers/TriggerSystem';
 import { PlayerConfig } from '../../configs/GameConfig';
 import { EventNames } from '../../utils/EventNames';
 import { ServiceLocator } from '../../core/ServiceLocator';
 import { IPlayer } from '../../interfaces/IPlayer';
 import { INetworkService } from '../../interfaces/INetworkService';
-import { TriggerSystem } from '../../Managers/TriggerSystem';
-import { SkillFactory } from '../managers/SkillFactory';
+import { GameContext } from '../../core/GameContext';
 
 const { ccclass, property } = _decorator;
 
@@ -28,105 +29,148 @@ export class PlayerController extends BaseComponent implements IPlayer {
     @property(Node)
     joystick: Node = null
 
+    // ========== 子组件引用 ==========
     private playerAnim: PlayerAnim = null
     private movement: PlayerMovement = null
     private health: PlayerHealth = null
     private experience: PlayerExperience = null
     private skill: PlayerSkill = null
-    private networkService: INetworkService | null = null
-    private isPaused: boolean = false
-
-    // ========== 新技能系统 ==========
+    
+    // ========== 技能系统 ==========
     private skillFactory: SkillFactory = null
+    
+    // ========== 外部服务 ==========
+    private networkService: INetworkService | null = null
+    
+    // ========== 状态标志 ==========
+    private isPaused: boolean = false
 
     // ========== 血木共生 - 永久回血相关 ==========
     private permanentRegen: number = 0
 
+    // ========== 生命周期 ==========
+    
     start() {
-        // 获取组件
+        this.initComponents()
+        this.registerServices()
+        this.initSkillSystem()
+        this.bindEvents()
+        this.initNetworkService()
+    }
+
+    protected onDestroy() {
+        this.unbindEvents()
+        this.cleanup()
+    }
+
+    /**
+     * 初始化子组件引用
+     */
+    private initComponents(): void {
         this.playerAnim = this.getComponent(PlayerAnim)
         this.movement = this.getComponent(PlayerMovement)
         this.health = this.getComponent(PlayerHealth)
         this.experience = this.getComponent(PlayerExperience)
         this.skill = this.getComponent(PlayerSkill)
 
-        // ========== 1. 注册到 ServiceLocator（必须最先执行）==========
-        const serviceLocator = ServiceLocator.getInstance()
-        serviceLocator.registerIfNotExist('playerController', this);
-        serviceLocator.registerIfNotExist('IPlayer', this);
-        console.log('[PlayerController] 已注册到 ServiceLocator');
-
-        // 设置摇杆
         if (this.movement && this.joystick) {
             this.movement.joystick = this.joystick
         }
+    }
 
-        // 监听事件
-        EventBus.on(EventNames.ENEMY_HIT_PLAYER, this.onTakeDamage, this)
-        EventBus.on(EventNames.GAME_PAUSE, this.onGamePause, this)
+    /**
+     * 注册服务到 ServiceLocator
+     */
+    private registerServices(): void {
+        const serviceLocator = ServiceLocator.getInstance()
+        serviceLocator.registerIfNotExist('player', this)
+    }
 
-        // 获取网络服务（单机模式跳过）
-        const mode = (window as any).gameMode
-        if (mode === 'multi') {
-            this.networkService = this.getService<INetworkService>('INetworkService')
-        } else {
-            this.networkService = null
-        }
-
-        // ========== 2. 技能系统初始化 ==========
+    /**
+     * 初始化技能系统
+     */
+    private initSkillSystem(): void {
         const skillManager = SkillManager.getInstance()
         skillManager.init(this)
         skillManager.loadAll(() => {
-            console.log('[PlayerController] 技能系统已加载')
+            console.log('[PlayerController] 技能配置加载完成')
         })
 
-        // ========== 3. 初始化技能工厂 ==========
         this.skillFactory = SkillFactory.getInstance()
 
-        // ========== 4. TriggerSystem 初始化 ==========
+        // TriggerSystem 初始化（用于升级触发器）
         const triggerSystem = TriggerSystem.getInstance()
         triggerSystem.init(this)
-        console.log('[PlayerController] TriggerSystem 已初始化');
+    }
 
-        // 监听技能选择事件
+    /**
+     * 绑定事件监听
+     */
+    private bindEvents(): void {
+        EventBus.on(EventNames.ENEMY_HIT_PLAYER, this.onTakeDamage, this)
+        EventBus.on(EventNames.GAME_PAUSE, this.onGamePause, this)
         EventBus.on(EventNames.SKILL_SELECTED, this.onSkillSelected, this)
     }
 
-    protected onDestroy() {
+    /**
+     * 解绑事件监听
+     */
+    private unbindEvents(): void {
         EventBus.off(EventNames.ENEMY_HIT_PLAYER, this.onTakeDamage, this)
         EventBus.off(EventNames.GAME_PAUSE, this.onGamePause, this)
         EventBus.off(EventNames.SKILL_SELECTED, this.onSkillSelected, this)
+    }
 
-        // 销毁 TriggerSystem
-        const triggerSystem = TriggerSystem.getInstance()
-        triggerSystem.destroy()
-        
-        // 清除所有技能
-        if (this.skillFactory) {
-            this.skillFactory.clearAllSkills()
+    /**
+     * 初始化网络服务（联机模式）
+     */
+    private initNetworkService(): void {
+        const gameContext = GameContext.getInstance()
+        if (gameContext.isMultiMode()) {
+            this.networkService = this.getService<INetworkService>('networkService')
         }
     }
 
-    private onGamePause(pause: boolean) {
+    /**
+     * 清理资源
+     */
+    private cleanup(): void {
+        // 清理技能工厂
+        if (this.skillFactory) {
+            this.skillFactory.clearAllSkills()
+        }
+        
+        // 销毁 TriggerSystem
+        const triggerSystem = TriggerSystem.getInstance()
+        triggerSystem.destroy()
+    }
+
+    // ========== 事件回调 ==========
+
+    private onGamePause(pause: boolean): void {
         this.isPaused = pause
         if (this.movement) {
             this.movement.enabled = !pause
         }
     }
 
-    private onTakeDamage(damage: number) {
+    private onTakeDamage(damage: number): void {
         if (this.isPaused) return
         if (!this.health) return
 
         const isDead = this.health.takeDamage(damage)
-
         if (isDead) {
             this.die()
         }
     }
 
-    private die() {
-        console.log('玩家死亡！')
+    private onSkillSelected(data: { skillId: string, level: number }): void {
+        if (this.skillFactory) {
+            this.skillFactory.addSkillToPlayer(this.node, data.skillId, data.level)
+        }
+    }
+
+    private die(): void {
         if (this.playerAnim) {
             this.playerAnim.playDie()
         }
@@ -134,36 +178,7 @@ export class PlayerController extends BaseComponent implements IPlayer {
         EventBus.emit(EventNames.PLAYER_DIED)
     }
 
-    /**
-     * 技能选择回调
-     * 使用新的通用技能系统
-     */
-    private onSkillSelected(data: { skillId: string, level: number }) {
-        // 使用技能工厂添加技能
-        if (this.skillFactory) {
-            this.skillFactory.addSkillToPlayer(this.node, data.skillId, data.level)
-        }
-    }
-
-    // ========== 血木共生 - 永久回血相关 ==========
-    public addPermanentRegen(value: number) {
-        this.permanentRegen += value
-        console.log(`[血木共生] 永久回血增加 ${value}，当前总回血: ${this.permanentRegen}`)
-    }
-
-    public getPermanentRegen(): number {
-        return this.permanentRegen
-    }
-
-    public getShield(): number {
-        return this.health?.getShield?.() || 0;
-    }
-
-    public addTemporaryAttackBonus(bonus: number, duration: number) {
-        this.skill?.addTemporaryAttackBonus(bonus, duration);
-    }
-
-    // ========== IPlayer 接口实现 ==========
+    // ========== IPlayer 接口实现 - 血量相关 ==========
 
     getCurrentHealth(): number {
         return this.health?.getCurrentHealth() || 0
@@ -171,10 +186,6 @@ export class PlayerController extends BaseComponent implements IPlayer {
 
     getMaxHealth(): number {
         return this.health?.getMaxHealth() || 100
-    }
-
-    public getHealth(): PlayerHealth {
-        return this.health;
     }
 
     takeDamage(damage: number): boolean {
@@ -188,6 +199,8 @@ export class PlayerController extends BaseComponent implements IPlayer {
     revive(hpPercent: number): void {
         this.health?.revive(hpPercent)
     }
+
+    // ========== IPlayer 接口实现 - 经验/等级相关 ==========
 
     getExp(): number {
         return this.experience?.getExp() || 0
@@ -205,8 +218,10 @@ export class PlayerController extends BaseComponent implements IPlayer {
         return this.experience?.getExpMultiplier() || 1
     }
 
+    // ========== IPlayer 接口实现 - 战斗相关 ==========
+
     getAttack(): number {
-        return this.skill?.getAttack() || 20
+        return this.skill?.getAttack() || PlayerConfig.BASE_ATTACK
     }
 
     getAttackCooldownReduction(): number {
@@ -219,35 +234,7 @@ export class PlayerController extends BaseComponent implements IPlayer {
         return baseSpeed * bonus
     }
 
-    // ========== 火球技能相关（保留基础攻击）==========
-    public getFireballCount(): number {
-        // 默认返回1，后续可以通过技能系统修改
-        return 1
-    }
-
-    public getHasDoubleFireball(): boolean {
-        return this.getFireballCount() >= 2
-    }
-
-    public getHasPierceFireball(): boolean {
-        return false
-    }
-
-    public getFireballSpeedMultiplier(): number {
-        return 1.0
-    }
-
-    public getPierceCount(): number {
-        return 0
-    }
-
-    public getFireballSizeMultiplier(): number {
-        return 1.0
-    }
-
-    public getFireballDamageBonus(): number {
-        return 1.0
-    }
+    // ========== IPlayer 接口实现 - 其他属性 ==========
 
     getMagnetRangeMultiplier(): number {
         return 1 + (this.skill?.getMagnetBonus() || 0)
@@ -257,7 +244,38 @@ export class PlayerController extends BaseComponent implements IPlayer {
         return this.skill?.getVampirePercent() || 0
     }
 
-    // ========== 属性修改方法 ==========
+    // ========== IPlayer 接口实现 - 组件访问 ==========
+
+    getNode(): Node {
+        return this.node
+    }
+
+    getShield(): number {
+        return this.health?.getShield?.() || 0
+    }
+
+    getHealth(): PlayerHealth {
+        return this.health
+    }
+
+    getSkill(): PlayerSkill {
+        return this.skill
+    }
+
+    addTemporaryAttackBonus(bonus: number, duration: number): void {
+        this.skill?.addTemporaryAttackBonus(bonus, duration)
+    }
+
+    onAttackHit(damage: number, target?: any): void {
+        if (this.skill && this.skill.getVampirePercent() > 0) {
+            const healAmount = damage * this.skill.getVampirePercent()
+            if (healAmount > 0 && this.health) {
+                this.health.heal(healAmount)
+            }
+        }
+    }
+
+    // ========== IPlayer 接口实现 - 攻击相关属性修改 ==========
 
     addAttackMultiplier(value: number): void {
         this.skill?.addAttackMultiplier(value)
@@ -279,6 +297,8 @@ export class PlayerController extends BaseComponent implements IPlayer {
         this.skill?.addPermanentCooldown(bonus)
     }
 
+    // ========== IPlayer 接口实现 - 移动相关属性修改 ==========
+
     addSpeedMultiplier(value: number): void {
         this.movement?.setSpeedMultiplier(value)
     }
@@ -288,8 +308,10 @@ export class PlayerController extends BaseComponent implements IPlayer {
     }
 
     setSpeed(value: number): void {
-        // 由技能系统处理
+        // 由技能系统处理，暂不实现
     }
+
+    // ========== IPlayer 接口实现 - 血量相关属性修改 ==========
 
     addDamageReduction(value: number): void {
         this.health?.addDamageReduction(value)
@@ -307,6 +329,8 @@ export class PlayerController extends BaseComponent implements IPlayer {
         this.health?.addKillShield(amount)
     }
 
+    // ========== IPlayer 接口实现 - 经验相关属性修改 ==========
+
     addExpBonus(value: number): void {
         this.experience?.addExpBonus(value)
     }
@@ -319,6 +343,8 @@ export class PlayerController extends BaseComponent implements IPlayer {
         this.experience?.setExpMultiplier(value)
     }
 
+    // ========== IPlayer 接口实现 - 磁力相关属性修改 ==========
+
     addMagnetBonus(value: number): void {
         this.skill?.addMagnetBonus(value)
     }
@@ -327,37 +353,7 @@ export class PlayerController extends BaseComponent implements IPlayer {
         this.skill?.setMagnetBonus(mult - 1)
     }
 
-    setDoubleFireball(active: boolean): void {
-        // 暂不实现，由新技能系统处理
-    }
-
-    setPierceFireball(active: boolean): void {
-        // 暂不实现
-    }
-
-    setPierceCount(value: number): void {
-        // 暂不实现
-    }
-
-    setFireballCount(value: number): void {
-        // 暂不实现
-    }
-
-    setFireballSizeMultiplier(value: number): void {
-        // 暂不实现
-    }
-
-    setFireballSpeedMultiplier(mult: number): void {
-        // 暂不实现
-    }
-
-    addFireballSpeedMultiplier(mult: number): void {
-        // 暂不实现
-    }
-
-    addFireballDamageBonus(bonus: number): void {
-        // 暂不实现
-    }
+    // ========== IPlayer 接口实现 - 其他属性修改 ==========
 
     addVampirePercent(value: number): void {
         this.skill?.addVampirePercent(value)
@@ -391,56 +387,67 @@ export class PlayerController extends BaseComponent implements IPlayer {
         this.skill?.setRebirthKillRequired(required)
     }
 
-    public onAttackHit(damage: number, target?: any) {
-        if (this.skill && this.skill.getVampirePercent() > 0) {
-            const healAmount = damage * this.skill.getVampirePercent()
-            if (healAmount > 0 && this.health) {
-                this.health.heal(healAmount)
-            }
-        }
+    // ========== 血木共生 - 永久回血相关 ==========
+
+    public addPermanentRegen(value: number): void {
+        this.permanentRegen += value
     }
 
-    public onEnemyKilled() {
+    public getPermanentRegen(): number {
+        return this.permanentRegen
+    }
+
+    // ========== 其他公开方法 ==========
+
+    public onEnemyKilled(): void {
         if (this.skill) {
             this.skill.triggerRage()
         }
     }
 
-    public getSkill(): PlayerSkill {
-        return this.skill;
-    }
-
-    public setRebirthAvailable(available: boolean) {
-        this.health?.setRebirthAvailable(available);
+    public setRebirthAvailable(available: boolean): void {
+        this.health?.setRebirthAvailable(available)
     }
 
     public isRebirthAvailable(): boolean {
-        return this.health?.isRebirthAvailable?.() || false;
+        return this.health?.isRebirthAvailable?.() || false
     }
 
-    update(deltaTime: number) {
+    // ========== 更新循环 ==========
+
+    update(deltaTime: number): void {
         if (this.isPaused) return
         if (!this.health || this.health.getCurrentHealth() <= 0) return
 
+        this.updateTemporaryEffects(deltaTime)
+        this.updateMovementAndAnimation(deltaTime)
+        this.syncNetworkPosition()
+    }
+
+    private updateTemporaryEffects(deltaTime: number): void {
         this.skill?.updateTemporaryBonus(deltaTime)
+    }
 
-        if (this.movement && this.skill) {
-            const direction = this.movement.getDirection()
-            this.movement.updateSpriteDirection(direction)
+    private updateMovementAndAnimation(deltaTime: number): void {
+        if (!this.movement || !this.skill) return
 
-            const isMoving = this.movement.getIsMoving()
-            if (this.playerAnim) {
-                if (isMoving) {
-                    this.playerAnim.playMove()
-                } else {
-                    this.playerAnim.playIdle()
-                }
+        const direction = this.movement.getDirection()
+        this.movement.updateSpriteDirection(direction)
+
+        const isMoving = this.movement.getIsMoving()
+        if (this.playerAnim) {
+            if (isMoving) {
+                this.playerAnim.playMove()
+            } else {
+                this.playerAnim.playIdle()
             }
-
-            const baseSpeed = PlayerConfig.BASE_SPEED
-            this.movement.updatePosition(deltaTime, baseSpeed)
         }
 
+        const baseSpeed = PlayerConfig.BASE_SPEED
+        this.movement.updatePosition(deltaTime, baseSpeed)
+    }
+
+    private syncNetworkPosition(): void {
         if (this.networkService && this.networkService.isConnected()) {
             this.networkService.setMove(this.node.position.x, this.node.position.y)
         }

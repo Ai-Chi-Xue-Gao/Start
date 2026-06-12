@@ -48,7 +48,6 @@ export class BestiaryConfigLoader {
             remaining--;
             if (remaining === 0) {
                 this.isLoaded = true;
-                console.log('[BestiaryConfigLoader] 所有配置加载完成');
                 for (const cb of this.loadCallbacks) {
                     cb();
                 }
@@ -66,7 +65,6 @@ export class BestiaryConfigLoader {
     private loadAffixes(callback: () => void): void {
         resources.load('config/affixes', JsonAsset, (err, asset) => {
             if (err) {
-                console.error('[BestiaryConfigLoader] 加载 affixes.json 失败:', err);
                 callback();
                 return;
             }
@@ -87,7 +85,6 @@ export class BestiaryConfigLoader {
                 });
             }
             
-            console.log(`[BestiaryConfigLoader] 加载词条: ${this.affixes.size} 个`);
             callback();
         });
     }
@@ -98,7 +95,6 @@ export class BestiaryConfigLoader {
     private loadBestiaryEnemies(callback: () => void): void {
         resources.load('config/bestiary_enemies', JsonAsset, (err, asset) => {
             if (err) {
-                console.error('[BestiaryConfigLoader] 加载 bestiary_enemies.json 失败:', err);
                 // 使用默认配置
                 this.loadDefaultEnemies();
                 callback();
@@ -108,9 +104,7 @@ export class BestiaryConfigLoader {
             const data = asset.json as any;
             this.races = data.races || [];
             this.enemies = data.enemies || [];
-            
-            console.log(`[BestiaryConfigLoader] 加载种族: ${this.races.length} 个`);
-            console.log(`[BestiaryConfigLoader] 加载敌人: ${this.enemies.length} 个`);
+
             callback();
         });
     }

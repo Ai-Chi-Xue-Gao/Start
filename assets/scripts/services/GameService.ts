@@ -8,16 +8,9 @@ import { EventNames } from '../utils/EventNames';
 import { CombatService } from './CombatService';
 import { SkillService } from './SkillService';
 import { TriggerSystem } from '../Managers/TriggerSystem';
+import { GameContext } from '../core/GameContext';
 
 const { ccclass, property } = _decorator;
-
-/**
- * 游戏模式枚举
- */
-export enum GameMode {
-    SINGLE = 'single',
-    MULTI = 'multi'
-}
 
 /**
  * 游戏服务
@@ -30,9 +23,10 @@ export class GameService extends Component {
     @property(Node)
     playerNode: Node = null;
 
-    private gameStateMachine: GameStateMachine = null;
+    private gameStateMachine: GameStateMachine | null = null;
     private isInitialized: boolean = false;
-    private gameMode: GameMode = GameMode.SINGLE;
+
+    // ========== 生命周期 ==========
 
     protected onLoad() {
         GameService.instance = this;
@@ -42,173 +36,157 @@ export class GameService extends Component {
         this.initializeServices();
     }
 
-    static getInstance(): GameService {
+    protected onDestroy() {
+        this.unregisterServices();
+    }
+
+    static getInstance(): GameService | null {
         return GameService.instance;
     }
 
-    /**
-     * 初始化所有服务
-     */
-    private initializeServices() {
+    // ========== 服务初始化 ==========
+
+    private initializeServices(): void {
         if (this.isInitialized) return;
 
-        // 1. 读取游戏模式（从 window 临时变量）
-        const mode = (window as any).gameMode;
-        if (mode === 'multi') {
-            this.gameMode = GameMode.MULTI;
-        } else {
-            this.gameMode = GameMode.SINGLE;
-        }
-        console.log(`[GameService] 游戏模式: ${this.gameMode}`);
+        // 1. 初始化 GameStateMachine（纯单例）
+        this.initStateMachine();
 
-        // 2. 获取或添加 GameStateMachine
-        this.gameStateMachine = this.getComponent(GameStateMachine);
-        if (!this.gameStateMachine) {
-            this.gameStateMachine = this.addComponent(GameStateMachine);
-        }
+        // 2. 注册服务到 ServiceLocator
+        this.registerServices();
 
-        // 3. 注册服务到 ServiceLocator
-        ServiceLocator.getInstance().register('stateMachine', this.gameStateMachine);
-        ServiceLocator.getInstance().register('gameService', this);
+        // 3. 注册节点引用
+        this.registerNodeReferences();
 
-        // 4. 注册节点引用
-        const canvas = this.node.scene.getChildByName('Canvas')
-        if (canvas) {
-            ServiceLocator.getInstance().register('canvasNode', canvas)
-        }
+        // 4. 注册玩家
+        this.registerPlayer();
 
-        // 5. 注册玩家
-        if (this.playerNode) {
-            ServiceLocator.getInstance().register('playerNode', this.playerNode)
-            const playerController = this.playerNode.getComponent('PlayerController')
-            if (playerController) {
-                ServiceLocator.getInstance().register('playerController', playerController)
-                ServiceLocator.getInstance().register('IPlayer', playerController)
-            }
-        }
-
-        // 6. 初始化 TriggerSystem（注册到 ServiceLocator）
-        const triggerSystem = TriggerSystem.getInstance();
-        ServiceLocator.getInstance().register('triggerSystem', triggerSystem);
-        console.log('[GameService] TriggerSystem 已注册到 ServiceLocator');
-
-        // 7. 初始化 CombatService 和 SkillService
-        CombatService.getInstance().init();
-        SkillService.getInstance().init();
+        // 5. 初始化子系统
+        this.initSubsystems();
 
         this.isInitialized = true;
-        console.log('[GameService] 所有服务注册完成');
 
-        // 8. 触发游戏就绪事件
+        // 6. 触发游戏就绪事件
         EventBus.emit(EventNames.GAME_READY);
 
-        // 9. ✅ 自动启动游戏（根据模式）
+        // 7. 自动启动游戏
         this.autoStartGame();
     }
 
-    /**
-     * ✅ 自动启动游戏
-     */
-    private autoStartGame() {
-        if (this.gameMode === GameMode.SINGLE) {
-            this.startSinglePlayer();
-        } else if (this.gameMode === GameMode.MULTI) {
-            this.startMultiPlayer();
-        }
+    private initStateMachine(): void {
+        this.gameStateMachine = GameStateMachine.getInstance();
+        this.gameStateMachine.init();
+        this.gameStateMachine.reset();
     }
 
-    // ========== 游戏模式查询方法 ==========
-
-    /**
-     * 获取游戏模式
-     */
-    public getGameMode(): GameMode {
-        return this.gameMode;
-    }
-
-    /**
-     * 是否为单机模式
-     */
-    public isSingleMode(): boolean {
-        return this.gameMode === GameMode.SINGLE;
-    }
-
-    /**
-     * 是否为联机模式
-     */
-    public isMultiMode(): boolean {
-        return this.gameMode === GameMode.MULTI;
-    }
-
-    // ========== 游戏控制方法 ==========
-
-    /**
-     * 开始游戏（单机模式）
-     */
-    public startSinglePlayer() {
-        if (!this.isInitialized) {
-            console.warn('[GameService] 服务未初始化完成');
-            return;
-        }
-
-        this.gameStateMachine.startGame();
-        console.log('[GameService] 单机游戏开始');
-    }
-
-    /**
-     * 开始联机模式
-     */
-    public startMultiPlayer() {
-        if (!this.isInitialized) {
-            console.warn('[GameService] 服务未初始化完成');
-            return;
-        }
-
-        this.gameStateMachine.transitionTo(GameState.WAITING_ROOM);
-        console.log('[GameService] 联机模式，等待房间...');
-    }
-
-    /**
-     * 结束游戏
-     */
-    public endGame() {
-        this.gameStateMachine.gameOver();
-    }
-
-    /**
-     * 重置游戏（用于重试）
-     */
-    public resetGame() {
-        EventBus.emit(EventNames.GAME_RESET);
-        this.gameStateMachine.transitionTo(GameState.MENU);
-        console.log('[GameService] 游戏已重置');
-    }
-
-    /**
-     * 获取游戏状态机
-     */
-    public getStateMachine(): GameStateMachine {
-        return this.gameStateMachine;
-    }
-
-    /**
-     * 检查游戏是否运行中
-     */
-    public isGameRunning(): boolean {
-        const stateMachine = ServiceLocator.getInstance().get<GameStateMachine>('stateMachine');
-        return stateMachine?.getState() === GameState.RUNNING;
-    }
-
-    protected onDestroy() {
-        // 清理服务（可选）
+    private registerServices(): void {
         const serviceLocator = ServiceLocator.getInstance();
+        
+        serviceLocator.register('stateMachine', this.gameStateMachine);
+        serviceLocator.register('gameService', this);
+    }
+
+    private registerNodeReferences(): void {
+        const canvas = this.node.scene.getChildByName('Canvas');
+        if (canvas) {
+            ServiceLocator.getInstance().register('canvasNode', canvas);
+        }
+    }
+
+    private registerPlayer(): void {
+        if (!this.playerNode) return;
+
+        const serviceLocator = ServiceLocator.getInstance();
+        
+        serviceLocator.register('playerNode', this.playerNode);
+        
+        const playerController = this.playerNode.getComponent('PlayerController');
+        if (playerController) {
+            serviceLocator.register('player', playerController);
+        }
+    }
+
+    private initSubsystems(): void {
+        const triggerSystem = TriggerSystem.getInstance();
+        ServiceLocator.getInstance().register('triggerSystem', triggerSystem);
+
+        CombatService.getInstance().init();
+        SkillService.getInstance().init();
+    }
+
+    private unregisterServices(): void {
+        const serviceLocator = ServiceLocator.getInstance();
+        
         serviceLocator.unregister('stateMachine');
         serviceLocator.unregister('gameService');
         serviceLocator.unregister('canvasNode');
         serviceLocator.unregister('playerNode');
-        serviceLocator.unregister('playerController');
-        serviceLocator.unregister('IPlayer');
+        serviceLocator.unregister('player');
         serviceLocator.unregister('triggerSystem');
-        console.log('[GameService] 服务已清理');
+        
+        const triggerSystem = TriggerSystem.getInstance();
+        triggerSystem.destroy();
+    }
+
+    // ========== 游戏启动控制 ==========
+
+    private autoStartGame(): void {
+        const gameContext = GameContext.getInstance();
+        
+        if (gameContext.isSingleMode()) {
+            this.startSinglePlayer();
+        } else if (gameContext.isMultiMode()) {
+            this.startMultiPlayer();
+        }
+    }
+
+    public startSinglePlayer(): void {
+        if (!this.isInitialized) return;
+        
+        this.gameStateMachine?.startGame();
+    }
+
+    public startMultiPlayer(): void {
+        if (!this.isInitialized) return;
+        
+        this.gameStateMachine?.transitionTo(GameState.WAITING_ROOM);
+    }
+
+    // ========== 游戏状态控制 ==========
+
+    public endGame(): void {
+        this.gameStateMachine?.gameOver();
+    }
+
+    public resetGame(): void {
+        EventBus.emit(EventNames.GAME_RESET);
+        this.gameStateMachine?.reset();
+        this.gameStateMachine?.transitionTo(GameState.MENU);
+    }
+
+    public pauseGame(): void {
+        this.gameStateMachine?.pause();
+    }
+
+    public resumeGame(): void {
+        this.gameStateMachine?.resume();
+    }
+
+    // ========== 查询方法 ==========
+
+    public getStateMachine(): GameStateMachine | null {
+        return this.gameStateMachine;
+    }
+
+    public isGameRunning(): boolean {
+        return this.gameStateMachine?.getState() === GameState.RUNNING;
+    }
+
+    public isGamePaused(): boolean {
+        return this.gameStateMachine?.isPaused() ?? false;
+    }
+
+    public isReady(): boolean {
+        return this.isInitialized;
     }
 }

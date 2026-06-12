@@ -1,405 +1,83 @@
 {
-  "========== 基础技能 - 火系 ==========": {},
-  "fire_001": {
-    "1": { "damagePercent": 0.5, "cooldown": 1.0, "projectileCount": 1 },
-    "2": { "damagePercent": 0.6, "cooldown": 0.9, "projectileCount": 1 },
-    "3": { "damagePercent": 0.7, "cooldown": 0.8, "projectileCount": 2 }
+  "========== 五行环 ==========": {},
+  "fire_ring": {
+    "1": { "damagePercent": 0.6, "cooldown": 4.0, "areaRadius": 100 },
+    "2": { "damagePercent": 0.7, "cooldown": 3.5, "areaRadius": 120 },
+    "3": { "damagePercent": 0.8, "cooldown": 3.0, "areaRadius": 150 }
   },
-  "fire_002": {
-    "1": { "damagePercent": 0.3, "duration": 3.0, "cooldown": 8.0 },
-    "2": { "damagePercent": 0.35, "duration": 3.5, "cooldown": 7.0 },
-    "3": { "damagePercent": 0.4, "duration": 4.0, "cooldown": 6.0 }
+  "water_ring": {
+    "1": { "damagePercent": 0.5, "cooldown": 4.0, "areaRadius": 100, "slowPercent": 0.3, "slowDuration": 1.5 },
+    "2": { "damagePercent": 0.6, "cooldown": 3.5, "areaRadius": 120, "slowPercent": 0.35, "slowDuration": 1.8 },
+    "3": { "damagePercent": 0.7, "cooldown": 3.0, "areaRadius": 150, "slowPercent": 0.4, "slowDuration": 2.0 }
   },
-  "fire_003": {
-    "1": { "damagePercent": 0.8, "cooldown": 5.0, "pierce": true },
-    "2": { "damagePercent": 0.9, "cooldown": 4.5, "pierce": true },
-    "3": { "damagePercent": 1.0, "cooldown": 4.0, "pierce": true }
+  "wood_ring": {
+    "1": { "damagePercent": 0.5, "cooldown": 4.0, "areaRadius": 100, "healPercent": 0.03 },
+    "2": { "damagePercent": 0.6, "cooldown": 3.5, "areaRadius": 120, "healPercent": 0.04 },
+    "3": { "damagePercent": 0.7, "cooldown": 3.0, "areaRadius": 150, "healPercent": 0.05 }
   },
-  "fire_004": {
-    "1": { "damagePercent": 0.4, "duration": 2.0, "cooldown": 10.0 },
-    "2": { "damagePercent": 0.45, "duration": 2.5, "cooldown": 9.0 },
-    "3": { "damagePercent": 0.5, "duration": 3.0, "cooldown": 8.0 }
+  "metal_ring": {
+    "1": { "damagePercent": 0.6, "cooldown": 4.0, "areaRadius": 100, "knockback": true },
+    "2": { "damagePercent": 0.7, "cooldown": 3.5, "areaRadius": 120, "knockback": true },
+    "3": { "damagePercent": 0.8, "cooldown": 3.0, "areaRadius": 150, "knockback": true }
   },
-  "fire_005": {
-    "1": { "damagePercent": 0.6, "cooldown": 4.0 },
-    "2": { "damagePercent": 0.7, "cooldown": 3.5 },
-    "3": { "damagePercent": 0.8, "cooldown": 3.0 }
-  },
-  "fire_006": {
-    "1": { "damagePercent": 0.4, "cooldown": 2.5, "projectileCount": 3 },
-    "2": { "damagePercent": 0.45, "cooldown": 2.2, "projectileCount": 3 },
-    "3": { "damagePercent": 0.5, "cooldown": 2.0, "projectileCount": 4 }
-  },
-  "fire_007": {
-    "1": { "damagePercent": 0.5, "cooldown": 6.0, "delay": 5.0 },
-    "2": { "damagePercent": 0.6, "cooldown": 5.5, "delay": 5.0 },
-    "3": { "damagePercent": 0.7, "cooldown": 5.0, "delay": 5.0 }
-  },
-  "fire_008": {
-    "1": { "reflectPercent": 0.3, "duration": 5.0, "cooldown": 15.0 },
-    "2": { "reflectPercent": 0.35, "duration": 6.0, "cooldown": 14.0 },
-    "3": { "reflectPercent": 0.4, "duration": 7.0, "cooldown": 12.0 }
-  },
-  "fire_009": {
-    "1": { "damagePercent": 0.35, "duration": 15.0, "cooldown": 20.0 },
-    "2": { "damagePercent": 0.4, "duration": 18.0, "cooldown": 18.0 },
-    "3": { "damagePercent": 0.45, "duration": 20.0, "cooldown": 15.0 }
+  "earth_ring": {
+    "1": { "damagePercent": 0.4, "cooldown": 6.0, "areaRadius": 100, "stunDuration": 1.0 },
+    "2": { "damagePercent": 0.5, "cooldown": 5.5, "areaRadius": 120, "stunDuration": 1.2 },
+    "3": { "damagePercent": 0.6, "cooldown": 5.0, "areaRadius": 150, "stunDuration": 1.5 }
   },
 
-  "========== 基础技能 - 水系 ==========": {},
-  "water_001": {
-    "1": { "damagePercent": 0.45, "cooldown": 1.0 },
-    "2": { "damagePercent": 0.55, "cooldown": 0.9 },
-    "3": { "damagePercent": 0.65, "cooldown": 0.8 }
+  "========== 指定区域瞬间范围 ==========": {},
+  "explosion": {
+    "1": { "damagePercent": 1.0, "cooldown": 8.0, "areaRadius": 200 },
+    "2": { "damagePercent": 1.2, "cooldown": 7.0, "areaRadius": 220 },
+    "3": { "damagePercent": 1.5, "cooldown": 6.0, "areaRadius": 250 }
   },
-  "water_002": {
-    "1": { "duration": 2.0, "cooldown": 6.0 },
-    "2": { "duration": 2.5, "cooldown": 5.5 },
-    "3": { "duration": 3.0, "cooldown": 5.0 }
-  },
-  "water_003": {
-    "1": { "damagePercent": 0.7, "cooldown": 5.0, "knockback": true },
-    "2": { "damagePercent": 0.8, "cooldown": 4.5, "knockback": true },
-    "3": { "damagePercent": 0.9, "cooldown": 4.0, "knockback": true }
-  },
-  "water_004": {
-    "1": { "healPercent": 0.05, "duration": 3.0, "cooldown": 12.0 },
-    "2": { "healPercent": 0.06, "duration": 3.5, "cooldown": 11.0 },
-    "3": { "healPercent": 0.07, "duration": 4.0, "cooldown": 10.0 }
-  },
-  "water_005": {
-    "1": { "damagePercent": 0.5, "slowPercent": 0.3, "cooldown": 4.0 },
-    "2": { "damagePercent": 0.6, "slowPercent": 0.35, "cooldown": 3.5 },
-    "3": { "damagePercent": 0.7, "slowPercent": 0.4, "cooldown": 3.0 }
-  },
-  "water_006": {
-    "1": { "damagePercent": 0.35, "cooldown": 2.5, "projectileCount": 3 },
-    "2": { "damagePercent": 0.4, "cooldown": 2.2, "projectileCount": 3 },
-    "3": { "damagePercent": 0.45, "cooldown": 2.0, "projectileCount": 4 }
-  },
-  "water_007": {
-    "1": { "duration": 5.0, "cooldown": 20.0 },
-    "2": { "duration": 6.0, "cooldown": 18.0 },
-    "3": { "duration": 8.0, "cooldown": 15.0 }
-  },
-  "water_008": {
-    "1": { "shieldAmount": 100, "duration": 8.0, "cooldown": 12.0 },
-    "2": { "shieldAmount": 150, "duration": 9.0, "cooldown": 11.0 },
-    "3": { "shieldAmount": 200, "duration": 10.0, "cooldown": 10.0 }
-  },
-  "water_009": {
-    "1": { "healPercent": 0.05, "duration": 15.0, "cooldown": 20.0 },
-    "2": { "healPercent": 0.06, "duration": 18.0, "cooldown": 18.0 },
-    "3": { "healPercent": 0.07, "duration": 20.0, "cooldown": 15.0 }
+  "ice_pillar": {
+    "1": { "damagePercent": 0.8, "cooldown": 6.0, "areaRadius": 120, "freezeDuration": 1.5 },
+    "2": { "damagePercent": 1.0, "cooldown": 5.5, "areaRadius": 140, "freezeDuration": 2.0 },
+    "3": { "damagePercent": 1.2, "cooldown": 5.0, "areaRadius": 160, "freezeDuration": 2.5 }
   },
 
-  "========== 基础技能 - 木系 ==========": {},
-  "wood_001": {
-    "1": { "damagePercent": 0.4, "cooldown": 0.9 },
-    "2": { "damagePercent": 0.5, "cooldown": 0.8 },
-    "3": { "damagePercent": 0.6, "cooldown": 0.7 }
+  "========== 指定区域持续范围（传奇技能）==========": {},
+  "tornado": {
+    "1": { "damagePercent": 1.2, "cooldown": 12.0, "areaRadius": 180, "duration": 5.0, "pullRadius": 250 },
+    "2": { "damagePercent": 1.5, "cooldown": 11.0, "areaRadius": 200, "duration": 6.0, "pullRadius": 280 },
+    "3": { "damagePercent": 1.8, "cooldown": 10.0, "areaRadius": 250, "duration": 8.0, "pullRadius": 350 }
   },
-  "wood_002": {
-    "1": { "duration": 2.0, "cooldown": 5.0 },
-    "2": { "duration": 2.5, "cooldown": 4.5 },
-    "3": { "duration": 3.0, "cooldown": 4.0 }
-  },
-  "wood_003": {
-    "1": { "damagePercent": 0.3, "duration": 20.0, "cooldown": 25.0 },
-    "2": { "damagePercent": 0.35, "duration": 22.0, "cooldown": 22.0 },
-    "3": { "damagePercent": 0.4, "duration": 25.0, "cooldown": 20.0 }
-  },
-  "wood_004": {
-    "1": { "healPercent": 0.15, "cooldown": 12.0 },
-    "2": { "healPercent": 0.18, "cooldown": 11.0 },
-    "3": { "healPercent": 0.22, "cooldown": 10.0 }
-  },
-  "wood_005": {
-    "1": { "healPercent": 0.1, "cooldown": 8.0 },
-    "2": { "healPercent": 0.12, "cooldown": 7.0 },
-    "3": { "healPercent": 0.15, "cooldown": 6.0 }
-  },
-  "wood_006": {
-    "1": { "regenPercent": 0.05, "duration": 5.0, "cooldown": 15.0 },
-    "2": { "regenPercent": 0.06, "duration": 6.0, "cooldown": 14.0 },
-    "3": { "regenPercent": 0.07, "duration": 7.0, "cooldown": 12.0 }
-  },
-  "wood_007": {
-    "1": { "damagePercent": 0.6, "cooldown": 8.0, "delay": 5.0 },
-    "2": { "damagePercent": 0.7, "cooldown": 7.0, "delay": 5.0 },
-    "3": { "damagePercent": 0.8, "cooldown": 6.0, "delay": 5.0 }
-  },
-  "wood_008": {
-    "1": { "damagePercent": 0.2, "duration": 5.0, "cooldown": 10.0 },
-    "2": { "damagePercent": 0.25, "duration": 6.0, "cooldown": 9.0 },
-    "3": { "damagePercent": 0.3, "duration": 7.0, "cooldown": 8.0 }
-  },
-  "wood_009": {
-    "1": { "attackSpeedBonus": 0.2, "duration": 15.0, "cooldown": 20.0 },
-    "2": { "attackSpeedBonus": 0.25, "duration": 18.0, "cooldown": 18.0 },
-    "3": { "attackSpeedBonus": 0.3, "duration": 20.0, "cooldown": 15.0 }
+  "sandstorm": {
+    "1": { "damagePercent": 1.0, "cooldown": 12.0, "areaRadius": 200, "duration": 6.0, "slowPercent": 0.4 },
+    "2": { "damagePercent": 1.3, "cooldown": 11.0, "areaRadius": 250, "duration": 8.0, "slowPercent": 0.5 },
+    "3": { "damagePercent": 1.6, "cooldown": 10.0, "areaRadius": 300, "duration": 10.0, "slowPercent": 0.6 }
   },
 
-  "========== 基础技能 - 金系 ==========": {},
-  "metal_001": {
-    "1": { "damagePercent": 0.55, "cooldown": 1.2 },
-    "2": { "damagePercent": 0.65, "cooldown": 1.1 },
-    "3": { "damagePercent": 0.75, "cooldown": 1.0 }
+  "========== 敌人密集区域范围 ==========": {},
+  "mana_explosion": {
+    "1": { "damagePercent": 1.2, "cooldown": 12.0, "areaRadius": 180 },
+    "2": { "damagePercent": 1.4, "cooldown": 11.0, "areaRadius": 200 },
+    "3": { "damagePercent": 1.6, "cooldown": 10.0, "areaRadius": 220 }
   },
-  "metal_002": {
-    "1": { "damagePercent": 0.8, "cooldown": 6.0 },
-    "2": { "damagePercent": 0.9, "cooldown": 5.5 },
-    "3": { "damagePercent": 1.0, "cooldown": 5.0 }
-  },
-  "metal_003": {
-    "1": { "duration": 5.0, "cooldown": 20.0 },
-    "2": { "duration": 6.0, "cooldown": 18.0 },
-    "3": { "duration": 8.0, "cooldown": 15.0 }
-  },
-  "metal_004": {
-    "1": { "damagePercent": 0.6, "cooldown": 5.0 },
-    "2": { "damagePercent": 0.7, "cooldown": 4.5 },
-    "3": { "damagePercent": 0.8, "cooldown": 4.0 }
-  },
-  "metal_005": {
-    "1": { "damagePercent": 0.3, "cooldown": 1.5, "projectileCount": 3 },
-    "2": { "damagePercent": 0.35, "cooldown": 1.3, "projectileCount": 3 },
-    "3": { "damagePercent": 0.4, "cooldown": 1.1, "projectileCount": 4 }
-  },
-  "metal_006": {
-    "1": { "duration": 3.0, "cooldown": 25.0 },
-    "2": { "duration": 3.5, "cooldown": 22.0 },
-    "3": { "duration": 4.0, "cooldown": 20.0 }
-  },
-  "metal_007": {
-    "1": { "damagePercent": 1.0, "cooldown": 10.0 },
-    "2": { "damagePercent": 1.2, "cooldown": 9.0 },
-    "3": { "damagePercent": 1.5, "cooldown": 8.0 }
-  },
-  "metal_008": {
-    "1": { "damagePercent": 0.4, "duration": 3.0, "cooldown": 8.0 },
-    "2": { "damagePercent": 0.45, "duration": 3.5, "cooldown": 7.0 },
-    "3": { "damagePercent": 0.5, "duration": 4.0, "cooldown": 6.0 }
-  },
-  "metal_009": {
-    "1": { "critBonus": 0.3, "duration": 15.0, "cooldown": 20.0 },
-    "2": { "critBonus": 0.35, "duration": 18.0, "cooldown": 18.0 },
-    "3": { "critBonus": 0.4, "duration": 20.0, "cooldown": 15.0 }
+  "energy_ball": {
+    "1": { "damagePercent": 0.9, "cooldown": 6.0, "areaRadius": 150 },
+    "2": { "damagePercent": 1.1, "cooldown": 5.5, "areaRadius": 170 },
+    "3": { "damagePercent": 1.3, "cooldown": 5.0, "areaRadius": 200 }
   },
 
-  "========== 基础技能 - 土系 ==========": {},
-  "earth_001": {
-    "1": { "damagePercent": 0.5, "cooldown": 1.1 },
-    "2": { "damagePercent": 0.6, "cooldown": 1.0 },
-    "3": { "damagePercent": 0.7, "cooldown": 0.9 }
+  "========== 随机单体 ==========": {},
+  "light_beam": {
+    "1": { "damagePercent": 1.0, "cooldown": 2.0 },
+    "2": { "damagePercent": 1.2, "cooldown": 1.8 },
+    "3": { "damagePercent": 1.5, "cooldown": 1.5 }
   },
-  "earth_002": {
-    "1": { "damagePercent": 0.6, "cooldown": 4.0 },
-    "2": { "damagePercent": 0.7, "cooldown": 3.5 },
-    "3": { "damagePercent": 0.8, "cooldown": 3.0 }
-  },
-  "earth_003": {
-    "1": { "duration": 5.0, "cooldown": 12.0 },
-    "2": { "duration": 6.0, "cooldown": 11.0 },
-    "3": { "duration": 7.0, "cooldown": 10.0 }
-  },
-  "earth_004": {
-    "1": { "damagePercent": 0.3, "duration": 3.0, "cooldown": 12.0 },
-    "2": { "damagePercent": 0.35, "duration": 3.5, "cooldown": 11.0 },
-    "3": { "damagePercent": 0.4, "duration": 4.0, "cooldown": 10.0 }
-  },
-  "earth_005": {
-    "1": { "damageReduction": 0.3, "duration": 5.0, "cooldown": 15.0 },
-    "2": { "damageReduction": 0.35, "duration": 6.0, "cooldown": 14.0 },
-    "3": { "damageReduction": 0.4, "duration": 7.0, "cooldown": 12.0 }
-  },
-  "earth_006": {
-    "1": { "damagePercent": 0.4, "stunDuration": 1.0, "cooldown": 6.0 },
-    "2": { "damagePercent": 0.5, "stunDuration": 1.0, "cooldown": 5.5 },
-    "3": { "damagePercent": 0.6, "stunDuration": 1.5, "cooldown": 5.0 }
-  },
-  "earth_007": {
-    "1": { "duration": 3.0, "cooldown": 10.0 },
-    "2": { "duration": 3.5, "cooldown": 9.0 },
-    "3": { "duration": 4.0, "cooldown": 8.0 }
-  },
-  "earth_008": {
-    "1": { "cooldown": 10.0 },
-    "2": { "cooldown": 9.0 },
-    "3": { "cooldown": 8.0 }
-  },
-  "earth_009": {
-    "1": { "defenseBonus": 0.3, "duration": 15.0, "cooldown": 20.0 },
-    "2": { "defenseBonus": 0.35, "duration": 18.0, "cooldown": 18.0 },
-    "3": { "defenseBonus": 0.4, "duration": 20.0, "cooldown": 15.0 }
+  "blue_lightning": {
+    "1": { "damagePercent": 1.0, "cooldown": 2.5 },
+    "2": { "damagePercent": 1.2, "cooldown": 2.2 },
+    "3": { "damagePercent": 1.5, "cooldown": 2.0 }
   },
 
-  "========== 单系中级技能 ==========": {},
-  "fire_mid_001": {
-    "1": { "damagePercent": 1.0, "duration": 3.0, "cooldown": 10.0 },
-    "2": { "damagePercent": 1.1, "duration": 3.5, "cooldown": 9.0 },
-    "3": { "damagePercent": 1.2, "duration": 4.0, "cooldown": 8.0 }
-  },
-  "fire_mid_002": {
-    "1": { "damagePercent": 1.3, "pierce": true, "cooldown": 7.0 },
-    "2": { "damagePercent": 1.4, "pierce": true, "cooldown": 6.5 },
-    "3": { "damagePercent": 1.5, "pierce": true, "cooldown": 6.0 }
-  },
-  "fire_mid_003": {
-    "1": { "damageReduction": 0.15, "reflectPercent": 0.4, "duration": 6.0, "cooldown": 18.0 },
-    "2": { "damageReduction": 0.18, "reflectPercent": 0.45, "duration": 7.0, "cooldown": 16.0 },
-    "3": { "damageReduction": 0.2, "reflectPercent": 0.5, "duration": 8.0, "cooldown": 15.0 }
-  },
-
-  "water_mid_001": {
-    "1": { "damagePercent": 1.1, "knockback": true, "cooldown": 8.0 },
-    "2": { "damagePercent": 1.2, "knockback": true, "cooldown": 7.5 },
-    "3": { "damagePercent": 1.3, "knockback": true, "cooldown": 7.0 }
-  },
-  "water_mid_002": {
-    "1": { "healPercent": 0.06, "duration": 4.0, "cooldown": 14.0 },
-    "2": { "healPercent": 0.07, "duration": 4.5, "cooldown": 13.0 },
-    "3": { "healPercent": 0.08, "duration": 5.0, "cooldown": 12.0 }
-  },
-  "water_mid_003": {
-    "1": { "damagePercent": 0.6, "freezeDuration": 2.0, "cooldown": 14.0 },
-    "2": { "damagePercent": 0.7, "freezeDuration": 2.5, "cooldown": 13.0 },
-    "3": { "damagePercent": 0.8, "freezeDuration": 3.0, "cooldown": 12.0 }
-  },
-
-  "wood_mid_001": {
-    "1": { "damagePercent": 0.8, "rootDuration": 2.0, "duration": 4.0, "cooldown": 12.0 },
-    "2": { "damagePercent": 0.9, "rootDuration": 2.2, "duration": 4.5, "cooldown": 11.0 },
-    "3": { "damagePercent": 1.0, "rootDuration": 2.5, "duration": 5.0, "cooldown": 10.0 }
-  },
-  "wood_mid_002": {
-    "1": { "healPercent": 0.2, "regenPercent": 0.04, "duration": 5.0, "cooldown": 18.0 },
-    "2": { "healPercent": 0.22, "regenPercent": 0.045, "duration": 5.5, "cooldown": 16.0 },
-    "3": { "healPercent": 0.25, "regenPercent": 0.05, "duration": 6.0, "cooldown": 15.0 }
-  },
-  "wood_mid_003": {
-    "1": { "damagePercent": 0.5, "poisonPercent": 0.25, "slowPercent": 0.3, "duration": 5.0, "cooldown": 14.0 },
-    "2": { "damagePercent": 0.55, "poisonPercent": 0.27, "slowPercent": 0.35, "duration": 5.5, "cooldown": 13.0 },
-    "3": { "damagePercent": 0.6, "poisonPercent": 0.3, "slowPercent": 0.4, "duration": 6.0, "cooldown": 12.0 }
-  },
-
-  "metal_mid_001": {
-    "1": { "damagePercent": 0.8, "projectileCount": 10, "cooldown": 14.0 },
-    "2": { "damagePercent": 0.9, "projectileCount": 12, "cooldown": 13.0 },
-    "3": { "damagePercent": 1.0, "projectileCount": 15, "cooldown": 12.0 }
-  },
-  "metal_mid_002": {
-    "1": { "invincible": true, "reflectPercent": 0.8, "duration": 3.0, "cooldown": 22.0 },
-    "2": { "invincible": true, "reflectPercent": 0.9, "duration": 3.5, "cooldown": 21.0 },
-    "3": { "invincible": true, "reflectPercent": 1.0, "duration": 4.0, "cooldown": 20.0 }
-  },
-  "metal_mid_003": {
-    "1": { "critBonus": 0.25, "critDamageBonus": 0.4, "duration": 15.0, "cooldown": 30.0 },
-    "2": { "critBonus": 0.27, "critDamageBonus": 0.45, "duration": 18.0, "cooldown": 28.0 },
-    "3": { "critBonus": 0.3, "critDamageBonus": 0.5, "duration": 20.0, "cooldown": 25.0 }
-  },
-
-  "earth_mid_001": {
-    "1": { "damagePercent": 1.1, "stunDuration": 1.0, "cooldown": 12.0 },
-    "2": { "damagePercent": 1.2, "stunDuration": 1.2, "cooldown": 11.0 },
-    "3": { "damagePercent": 1.3, "stunDuration": 1.5, "cooldown": 10.0 }
-  },
-  "earth_mid_002": {
-    "1": { "damageReduction": 0.35, "shieldAmount": 150, "duration": 6.0, "cooldown": 20.0 },
-    "2": { "damageReduction": 0.37, "shieldAmount": 175, "duration": 7.0, "cooldown": 19.0 },
-    "3": { "damageReduction": 0.4, "shieldAmount": 200, "duration": 8.0, "cooldown": 18.0 }
-  },
-  "earth_mid_003": {
-    "1": { "health": 400, "damage": 40, "duration": 20.0, "cooldown": 40.0 },
-    "2": { "health": 450, "damage": 45, "duration": 22.0, "cooldown": 38.0 },
-    "3": { "health": 500, "damage": 50, "duration": 25.0, "cooldown": 35.0 }
-  },
-
-  "========== 跨属性中级技能 ==========": {},
-  "cross_fire_metal_001": {
-    "1": { "damagePercent": 1.2, "pierce": true, "burnPercent": 0.2, "cooldown": 8.0 },
-    "2": { "damagePercent": 1.3, "pierce": true, "burnPercent": 0.25, "cooldown": 7.5 },
-    "3": { "damagePercent": 1.4, "pierce": true, "burnPercent": 0.3, "cooldown": 7.0 }
-  },
-  "cross_water_wood_001": {
-    "1": { "healPercent": 0.12, "rootDuration": 1.5, "cooldown": 14.0 },
-    "2": { "healPercent": 0.13, "rootDuration": 1.8, "cooldown": 13.0 },
-    "3": { "healPercent": 0.15, "rootDuration": 2.0, "cooldown": 12.0 }
-  },
-  "cross_metal_earth_001": {
-    "1": { "shieldAmount": 200, "reflectPercent": 0.4, "duration": 5.0, "cooldown": 22.0 },
-    "2": { "shieldAmount": 250, "reflectPercent": 0.45, "duration": 5.5, "cooldown": 21.0 },
-    "3": { "shieldAmount": 300, "reflectPercent": 0.5, "duration": 6.0, "cooldown": 20.0 }
-  },
-  "cross_fire_water_001": {
-    "1": { "damagePercent": 0.9, "blindDuration": 1.5, "cooldown": 12.0 },
-    "2": { "damagePercent": 1.0, "blindDuration": 1.8, "cooldown": 11.0 },
-    "3": { "damagePercent": 1.1, "blindDuration": 2.0, "cooldown": 10.0 }
-  },
-  "cross_wood_fire_001": {
-    "1": { "damagePercent": 0.7, "rootDuration": 1.5, "burnPercent": 0.2, "duration": 3.0, "cooldown": 13.0 },
-    "2": { "damagePercent": 0.8, "rootDuration": 1.8, "burnPercent": 0.25, "duration": 3.5, "cooldown": 12.0 },
-    "3": { "damagePercent": 0.9, "rootDuration": 2.0, "burnPercent": 0.3, "duration": 4.0, "cooldown": 11.0 }
-  },
-  "cross_water_metal_001": {
-    "1": { "damagePercent": 0.8, "freezeDuration": 1.5, "projectileCount": 6, "cooldown": 13.0 },
-    "2": { "damagePercent": 0.9, "freezeDuration": 1.8, "projectileCount": 7, "cooldown": 12.0 },
-    "3": { "damagePercent": 1.0, "freezeDuration": 2.0, "projectileCount": 8, "cooldown": 11.0 }
-  },
-  "cross_earth_wood_001": {
-    "1": { "reflectPercent": 0.3, "regenPercent": 0.02, "duration": 5.0, "cooldown": 20.0 },
-    "2": { "reflectPercent": 0.35, "regenPercent": 0.025, "duration": 5.5, "cooldown": 19.0 },
-    "3": { "reflectPercent": 0.4, "regenPercent": 0.03, "duration": 6.0, "cooldown": 18.0 }
-  },
-  "cross_thunder_fire_001": {
-    "1": { "damagePercent": 1.0, "duration": 3.0, "cooldown": 14.0 },
-    "2": { "damagePercent": 1.1, "duration": 3.5, "cooldown": 13.0 },
-    "3": { "damagePercent": 1.2, "duration": 4.0, "cooldown": 12.0 }
-  },
-
-  "========== 高级技能 ==========": {},
-  "fire_high_001": {
-    "1": { "damagePercent": 4.0, "duration": 8.0, "cooldown": 50.0 },
-    "2": { "damagePercent": 4.5, "duration": 9.0, "cooldown": 48.0 },
-    "3": { "damagePercent": 5.0, "duration": 10.0, "cooldown": 45.0 }
-  },
-  "water_high_001": {
-    "1": { "damagePercent": 3.0, "healPercent": 0.4, "freezeDuration": 3.0, "duration": 10.0, "cooldown": 50.0 },
-    "2": { "damagePercent": 3.5, "healPercent": 0.45, "freezeDuration": 3.5, "duration": 11.0, "cooldown": 48.0 },
-    "3": { "damagePercent": 4.0, "healPercent": 0.5, "freezeDuration": 4.0, "duration": 12.0, "cooldown": 45.0 }
-  },
-  "wood_high_001": {
-    "1": { "healPercent": 0.8, "regenPercent": 0.08, "damagePercent": 2.0, "duration": 12.0, "cooldown": 50.0 },
-    "2": { "healPercent": 0.9, "regenPercent": 0.09, "damagePercent": 2.5, "duration": 13.0, "cooldown": 48.0 },
-    "3": { "healPercent": 1.0, "regenPercent": 0.1, "damagePercent": 3.0, "duration": 15.0, "cooldown": 45.0 }
-  },
-  "metal_high_001": {
-    "1": { "damagePercent": 5.0, "projectileCount": 30, "critBonus": 0.8, "cooldown": 50.0 },
-    "2": { "damagePercent": 5.5, "projectileCount": 40, "critBonus": 0.9, "cooldown": 48.0 },
-    "3": { "damagePercent": 6.0, "projectileCount": 50, "critBonus": 1.0, "cooldown": 45.0 }
-  },
-  "earth_high_001": {
-    "1": { "damageReduction": 0.7, "shieldAmount": 800, "damagePercent": 3.0, "duration": 12.0, "cooldown": 50.0 },
-    "2": { "damageReduction": 0.75, "shieldAmount": 900, "damagePercent": 3.5, "duration": 13.0, "cooldown": 48.0 },
-    "3": { "damageReduction": 0.8, "shieldAmount": 1000, "damagePercent": 4.0, "duration": 15.0, "cooldown": 45.0 }
-  },
-
-  "========== 终极技能 ==========": {},
-  "five_elements_awaken": {
-    "1": { "cycleTime": 30 },
-    "2": { "cycleTime": 25 },
-    "3": { "cycleTime": 20 },
-    "4": { "cycleTime": 15 },
-    "5": { "cycleTime": 10 }
-  },
-  "ultimate_cross_001": {
-    "1": { "damagePercent": 6.0, "duration": 6.0, "cooldown": 55.0 },
-    "2": { "damagePercent": 7.0, "duration": 7.0, "cooldown": 52.0 },
-    "3": { "damagePercent": 8.0, "duration": 8.0, "cooldown": 50.0 }
-  },
-  "ultimate_cross_002": {
-    "1": { "invincible": true, "reflectPercent": 1.5, "duration": 4.0, "cooldown": 65.0 },
-    "2": { "invincible": true, "reflectPercent": 1.8, "duration": 5.0, "cooldown": 62.0 },
-    "3": { "invincible": true, "reflectPercent": 2.0, "duration": 6.0, "cooldown": 60.0 }
+  "========== 投射物 ==========": {},
+  "blue_slash": {
+    "1": { "damagePercent": 0.9, "cooldown": 2.5, "projectileCount": 1 },
+    "2": { "damagePercent": 1.0, "cooldown": 2.2, "projectileCount": 2 },
+    "3": { "damagePercent": 1.2, "cooldown": 2.0, "projectileCount": 3 }
   }
 }

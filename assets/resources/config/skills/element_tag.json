@@ -1,95 +1,83 @@
 {
-  "========== 基础技能 - 火系 ==========": {},
-  "fire_001": { "element": "fire", "phase": "projectile" },
-  "fire_002": { "element": "fire", "phase": "area" },
-  "fire_003": { "element": "fire", "phase": "projectile" },
-  "fire_004": { "element": "fire", "phase": "area" },
-  "fire_005": { "element": "fire", "phase": "area" },
-  "fire_006": { "element": "fire", "phase": "projectile" },
-  "fire_007": { "element": "fire", "phase": "debuff" },
-  "fire_008": { "element": "fire", "phase": "buff" },
-  "fire_009": { "element": "fire", "phase": "summon" },
+  "========== 五行环 ==========": {},
+  "fire_ring": {
+    "element": "fire",
+    "phase": "area",
+    "isRing": true
+  },
+  "water_ring": {
+    "element": "water",
+    "phase": "area",
+    "isRing": true
+  },
+  "wood_ring": {
+    "element": "wood",
+    "phase": "area",
+    "isRing": true
+  },
+  "metal_ring": {
+    "element": "metal",
+    "phase": "area",
+    "isRing": true
+  },
+  "earth_ring": {
+    "element": "earth",
+    "phase": "area",
+    "isRing": true
+  },
 
-  "========== 基础技能 - 水系 ==========": {},
-  "water_001": { "element": "water", "phase": "projectile" },
-  "water_002": { "element": "water", "phase": "control" },
-  "water_003": { "element": "water", "phase": "projectile" },
-  "water_004": { "element": "water", "phase": "heal" },
-  "water_005": { "element": "water", "phase": "area" },
-  "water_006": { "element": "water", "phase": "projectile" },
-  "water_007": { "element": "water", "phase": "buff" },
-  "water_008": { "element": "water", "phase": "buff" },
-  "water_009": { "element": "water", "phase": "summon" },
+  "========== 指定区域瞬间范围 ==========": {},
+  "explosion": {
+    "element": "fire",
+    "phase": "area",
+    "isRing": false
+  },
+  "ice_pillar": {
+    "element": "water",
+    "phase": "area",
+    "isRing": false
+  },
 
-  "========== 基础技能 - 木系 ==========": {},
-  "wood_001": { "element": "wood", "phase": "projectile" },
-  "wood_002": { "element": "wood", "phase": "control" },
-  "wood_003": { "element": "wood", "phase": "summon" },
-  "wood_004": { "element": "wood", "phase": "heal" },
-  "wood_005": { "element": "wood", "phase": "area" },
-  "wood_006": { "element": "wood", "phase": "buff" },
-  "wood_007": { "element": "wood", "phase": "debuff" },
-  "wood_008": { "element": "wood", "phase": "area" },
-  "wood_009": { "element": "wood", "phase": "summon" },
+  "========== 指定区域持续范围（传奇技能）==========": {},
+  "tornado": {
+    "element": "wind",
+    "phase": "area",
+    "isRing": false
+  },
+  "sandstorm": {
+    "element": "earth",
+    "phase": "area",
+    "isRing": false
+  },
 
-  "========== 基础技能 - 金系 ==========": {},
-  "metal_001": { "element": "metal", "phase": "projectile" },
-  "metal_002": { "element": "metal", "phase": "area" },
-  "metal_003": { "element": "metal", "phase": "buff" },
-  "metal_004": { "element": "metal", "phase": "area" },
-  "metal_005": { "element": "metal", "phase": "projectile" },
-  "metal_006": { "element": "metal", "phase": "buff" },
-  "metal_007": { "element": "metal", "phase": "debuff" },
-  "metal_008": { "element": "metal", "phase": "area" },
-  "metal_009": { "element": "metal", "phase": "summon" },
+  "========== 敌人密集区域范围 ==========": {},
+  "mana_explosion": {
+    "element": "all",
+    "phase": "area",
+    "isRing": false
+  },
+  "energy_ball": {
+    "element": "all",
+    "phase": "area",
+    "isRing": false
+  },
 
-  "========== 基础技能 - 土系 ==========": {},
-  "earth_001": { "element": "earth", "phase": "projectile" },
-  "earth_002": { "element": "earth", "phase": "area" },
-  "earth_003": { "element": "earth", "phase": "control" },
-  "earth_004": { "element": "earth", "phase": "area" },
-  "earth_005": { "element": "earth", "phase": "buff" },
-  "earth_006": { "element": "earth", "phase": "area" },
-  "earth_007": { "element": "earth", "phase": "control" },
-  "earth_008": { "element": "earth", "phase": "buff" },
-  "earth_009": { "element": "earth", "phase": "summon" },
+  "========== 随机单体 ==========": {},
+  "light_beam": {
+    "element": "light",
+    "phase": "single",
+    "isRing": false
+  },
+  "blue_lightning": {
+    "element": "lightning",
+    "phase": "single",
+    "isRing": false
+  },
 
-  "========== 单系中级技能 ==========": {},
-  "fire_mid_001": { "element": "fire", "phase": "area" },
-  "fire_mid_002": { "element": "fire", "phase": "projectile" },
-  "fire_mid_003": { "element": "fire", "phase": "buff" },
-  "water_mid_001": { "element": "water", "phase": "projectile" },
-  "water_mid_002": { "element": "water", "phase": "heal" },
-  "water_mid_003": { "element": "water", "phase": "control" },
-  "wood_mid_001": { "element": "wood", "phase": "control" },
-  "wood_mid_002": { "element": "wood", "phase": "heal" },
-  "wood_mid_003": { "element": "wood", "phase": "debuff" },
-  "metal_mid_001": { "element": "metal", "phase": "area" },
-  "metal_mid_002": { "element": "metal", "phase": "buff" },
-  "metal_mid_003": { "element": "metal", "phase": "summon" },
-  "earth_mid_001": { "element": "earth", "phase": "area" },
-  "earth_mid_002": { "element": "earth", "phase": "buff" },
-  "earth_mid_003": { "element": "earth", "phase": "summon" },
-
-  "========== 跨属性中级技能 ==========": {},
-  "cross_fire_metal_001": { "element": "fire", "phase": "projectile" },
-  "cross_water_wood_001": { "element": "water", "phase": "heal" },
-  "cross_metal_earth_001": { "element": "metal", "phase": "buff" },
-  "cross_fire_water_001": { "element": "fire", "phase": "area" },
-  "cross_wood_fire_001": { "element": "wood", "phase": "area" },
-  "cross_water_metal_001": { "element": "water", "phase": "area" },
-  "cross_earth_wood_001": { "element": "earth", "phase": "buff" },
-  "cross_thunder_fire_001": { "element": "fire", "phase": "area" },
-
-  "========== 高级技能 ==========": {},
-  "fire_high_001": { "element": "fire", "phase": "ultimate" },
-  "water_high_001": { "element": "water", "phase": "ultimate" },
-  "wood_high_001": { "element": "wood", "phase": "ultimate" },
-  "metal_high_001": { "element": "metal", "phase": "ultimate" },
-  "earth_high_001": { "element": "earth", "phase": "ultimate" },
-
-  "========== 终极技能 ==========": {},
-  "five_elements_awaken": { "element": "all", "phase": "ultimate" },
-  "ultimate_cross_001": { "element": "chaos", "phase": "ultimate" },
-  "ultimate_cross_002": { "element": "all", "phase": "ultimate" }
+  "========== 投射物 ==========": {},
+  "blue_slash": {
+    "element": "metal",
+    "phase": "projectile",
+    "isRing": false
+  }
 }

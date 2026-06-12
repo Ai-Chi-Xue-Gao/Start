@@ -7,7 +7,7 @@ import { PoolManager } from '../../utils/PoolManager';
 
 /**
  * 技能工厂
- * 负责动态创建技能组件
+ * 负责：创建和管理技能组件
  */
 export class SkillFactory {
     private static instance: SkillFactory;
@@ -40,7 +40,9 @@ export class SkillFactory {
         // 检查是否已有该技能组件
         let skillComp = this.skillCache.get(skillId);
         if (skillComp && skillComp.node && skillComp.node.isValid) {
-            console.log(`[SkillFactory] 技能已存在: ${skillId}`);
+            // 升级现有技能
+            skillComp.init(skillId, level);
+            console.log(`[SkillFactory] 技能升级: ${skillId} -> Lv.${level}`);
             return skillComp;
         }
 
@@ -50,51 +52,43 @@ export class SkillFactory {
         // 从 PoolManager 获取预制体并设置
         const poolManager = PoolManager.getInstance();
         if (poolManager) {
-            skillComp.defaultProjectilePrefab = poolManager.getGenericProjectilePrefab();
-            skillComp.defaultAreaPrefab = poolManager.getGenericAreaPrefab();
-            skillComp.defaultSummonPrefab = poolManager.getGenericSummonPrefab();
-        } else {
-            console.warn('[SkillFactory] PoolManager 未初始化，技能预制体将为空');
+            skillComp.defaultAreaPrefab = poolManager.getElementRingPrefab();
         }
         
         skillComp.init(skillId, level);
         this.skillCache.set(skillId, skillComp);
-
-        console.log(`[SkillFactory] 技能已添加: ${skillId} Lv.${level}`);
+        console.log(`[SkillFactory] 技能添加: ${skillId} Lv.${level}`);
         return skillComp;
     }
 
     /**
      * 移除技能
-     * @param skillId 技能ID
      */
-    public removeSkill(skillId: string) {
+    public removeSkill(skillId: string): void {
         const skillComp = this.skillCache.get(skillId);
         if (skillComp && skillComp.node && skillComp.node.isValid) {
             skillComp.deactivate();
             skillComp.destroy();
             this.skillCache.delete(skillId);
-            console.log(`[SkillFactory] 技能已移除: ${skillId}`);
+            console.log(`[SkillFactory] 技能移除: ${skillId}`);
         }
     }
 
     /**
      * 升级技能
-     * @param skillId 技能ID
-     * @param newLevel 新等级
      */
-    public upgradeSkill(skillId: string, newLevel: number) {
+    public upgradeSkill(skillId: string, newLevel: number): void {
         const skillComp = this.skillCache.get(skillId);
         if (skillComp && skillComp.node && skillComp.node.isValid) {
             skillComp.init(skillId, newLevel);
-            console.log(`[SkillFactory] 技能已升级: ${skillId} Lv.${newLevel}`);
+            console.log(`[SkillFactory] 技能升级: ${skillId} -> Lv.${newLevel}`);
         }
     }
 
     /**
      * 清除所有技能
      */
-    public clearAllSkills() {
+    public clearAllSkills(): void {
         for (const [skillId, skillComp] of this.skillCache) {
             if (skillComp && skillComp.node && skillComp.node.isValid) {
                 skillComp.deactivate();
@@ -102,11 +96,11 @@ export class SkillFactory {
             }
         }
         this.skillCache.clear();
-        console.log(`[SkillFactory] 所有技能已清除`);
+        console.log('[SkillFactory] 所有技能已清除');
     }
 
     /**
-     * 获取已添加的技能数量
+     * 获取技能数量
      */
     public getSkillCount(): number {
         return this.skillCache.size;
@@ -117,5 +111,12 @@ export class SkillFactory {
      */
     public hasSkill(skillId: string): boolean {
         return this.skillCache.has(skillId);
+    }
+
+    /**
+     * 获取技能组件
+     */
+    public getSkill(skillId: string): GenericSkill | null {
+        return this.skillCache.get(skillId) || null;
     }
 }

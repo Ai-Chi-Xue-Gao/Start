@@ -1,21 +1,17 @@
 // assets/scripts/gameplay/player/PlayerAttack.ts
 
-import { _decorator, Button, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { BaseComponent } from '../../core/BaseComponent';
 import { PlayerAnim } from './PlayerAnim';
 import { PlayerController } from './PlayerController';
 import { EventBus } from '../../core/EventBus';
 import { EventNames } from '../../utils/EventNames';
-import { ObjectPool } from '../../utils/ObjectPool';
 import { GenericProjectile } from '../projectile/GenericProjectile';
 import { Enemy } from '../enemy/Enemy';
+import { SkillConfig } from '../../configs/GameConfig';
 
 const { ccclass, property } = _decorator;
 
-/**
- * 玩家攻击组件（简化版）
- * 负责：基础火球攻击
- */
 @ccclass('PlayerAttack')
 export class PlayerAttack extends BaseComponent {
     @property(Node)
@@ -27,8 +23,9 @@ export class PlayerAttack extends BaseComponent {
     @property
     attackCooldown: number = 0.8
 
+    private attackRange: number = SkillConfig.AUTO_ATTACK_RANGE;
     private playerAnim: PlayerAnim = null
-    private lastAttackTime: number = 0
+    private attackTimer: number = 0
     private playerController: PlayerController = null
     private isPaused: boolean = false
     private canvasNode: Node = null
@@ -43,112 +40,81 @@ export class PlayerAttack extends BaseComponent {
             this.canvasNode = scene?.getChildByName('Canvas');
         }
 
-        const button = this.node.getComponent(Button)
-        if (button) {
-            button.node.on(Button.EventType.CLICK, this.onAttack, this)
-        }
-
         EventBus.on(EventNames.GAME_PAUSE, this.onPause, this)
     }
 
     protected onDestroy(): void {
         EventBus.off(EventNames.GAME_PAUSE, this.onPause, this)
-        
-        const button = this.node.getComponent(Button)
-        if (button && button.node) {
-            button.node.off(Button.EventType.CLICK, this.onAttack, this)
-        }
     }
 
     private onPause(pause: boolean) {
         this.isPaused = pause
     }
 
-    private onAttack() {
-        if (this.isPaused) return
+    private performAttack() {
+        const nearestEnemy = this.findNearestEnemyInRange()
+        if (!nearestEnemy) return
 
-        const cdReduction = this.playerController.getAttackCooldownReduction()
-        const effectiveCooldown = Math.max(0.2, this.attackCooldown - cdReduction)
+        const enemyPos = nearestEnemy.worldPosition
+        const playerPos = this.player.worldPosition
+        
+        let direction = new Vec3()
+        Vec3.subtract(direction, enemyPos, playerPos)
+        
+        if (direction.length() < 20) return
+        direction.normalize()
 
-        const now = Date.now() / 1000
-        if (now - this.lastAttackTime < effectiveCooldown) return
-        this.lastAttackTime = now
-
-        // 寻找最近的敌人（用于确定发射方向）
-        const nearestEnemy = this.findNearestEnemy()
-        let direction: Vec3 = null
-
-        if (nearestEnemy) {
-            const enemyPos = nearestEnemy.worldPosition
-            const playerPos = this.player.worldPosition
-            direction = new Vec3()
-            Vec3.subtract(direction, enemyPos, playerPos)
-            direction.normalize()
-
-            // 更新角色朝向
-            const spriteNode = this.player.getChildByName('Sprite')
+        const spriteNode = this.player.getChildByName('Sprite')
+        if (spriteNode) {
             if (enemyPos.x < playerPos.x) {
-                spriteNode?.setScale(-1, 1, 1)
+                spriteNode.setScale(-1, 1, 1)
             } else {
-                spriteNode?.setScale(1, 1, 1)
+                spriteNode.setScale(1, 1, 1)
             }
-        } else {
-            // 没有敌人时，默认向右发射
-            direction = new Vec3(1, 0, 0)
         }
 
         this.playerAnim.playAttack()
         this.spawnFireBall(direction)
     }
 
-    /**
-     * 发射火球
-     */
     private spawnFireBall(direction: Vec3) {
         if (!this.fireBallPrefab) return
 
         const attackValue = this.playerController.getAttack()
         const canvas = this.canvasNode
-        const pool = ObjectPool.getInstance()
 
-        let fireball = pool.get('genericProjectile', canvas)
-
-        if (!fireball) {
-            fireball = instantiate(this.fireBallPrefab)
-            canvas?.addChild(fireball)
-        } else {
-            fireball.active = true
-        }
+        const fireball = instantiate(this.fireBallPrefab)
+        canvas?.addChild(fireball)
 
         const fireballScript = fireball.getComponent(GenericProjectile)
         if (fireballScript) {
             const dir = { x: direction.x, y: direction.y }
             fireballScript.init(
                 attackValue, 'fire', 'base_attack',
-                dir, 400, false, 0, 0, 0
+                dir, SkillConfig.DEFAULT_PROJECTILE_SPEED, false, 0, 0, 0
             )
-            fireballScript.setFromPool(true)
+            fireballScript.setFromPool(false)
         }
 
         fireball.setWorldPosition(this.player.worldPosition)
     }
 
-    /**
-     * 查找最近的敌人
-     */
-    private findNearestEnemy(): Node | null {
+    private findNearestEnemyInRange(): Node | null {
         if (!this.canvasNode) return null
 
         let minDist = Infinity
         let nearest = null
+        const maxRange = this.attackRange;
 
         const waveManager = this.canvasNode.getChildByName('WaveManager')
         if (waveManager) {
+            const playerPos = this.player.worldPosition
+            
             for (const child of waveManager.children) {
                 const enemy = child.getComponent(Enemy)
                 if (enemy && !enemy.isDead) {
-                    const dist = Vec3.distance(this.player.worldPosition, child.worldPosition)
-                    if (dist < minDist) {
+                    const dist = Vec3.distance(playerPos, child.worldPosition)
+                    if (dist < minDist && dist <= maxRange) {
                         minDist = dist
                         nearest = child
                     }
@@ -157,5 +123,27 @@ export class PlayerAttack extends BaseComponent {
         }
 
         return nearest
+    }
+
+    public getAttackRange(): number {
+        return this.attackRange
+    }
+
+    public setAttackRange(range: number): void {
+        this.attackRange = range
+    }
+
+    update(deltaTime: number) {
+        if (this.isPaused) return
+        
+        if (this.attackTimer > 0) {
+            this.attackTimer -= deltaTime
+        } else {
+            const cooldownReduction = this.playerController.getAttackCooldownReduction()
+            const actualCooldown = Math.max(0.2, this.attackCooldown - cooldownReduction)
+            
+            this.performAttack()
+            this.attackTimer = actualCooldown
+        }
     }
 }

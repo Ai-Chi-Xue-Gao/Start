@@ -83,7 +83,7 @@ export class BestiaryPanel extends BaseComponent {
     }
 
     private bindEvents() {
-        // 🆕 关闭按钮 - 发送事件通知 MainMenu
+        // 关闭按钮 - 发送事件通知 MainMenu
         if (this.closeButton && this.closeButton.node) {
             this.boundClosePanel = this.onClose.bind(this);
             this.closeButton.node.off(Button.EventType.CLICK, this.boundClosePanel, this);
@@ -114,9 +114,8 @@ export class BestiaryPanel extends BaseComponent {
         this.unbindEvents();
     }
 
-    // 🆕 关闭按钮回调 - 发送事件
+    // 关闭按钮回调 - 发送事件
     private onClose() {
-        console.log('[BestiaryPanel] 发送关闭事件');
         EventBus.emit(BestiaryPanelEvents.CLOSE);
     }
 

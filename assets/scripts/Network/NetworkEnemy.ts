@@ -33,7 +33,6 @@ export class NetworkEnemy extends BaseComponent {
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         // 碰到玩家时造成伤害
         if (otherCollider.node.name === 'Player') {
-            console.log(`[NetworkEnemy]碰到玩家，伤害：${this.damage}`)
             EventBus.emit(EventNames.ENEMY_HIT_PLAYER, this.damage)
         }
     }
@@ -106,7 +105,6 @@ export class NetworkEnemy extends BaseComponent {
     * 但为了兼容 IDamageable 接口，保留此方法
     */
     public takeDamage(damage: number): boolean {
-        console.log(`[NetworkEnemy] 收到伤害 ${damage}，由服务端同步状态`)
         // 网络敌人的血量由服务端同步，客户端不直接修改
         // 返回 false 表示未立即死亡（等待服务端同步）
         return false

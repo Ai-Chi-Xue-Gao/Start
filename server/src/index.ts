@@ -57,7 +57,6 @@ const wss = new WebSocketServer({port: PORT})
 // 存储所有在线玩家
 const players: Map<string, Player> = new Map();
 
-console.log(`WebSocket服务器已启动，端口：${PORT}`)
 
 // 广播给所有玩家（除发送者外）
 function broadcast(type: string, data: any, excludeId?: string){
@@ -84,7 +83,6 @@ wss.on('connection', (ws: WebSocket, req) => {
     // 生成唯一ID
     const playerId = Date.now().toString() + Math.random().toString(36).substring(2, 8)
 
-    console.log(`新玩家连接：${playerId}`)
 
     // 新玩家加入
     const newPlayer: Player = {
